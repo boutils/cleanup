@@ -51,7 +51,7 @@ async function checkVMCFiles() {
       const properties = ['props', 'data', 'computed', 'methods'];
       for (const property of properties) {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
-        const sortingErrors = getSortingErrors(names);
+        const sortingErrors = getSortingError(names);
         if (sortingErrors) {
           addWarning(file, `[${property}]: ${sortingErrors}`);
         }
@@ -63,13 +63,14 @@ async function checkVMCFiles() {
 }
 
 async function checkVUEFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, 'sd-cell-renderer.vue');
+  const files = getFilesFromDirectory(DIRECTORY, '.vue');
   for (const file of files) {
     const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     const lines = data.split('\n');
     const linesInfo = [];
 
-    //const cummulatedAttributeNames = []
+    let cummulatedAttributeNames = [];
+    let cummulatedEventNames = [];
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
       const lineInfo = computeHTMLLineInfo(line);
@@ -91,9 +92,28 @@ async function checkVUEFiles() {
         addWarning(file, `[line ${lineNumber}] BackTick should be removed, this is not a vue binding`);
       }
 
-      console.log('line ' + lineNumber, '"' + line + '"');
-      console.log('info', lineInfo);
-      console.log('-------');
+      cummulatedAttributeNames.push(...lineInfo.attributeNames);
+      if (lineInfo.eventName) {
+        cummulatedEventNames.push(lineInfo.eventName);
+      }
+      if (lineInfo.hasEndingTag) {
+        const sortingAttrError = getSortingError(cummulatedAttributeNames, lineNumber - cummulatedEventNames.length);
+        if (sortingAttrError) {
+          addWarning(file, sortingAttrError);
+        }
+
+        const sortingEventsError = getSortingError(cummulatedEventNames, lineNumber);
+        if (sortingEventsError) {
+          addWarning(file, sortingEventsError);
+        }
+
+        cummulatedAttributeNames = [];
+        cummulatedEventNames = [];
+      }
+
+      // console.log('line ' + lineNumber, '"' + line + '"');
+      // console.log('info', lineInfo);
+      // console.log('-------');
     }
   }
 }
@@ -189,12 +209,14 @@ function isHTMLLineVueBinding(line, indentationCount) {
   return line.substr(indentationCount, 1) === ':';
 }
 
-function getSortingErrors(arr) {
+function getSortingError(arr, lineNumber = null) {
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i].toLowerCase() > arr[i + 1].toLowerCase()) {
-      return `"${arr[i]}" should be after "${arr[i + 1]}"`;
+      const message = `"${arr[i]}" should be after "${arr[i + 1]}"`;
+      return lineNumber ? `[line ${lineNumber - arr.length + i}] ${message}` : message;
     }
   }
+
   return null;
 }
 
