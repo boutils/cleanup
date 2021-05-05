@@ -63,7 +63,7 @@ async function checkVMCFiles() {
 }
 
 async function checkVUEFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vue');
+  const files = getFilesFromDirectory(DIRECTORY, 'shortcut-dialog.vue');
   for (const file of files) {
     const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     const lines = data.split('\n');
@@ -74,9 +74,19 @@ async function checkVUEFiles() {
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
       const lineInfo = computeHTMLLineInfo(line);
+      const previousLineInfo = linesInfo[lineIndex - 1] || {};
       linesInfo.push(lineInfo);
 
-      if (!lineInfo.isEmptyLine && !lineInfo.isClosingTag && lineIndex > 0 && linesInfo[lineIndex - 1].hasEndingTag) {
+      // console.log('line ' + lineNumber, '"' + line + '"');
+      // console.log('info', lineInfo);
+      // console.log('-------');
+
+      if (lineInfo.isCommentedLine) {
+        addWarning(file, `[line ${lineNumber}] This line is a comment, consider to remove it`);
+        continue;
+      }
+
+      if (!lineInfo.isEmptyLine && !lineInfo.isClosingTag && lineIndex > 0 && previousLineInfo.hasEndingTag) {
         addWarning(file, `[line ${lineNumber}] Add an empty line before`);
       }
 
@@ -88,21 +98,42 @@ async function checkVUEFiles() {
         addWarning(file, `[line ${lineNumber}] BackTick should be removed, there is no variable inside`);
       }
 
-      if (lineInfo.hasBackTick && !lineInfo.isVueBinding) {
+      if (lineInfo.hasBackTick && !lineInfo.isVueBinding && !lineInfo.hasMustacheCode) {
         addWarning(file, `[line ${lineNumber}] BackTick should be removed, this is not a vue binding`);
       }
 
-      cummulatedAttributeNames.push(...lineInfo.attributeNames);
+      if (lineInfo.attributeNames.length > 0 && previousLineInfo.eventName && !previousLineInfo.hasEndingTag) {
+        addWarning(file, `[line ${lineIndex}] '${previousLineInfo.eventName}' should be declared after attributes`);
+      }
+
+      if (lineInfo.hasMustacheCode) {
+        if (!line.includes('{{ ')) {
+          addWarning(file, `[line ${lineNumber}] Missing space after '{{'`);
+        } else if (!line.includes(' }}')) {
+          addWarning(file, `[line ${lineNumber}] Missing space before '}}'`);
+        }
+      }
+
+      if (lineInfo.hasStartingTag && !lineInfo.isCommentedLine) {
+        const sortingAttrError = getSortingError(lineInfo.attributeNames, lineNumber);
+        if (sortingAttrError) {
+          addWarning(file, sortingAttrError);
+        }
+      } else {
+        cummulatedAttributeNames.push(...lineInfo.attributeNames);
+      }
+
       if (lineInfo.eventName) {
         cummulatedEventNames.push(lineInfo.eventName);
       }
       if (lineInfo.hasEndingTag) {
-        const sortingAttrError = getSortingError(cummulatedAttributeNames, lineNumber - cummulatedEventNames.length);
+        const relativeLineNumber = lineNumber - cummulatedEventNames.length + 1;
+        const sortingAttrError = getSortingError(cummulatedAttributeNames, relativeLineNumber);
         if (sortingAttrError) {
           addWarning(file, sortingAttrError);
         }
 
-        const sortingEventsError = getSortingError(cummulatedEventNames, lineNumber);
+        const sortingEventsError = getSortingError(cummulatedEventNames, lineNumber + 1);
         if (sortingEventsError) {
           addWarning(file, sortingEventsError);
         }
@@ -110,21 +141,19 @@ async function checkVUEFiles() {
         cummulatedAttributeNames = [];
         cummulatedEventNames = [];
       }
-
-      // console.log('line ' + lineNumber, '"' + line + '"');
-      // console.log('info', lineInfo);
-      // console.log('-------');
     }
   }
 }
 
 function computeHTMLLineInfo(line) {
   const isEmptyLine = !line;
+  const isCommentedLine = line.trim().startsWith('<!--');
   const indentationCount = computeHTMLLineIndentation(line);
   const hasStartingTag = hasHTMLLineStartingTag(line, indentationCount);
   const hasEndingTag = hasHTMLLineEndingTag(line);
   const hasBackTick = hasHTMLLineBackTick(line);
   const hasDollar = hasHTMLLineDollar(line);
+  const hasMustacheCode = hasHTMLLineMustacheCode(line);
   const equalPosition = computeEqualPosition(line);
   const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
   const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
@@ -139,8 +168,10 @@ function computeHTMLLineInfo(line) {
     hasEndingTag,
     hasStartingTag,
     hasBackTick,
+    hasMustacheCode,
     indentationCount,
     isClosingTag,
+    isCommentedLine,
     isEmptyLine,
     isVueBinding,
   };
@@ -151,6 +182,10 @@ function computeEqualPosition(line) {
 }
 
 function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
+  if (hasStartingTag && hasEndingTag) {
+    line = line.substr(0, line.indexOf('>'));
+  }
+
   if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
     return line
       .trim()
@@ -194,11 +229,15 @@ function hasHTMLLineDollar(line) {
 }
 
 function hasHTMLLineStartingTag(line, indentationCount) {
-  return line.substr(indentationCount, 1) === '<';
+  return line.substr(indentationCount, 1) === '<' && line.substr(indentationCount, 2) !== '<!';
 }
 
 function hasHTMLLineEndingTag(line) {
-  return line.substr(line.length - 1) === '>';
+  return line.substr(line.length - 1) === '>' && line.substr(line.length - 2) !== '->';
+}
+
+function hasHTMLLineMustacheCode(line) {
+  return line.includes('{{');
 }
 
 function isHTLMClosingTag(line) {
