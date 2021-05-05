@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@vuedoc/parser": "^3.3.0"
+  }
+}
