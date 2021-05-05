@@ -125,9 +125,9 @@ function computeHTMLLineInfo(line) {
   const hasEndingTag = hasHTMLLineEndingTag(line);
   const hasBackTick = hasHTMLLineBackTick(line);
   const hasDollar = hasHTMLLineDollar(line);
-  const isVueBinding = isHTMLLineVueBinding(line, indentationCount);
   const equalPosition = computeEqualPosition(line);
   const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
+  const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
   const eventName = computeHTMLLineEventName(line, equalPosition);
   const isClosingTag = isHTLMClosingTag(line);
 
@@ -205,12 +205,16 @@ function isHTLMClosingTag(line) {
   return line.trim().startsWith('</');
 }
 
-function isHTMLLineVueBinding(line, indentationCount) {
-  return line.substr(indentationCount, 1) === ':';
+function isHTMLLineVueBinding(line, attributeNames) {
+  return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
 }
 
 function getSortingError(arr, lineNumber = null) {
   for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i].toLowerCase().startsWith('v-') && !arr[i + 1].toLowerCase().startsWith('v-')) {
+      continue;
+    }
+
     if (arr[i].toLowerCase() > arr[i + 1].toLowerCase()) {
       const message = `"${arr[i]}" should be after "${arr[i + 1]}"`;
       return lineNumber ? `[line ${lineNumber - arr.length + i}] ${message}` : message;
