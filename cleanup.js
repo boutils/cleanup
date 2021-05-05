@@ -63,7 +63,7 @@ async function checkVMCFiles() {
 }
 
 async function checkVUEFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, 'shortcut-dialog.vue');
+  const files = getFilesFromDirectory(DIRECTORY, '.vue');
   for (const file of files) {
     const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     const lines = data.split('\n');
@@ -90,7 +90,11 @@ async function checkVUEFiles() {
         addWarning(file, `[line ${lineNumber}] Add an empty line before`);
       }
 
-      if (lineInfo.equalPosition > -1 && !line.includes(' = ')) {
+      if (
+        (lineInfo.eventName || lineInfo.attributeNames.length > 0) &&
+        lineInfo.equalPosition > -1 &&
+        !line.includes(' = ')
+      ) {
         addWarning(file, `[line ${lineNumber}] '=' should be surronded by at least one space`);
       }
 
@@ -194,7 +198,10 @@ function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equal
       .filter((it) => it[0] !== '<');
   } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
     const left = line.substr(0, equalPosition).trim().split(' ');
-    return [left[left.length - 1].replace(':', '')];
+    const attributeName = left[left.length - 1].replace(':', '');
+    if (attributeName) {
+      return [attributeName];
+    }
   }
 
   return [];
