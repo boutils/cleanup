@@ -62,6 +62,133 @@ async function checkVMCFiles() {
   }
 }
 
+async function checkVUEFiles() {
+  const files = getFilesFromDirectory(DIRECTORY, 'sd-cell-renderer.vue');
+  for (const file of files) {
+    const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+    const lines = data.split('\n');
+    const linesInfo = [];
+
+    //const cummulatedAttributeNames = []
+    for (const [lineIndex, line] of lines.entries()) {
+      const lineNumber = lineIndex + 1;
+      const lineInfo = computeHTMLLineInfo(line);
+      linesInfo.push(lineInfo);
+
+      if (!lineInfo.isEmptyLine && !lineInfo.isClosingTag && lineIndex > 0 && linesInfo[lineIndex - 1].hasEndingTag) {
+        addWarning(file, `[line ${lineNumber}] Add an empty line before`);
+      }
+
+      if (lineInfo.equalPosition > -1 && !line.includes(' = ')) {
+        addWarning(file, `[line ${lineNumber}] '=' should be surronded by at least one space`);
+      }
+
+      if (lineInfo.hasBackTick && !lineInfo.hasDollar) {
+        addWarning(file, `[line ${lineNumber}] BackTick should be removed, there is no variable inside`);
+      }
+
+      if (lineInfo.hasBackTick && !lineInfo.isVueBinding) {
+        addWarning(file, `[line ${lineNumber}] BackTick should be removed, this is not a vue binding`);
+      }
+
+      console.log('line ' + lineNumber, '"' + line + '"');
+      console.log('info', lineInfo);
+      console.log('-------');
+    }
+  }
+}
+
+function computeHTMLLineInfo(line) {
+  const isEmptyLine = !line;
+  const indentationCount = computeHTMLLineIndentation(line);
+  const hasStartingTag = hasHTMLLineStartingTag(line, indentationCount);
+  const hasEndingTag = hasHTMLLineEndingTag(line);
+  const hasBackTick = hasHTMLLineBackTick(line);
+  const hasDollar = hasHTMLLineDollar(line);
+  const isVueBinding = isHTMLLineVueBinding(line, indentationCount);
+  const equalPosition = computeEqualPosition(line);
+  const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
+  const eventName = computeHTMLLineEventName(line, equalPosition);
+  const isClosingTag = isHTLMClosingTag(line);
+
+  return {
+    attributeNames,
+    equalPosition,
+    eventName,
+    hasDollar,
+    hasEndingTag,
+    hasStartingTag,
+    hasBackTick,
+    indentationCount,
+    isClosingTag,
+    isEmptyLine,
+    isVueBinding,
+  };
+}
+
+function computeEqualPosition(line) {
+  return line.indexOf('=');
+}
+
+function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
+  if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
+    return line
+      .trim()
+      .replace('>', '')
+      .split(' ')
+      .filter((it) => it[0] !== '<');
+  } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
+    const left = line.substr(0, equalPosition).trim().split(' ');
+    return [left[left.length - 1].replace(':', '')];
+  }
+
+  return [];
+}
+
+function computeHTMLLineEventName(line, equalPosition) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith('@')) {
+    return line.substr(0, equalPosition).trim().replace('@', '');
+  }
+}
+
+function computeHTMLLineIndentation(line) {
+  let result = 0;
+  for (const char of line) {
+    if (char !== ' ') {
+      return result;
+    }
+
+    result++;
+  }
+
+  return result;
+}
+
+function hasHTMLLineBackTick(line) {
+  return line.includes('`');
+}
+
+function hasHTMLLineDollar(line) {
+  return line.includes('$');
+}
+
+function hasHTMLLineStartingTag(line, indentationCount) {
+  return line.substr(indentationCount, 1) === '<';
+}
+
+function hasHTMLLineEndingTag(line) {
+  return line.substr(line.length - 1) === '>';
+}
+
+function isHTLMClosingTag(line) {
+  return line.trim().startsWith('</');
+}
+
+function isHTMLLineVueBinding(line, indentationCount) {
+  return line.substr(indentationCount, 1) === ':';
+}
+
 function getSortingErrors(arr) {
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i].toLowerCase() > arr[i + 1].toLowerCase()) {
@@ -81,6 +208,8 @@ function printWarnings() {
     log('/**************************************************************************', 'comment');
     log(` *                           ${count}  files with  warnings;                    *`, 'comment');
     log(' **************************************************************************/', 'comment');
+  } else {
+    log('Yeah!, All good', 'ok');
   }
 
   for (const file of Object.keys(warnings)) {
@@ -94,7 +223,8 @@ function printWarnings() {
 }
 
 async function checker() {
-  await checkVMCFiles();
+  //await checkVMCFiles();
+  await checkVUEFiles();
   printWarnings();
 }
 
