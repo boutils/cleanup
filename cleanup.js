@@ -71,9 +71,10 @@ async function checkVUEFiles() {
 
     let cummulatedAttributeNames = [];
     let cummulatedEventNames = [];
+    let cumulatedAttributesAndEventLinesInfo = [];
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
-      const lineInfo = computeHTMLLineInfo(line);
+      const lineInfo = computeHTMLLineInfo(line, lineNumber);
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
       linesInfo.push(lineInfo);
 
@@ -98,7 +99,7 @@ async function checkVUEFiles() {
         addWarning(file, `[line ${lineNumber}] '=' should be surronded by at least one space`);
       }
 
-      if (lineInfo.hasBackTick && !lineInfo.hasDollar) {
+      if (lineInfo.hasBackTick && !lineInfo.hasDollar && !lineInfo.hasPipe) {
         addWarning(file, `[line ${lineNumber}] BackTick should be removed, there is no variable inside`);
       }
 
@@ -125,11 +126,18 @@ async function checkVUEFiles() {
         }
       } else {
         cummulatedAttributeNames.push(...lineInfo.attributeNames);
+
+        if (lineInfo.attributeNames[0]) {
+          cumulatedAttributesAndEventLinesInfo.push(lineInfo);
+        }
       }
 
       if (lineInfo.eventName) {
         cummulatedEventNames.push(lineInfo.eventName);
+
+        cumulatedAttributesAndEventLinesInfo.push(lineInfo);
       }
+
       if (lineInfo.hasEndingTag) {
         const relativeLineNumber = lineNumber - cummulatedEventNames.length + 1;
         const sortingAttrError = getSortingError(cummulatedAttributeNames, relativeLineNumber);
@@ -144,12 +152,21 @@ async function checkVUEFiles() {
 
         cummulatedAttributeNames = [];
         cummulatedEventNames = [];
+
+        const equalErrors = getEqualsErrors(cumulatedAttributesAndEventLinesInfo);
+        if (equalErrors) {
+          for (const equalError of equalErrors) {
+            addWarning(file, equalError);
+          }
+        }
+
+        cumulatedAttributesAndEventLinesInfo = [];
       }
     }
   }
 }
 
-function computeHTMLLineInfo(line) {
+function computeHTMLLineInfo(line, lineNumber) {
   const isEmptyLine = !line;
   const isCommentedLine = line.trim().startsWith('<!--');
   const indentationCount = computeHTMLLineIndentation(line);
@@ -158,6 +175,7 @@ function computeHTMLLineInfo(line) {
   const hasBackTick = hasHTMLLineBackTick(line);
   const hasDollar = hasHTMLLineDollar(line);
   const hasMustacheCode = hasHTMLLineMustacheCode(line);
+  const hasPipe = hasHTMLLinePipe(line);
   const equalPosition = computeEqualPosition(line);
   const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
   const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
@@ -173,11 +191,13 @@ function computeHTMLLineInfo(line) {
     hasStartingTag,
     hasBackTick,
     hasMustacheCode,
+    hasPipe,
     indentationCount,
     isClosingTag,
     isCommentedLine,
     isEmptyLine,
     isVueBinding,
+    lineNumber,
   };
 }
 
@@ -231,6 +251,10 @@ function hasHTMLLineBackTick(line) {
   return line.includes('`');
 }
 
+function hasHTMLLinePipe(line) {
+  return line.includes('|');
+}
+
 function hasHTMLLineDollar(line) {
   return line.includes('$');
 }
@@ -255,6 +279,32 @@ function isHTMLLineVueBinding(line, attributeNames) {
   return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
 }
 
+function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
+  if (cumulatedAttributesAndEventLinesInfo.length === 0) {
+    return;
+  }
+
+  // Compute max Length
+  let maxLength = 0;
+  for (const lineInfo of cumulatedAttributesAndEventLinesInfo) {
+    const name = lineInfo.eventName || lineInfo.attributeNames[0];
+    const nameLength = name.length + (lineInfo.eventName || lineInfo.isVueBinding ? 1 : 0);
+    if (nameLength > maxLength) {
+      maxLength = nameLength;
+    }
+  }
+  const expectedEqualPosition = cumulatedAttributesAndEventLinesInfo[0].indentationCount + 1 + maxLength;
+
+  const errors = [];
+  for (const lineInfo of cumulatedAttributesAndEventLinesInfo) {
+    if (lineInfo.equalPosition !== expectedEqualPosition) {
+      errors.push(`[line ${lineInfo.lineNumber}] Equal is not correctly aligned`);
+    }
+  }
+
+  return errors;
+}
+
 function getSortingError(arr, lineNumber = null) {
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i].toLowerCase().startsWith('v-') && !arr[i + 1].toLowerCase().startsWith('v-')) {
@@ -274,11 +324,21 @@ function log(message, type) {
   console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message);
 }
 
+function countWarningsEntries(warnings) {
+  let count = 0;
+  for (const entries of Object.values(warnings)) {
+    count += entries.length;
+  }
+  return count;
+}
+
 function printWarnings() {
-  const count = Object.keys(warnings).length;
-  if (count > 0) {
+  const countFilesWithWarnings = Object.keys(warnings).length;
+  const countWarnings = countWarningsEntries(warnings);
+
+  if (countFilesWithWarnings > 0) {
     log('/**************************************************************************', 'comment');
-    log(` *                           ${count}  files with  warnings;                    *`, 'comment');
+    log(` *        ${countWarnings} warnings in ${countFilesWithWarnings} files`, 'comment');
     log(' **************************************************************************/', 'comment');
   } else {
     log('Yeah!, All good', 'ok');
@@ -295,7 +355,7 @@ function printWarnings() {
 }
 
 async function checker() {
-  //await checkVMCFiles();
+  await checkVMCFiles();
   await checkVUEFiles();
   printWarnings();
 }
