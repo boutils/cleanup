@@ -13,9 +13,9 @@ const COLOR_FROM_TYPE = {
 
 const warnings = {};
 
-function addWarning(file, message) {
+function addWarning(file, lineNumber, type, message) {
   warnings[file] = warnings[file] || [];
-  warnings[file].push(message);
+  warnings[file].push({ lineNumber, type, message });
 }
 
 function isMatchingFilter(fileName, filter) {
@@ -53,7 +53,7 @@ async function checkVMCFiles() {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
         const sortingErrors = getSortingError(names);
         if (sortingErrors) {
-          addWarning(file, `[${property}]: ${sortingErrors}`);
+          addWarning(file, null, 'sorting', `${property} ${sortingErrors}`);
         }
       }
     } catch (e) {
@@ -83,12 +83,12 @@ async function checkVUEFiles() {
       // console.log('-------');
 
       if (lineInfo.isCommentedLine) {
-        addWarning(file, `[line ${lineNumber}] This line is a comment, consider to remove it`);
+        addWarning(file, lineNumber, 'comment', `This line is a comment, consider to remove it`);
         continue;
       }
 
       if (!lineInfo.isEmptyLine && !lineInfo.isClosingTag && lineIndex > 0 && previousLineInfo.hasEndingTag) {
-        addWarning(file, `[line ${lineNumber}] Add an empty line before`);
+        addWarning(file, lineNumber, 'empty line', `Add an empty line before`);
       }
 
       if (
@@ -96,33 +96,33 @@ async function checkVUEFiles() {
         lineInfo.equalPosition > -1 &&
         !line.includes(' = ')
       ) {
-        addWarning(file, `[line ${lineNumber}] '=' should be surronded by at least one space`);
+        addWarning(file, lineNumber, 'space', `'=' should be surronded by at least one space`);
       }
 
       if (lineInfo.hasBackTick && !lineInfo.hasDollar && !lineInfo.hasPipe) {
-        addWarning(file, `[line ${lineNumber}] BackTick should be removed, there is no variable inside`);
+        addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, there is no variable inside`);
       }
 
       if (lineInfo.hasBackTick && !lineInfo.isVueBinding && !lineInfo.hasMustacheCode) {
-        addWarning(file, `[line ${lineNumber}] BackTick should be removed, this is not a vue binding`);
+        addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, this is not a vue binding`);
       }
 
       if (lineInfo.attributeNames.length > 0 && previousLineInfo.eventName && !previousLineInfo.hasEndingTag) {
-        addWarning(file, `[line ${lineIndex}] '${previousLineInfo.eventName}' should be declared after attributes`);
+        addWarning(file, lineIndex, 'sorting', `'${previousLineInfo.eventName}' should be declared after attributes`);
       }
 
       if (lineInfo.hasMustacheCode) {
         if (!line.includes('{{ ')) {
-          addWarning(file, `[line ${lineNumber}] Missing space after '{{'`);
+          addWarning(file, lineNumber, 'space', `Missing space after '{{'`);
         } else if (!line.includes(' }}')) {
-          addWarning(file, `[line ${lineNumber}] Missing space before '}}'`);
+          addWarning(file, lineNumber, 'space', `Missing space before '}}'`);
         }
       }
 
       if (lineInfo.hasStartingTag && !lineInfo.isCommentedLine) {
         const sortingAttrError = getSortingError(lineInfo.attributeNames, lineNumber);
         if (sortingAttrError) {
-          addWarning(file, sortingAttrError);
+          addWarning(file, sortingAttrError.lineNumber, 'sorting', sortingAttrError.message);
         }
       } else {
         cummulatedAttributeNames.push(...lineInfo.attributeNames);
@@ -142,12 +142,12 @@ async function checkVUEFiles() {
         const relativeLineNumber = lineNumber - cummulatedEventNames.length + 1;
         const sortingAttrError = getSortingError(cummulatedAttributeNames, relativeLineNumber);
         if (sortingAttrError) {
-          addWarning(file, sortingAttrError);
+          addWarning(file, sortingAttrError.lineNumber, 'sorting', sortingAttrError.message);
         }
 
         const sortingEventsError = getSortingError(cummulatedEventNames, lineNumber + 1);
         if (sortingEventsError) {
-          addWarning(file, sortingEventsError);
+          addWarning(file, sortingEventsError.lineNumber, 'sorting', sortingEventsError.message);
         }
 
         cummulatedAttributeNames = [];
@@ -156,7 +156,7 @@ async function checkVUEFiles() {
         const equalErrors = getEqualsErrors(cumulatedAttributesAndEventLinesInfo);
         if (equalErrors) {
           for (const equalError of equalErrors) {
-            addWarning(file, equalError);
+            addWarning(file, equalError.lineNumber, 'equal', equalError.message);
           }
         }
 
@@ -298,7 +298,7 @@ function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
   const errors = [];
   for (const lineInfo of cumulatedAttributesAndEventLinesInfo) {
     if (lineInfo.equalPosition !== expectedEqualPosition) {
-      errors.push(`[line ${lineInfo.lineNumber}] Equal is not correctly aligned`);
+      errors.push({ lineNumber: lineInfo.lineNumber, message: `Equal is not correctly aligned` });
     }
   }
 
@@ -313,7 +313,7 @@ function getSortingError(arr, lineNumber = null) {
 
     if (arr[i].toLowerCase() > arr[i + 1].toLowerCase()) {
       const message = `"${arr[i]}" should be after "${arr[i + 1]}"`;
-      return lineNumber ? `[line ${lineNumber - arr.length + i}] ${message}` : message;
+      return lineNumber ? { lineNumber: lineNumber - arr.length + i, message } : message;
     }
   }
 
@@ -348,8 +348,9 @@ function printWarnings() {
     const fileName = file.replace(/^.*[\\\/]/, '');
     log('\n' + fileName, 'info');
     log(file, 'path');
-    for (const message of warnings[file]) {
-      log('\t' + message, 'warning');
+    for (const warning of warnings[file]) {
+      const lineMsg = warning.lineNumber ? `[line ${warning.lineNumber}] ` : '';
+      log(`\t${lineMsg}(${warning.type}) ${warning.message}`, 'warning');
     }
   }
 }
