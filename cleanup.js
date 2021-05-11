@@ -83,7 +83,7 @@ async function checkVUEFiles() {
       // console.log('-------');
 
       if (lineInfo.isCommentedLine) {
-        addWarning(file, lineNumber, 'comment', `This line is a comment, consider to remove it`);
+        //addWarning(file, lineNumber, 'comment', `This line is a comment, consider to remove it`);
         continue;
       }
 
