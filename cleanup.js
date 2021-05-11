@@ -87,7 +87,13 @@ async function checkVUEFiles() {
         continue;
       }
 
-      if (!lineInfo.isEmptyLine && !lineInfo.isClosingTag && lineIndex > 0 && previousLineInfo.hasEndingTag) {
+      if (
+        !lineInfo.isEmptyLine &&
+        !previousLineInfo.allowMultipleTags &&
+        !lineInfo.isClosingTag &&
+        lineIndex > 0 &&
+        previousLineInfo.hasEndingTag
+      ) {
         addWarning(file, lineNumber, 'empty line', `Add an empty line before`);
       }
 
@@ -156,7 +162,9 @@ async function checkVUEFiles() {
         const equalErrors = getEqualsErrors(cumulatedAttributesAndEventLinesInfo);
         if (equalErrors) {
           for (const equalError of equalErrors) {
-            addWarning(file, equalError.lineNumber, 'equal', equalError.message);
+            if (!linesInfo[equalError.lineNumber - 1].allowMultipleTags) {
+              addWarning(file, equalError.lineNumber, 'equal', equalError.message);
+            }
           }
         }
 
@@ -181,8 +189,11 @@ function computeHTMLLineInfo(line, lineNumber) {
   const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
   const eventName = computeHTMLLineEventName(line, equalPosition);
   const isClosingTag = isHTLMClosingTag(line);
+  const tagName = extractTagName(line, hasStartingTag);
+  const allowMultipleTags = isMultipleTagsAllowed(line, tagName);
 
   return {
+    allowMultipleTags,
     attributeNames,
     equalPosition,
     eventName,
@@ -198,6 +209,7 @@ function computeHTMLLineInfo(line, lineNumber) {
     isEmptyLine,
     isVueBinding,
     lineNumber,
+    tagName,
   };
 }
 
@@ -247,6 +259,21 @@ function computeHTMLLineIndentation(line) {
   return result;
 }
 
+function extractTagName(line, hasStartingTag) {
+  if (!hasStartingTag) {
+    return;
+  }
+
+  const startTagPos = line.indexOf('<');
+  const trimmedLine = line.substr(startTagPos + 1);
+  const spacePos = trimmedLine.includes(' ') ? trimmedLine.indexOf(' ') : trimmedLine.length;
+  const endTagPos = trimmedLine.includes('>') ? trimmedLine.indexOf('>') : trimmedLine.length;
+
+  const endNameTagPos = Math.min(spacePos, endTagPos);
+
+  return trimmedLine.substr(0, endNameTagPos);
+}
+
 function hasHTMLLineBackTick(line) {
   return line.includes('`');
 }
@@ -260,11 +287,11 @@ function hasHTMLLineDollar(line) {
 }
 
 function hasHTMLLineStartingTag(line, indentationCount) {
-  return line.substr(indentationCount, 1) === '<' && line.substr(indentationCount, 2) !== '<!';
+  return !!line.match(/<[a-z]/i);
 }
 
 function hasHTMLLineEndingTag(line) {
-  return line.substr(line.length - 1) === '>' && line.substr(line.length - 2) !== '->';
+  return line.includes('>') && line.substr(line.length - 2) !== '->';
 }
 
 function hasHTMLLineMustacheCode(line) {
@@ -272,11 +299,19 @@ function hasHTMLLineMustacheCode(line) {
 }
 
 function isHTLMClosingTag(line) {
-  return line.trim().startsWith('</');
+  return !!line.match(/<\/[a-z]/i);
 }
 
 function isHTMLLineVueBinding(line, attributeNames) {
   return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
+}
+
+function isMultipleTagsAllowed(line, tagName) {
+  if (tagName !== 'span') {
+    return false;
+  }
+
+  return line.match(/span/g).length > 1;
 }
 
 function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
