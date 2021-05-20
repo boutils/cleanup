@@ -72,11 +72,14 @@ async function checkVUEFiles() {
     let cummulatedAttributeNames = [];
     let cummulatedEventNames = [];
     let cumulatedAttributesAndEventLinesInfo = [];
+    let currentBlockDepth = -1;
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
-      const lineInfo = computeHTMLLineInfo(line, lineNumber);
+      const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth);
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
       linesInfo.push(lineInfo);
+
+      currentBlockDepth = lineInfo.isClosingTag ? lineInfo.depth - 1 : lineInfo.depth;
 
       // console.log('line ' + lineNumber, '"' + line + '"');
       // console.log('info', lineInfo);
@@ -85,6 +88,19 @@ async function checkVUEFiles() {
       if (lineInfo.isCommentedLine) {
         //addWarning(file, lineNumber, 'comment', `This line is a comment, consider to remove it`);
         continue;
+      }
+
+      if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
+        const expectedIndentation =
+          lineInfo.hasStartingTag || lineInfo.isClosingTag ? lineInfo.depth * 2 : lineInfo.depth * 2 + 2;
+        if (expectedIndentation !== lineInfo.indentationCount) {
+          addWarning(
+            file,
+            lineNumber,
+            'bad indentation',
+            `Indentation should be ${expectedIndentation} instead of ${lineInfo.indentationCount}`
+          );
+        }
       }
 
       if (
@@ -174,7 +190,7 @@ async function checkVUEFiles() {
   }
 }
 
-function computeHTMLLineInfo(line, lineNumber) {
+function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
   const isEmptyLine = !line;
   const isCommentedLine = line.trim().startsWith('<!--');
   const indentationCount = computeHTMLLineIndentation(line);
@@ -191,10 +207,12 @@ function computeHTMLLineInfo(line, lineNumber) {
   const isClosingTag = isHTLMClosingTag(line);
   const tagName = extractTagName(line, hasStartingTag);
   const allowMultipleTags = isMultipleTagsAllowed(line, tagName);
+  const depth = computeLineDepth(currentBlockDepth, hasStartingTag, hasEndingTag);
 
   return {
     allowMultipleTags,
     attributeNames,
+    depth,
     equalPosition,
     eventName,
     hasDollar,
@@ -215,6 +233,10 @@ function computeHTMLLineInfo(line, lineNumber) {
 
 function computeEqualPosition(line) {
   return line.indexOf('=');
+}
+
+function computeLineDepth(currentBlockDepth, hasStartingTag) {
+  return hasStartingTag ? currentBlockDepth + 1 : currentBlockDepth;
 }
 
 function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
