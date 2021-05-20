@@ -219,7 +219,9 @@ function computeEqualPosition(line) {
 
 function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
   if (hasStartingTag && hasEndingTag) {
-    line = line.substr(0, line.indexOf('>'));
+    const startingTagPosition = line.indexOf('<') || 0;
+    line = line.substr(startingTagPosition, line.indexOf('>'));
+    equalPosition = equalPosition - startingTagPosition;
   }
 
   if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
@@ -230,9 +232,9 @@ function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equal
       .filter((it) => it[0] !== '<');
   } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
     const left = line.substr(0, equalPosition).trim().split(' ');
-    const attributeName = left[left.length - 1].replace(':', '');
+    const attributeName = left[left.length - 1];
     if (attributeName) {
-      return [attributeName];
+      return [attributeName.startsWith(':') ? attributeName.substr(1) : attributeName];
     }
   }
 
@@ -291,7 +293,9 @@ function hasHTMLLineStartingTag(line, indentationCount) {
 }
 
 function hasHTMLLineEndingTag(line) {
-  return line.includes('>') && line.substr(line.length - 2) !== '->';
+  const lastIndexArg = line.lastIndexOf('"');
+  const endOfLine = lastIndexArg > -1 ? line.substr(lastIndexArg) : line;
+  return endOfLine.includes('>') && endOfLine.substr(line.length - 2) !== '->';
 }
 
 function hasHTMLLineMustacheCode(line) {
@@ -342,7 +346,9 @@ function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
 
 function getSortingError(arr, lineNumber = null) {
   for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i].toLowerCase().startsWith('v-') && !arr[i + 1].toLowerCase().startsWith('v-')) {
+    if (arr[i].toLowerCase().startsWith('v-if')) {
+      continue;
+    } else if (arr[i].toLowerCase().startsWith('v-') && !arr[i + 1].toLowerCase().startsWith('v-')) {
       continue;
     }
 
