@@ -73,6 +73,8 @@ async function checkVUEFiles() {
     let cummulatedEventNames = [];
     let cumulatedAttributesAndEventLinesInfo = [];
     let currentBlockDepth = -1;
+    let isInsideAttribute = false;
+
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth);
@@ -80,6 +82,10 @@ async function checkVUEFiles() {
       linesInfo.push(lineInfo);
 
       currentBlockDepth = lineInfo.isClosingTag ? lineInfo.depth - 1 : lineInfo.depth;
+
+      if (lineInfo.isAttributeOnlyEnded) {
+        isInsideAttribute = false;
+      }
 
       // console.log('line ' + lineNumber, '"' + line + '"');
       // console.log('info', lineInfo);
@@ -91,8 +97,8 @@ async function checkVUEFiles() {
       }
 
       if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
-        const expectedIndentation =
-          lineInfo.hasStartingTag || lineInfo.isClosingTag ? lineInfo.depth * 2 : lineInfo.depth * 2 + 2;
+        const expectedIndentation = computeExpectedIndentation(lineInfo, isInsideAttribute);
+
         if (expectedIndentation !== lineInfo.indentationCount) {
           addWarning(
             file,
@@ -186,8 +192,21 @@ async function checkVUEFiles() {
 
         cumulatedAttributesAndEventLinesInfo = [];
       }
+
+      if (lineInfo.isAttributeOnlyStarted) {
+        isInsideAttribute = true;
+      }
     }
   }
+}
+
+function computeExpectedIndentation(lineInfo, isInsideAttribute) {
+  const originalIndentation = lineInfo.depth * 2;
+  if (lineInfo.hasStartingTag || (lineInfo.isClosingTag && !isInsideAttribute)) {
+    return originalIndentation;
+  }
+
+  return isInsideAttribute ? originalIndentation + 4 : originalIndentation + 2;
 }
 
 function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
@@ -208,6 +227,8 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
   const tagName = extractTagName(line, hasStartingTag);
   const allowMultipleTags = isMultipleTagsAllowed(line, tagName);
   const depth = computeLineDepth(currentBlockDepth, hasStartingTag, hasEndingTag);
+  const isAttributeOnlyStarted = isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth);
+  const isAttributeOnlyEnded = isHTMLAttributeOnlyEnded(line, tagName, isClosingTag, depth);
 
   return {
     allowMultipleTags,
@@ -222,6 +243,8 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
     hasMustacheCode,
     hasPipe,
     indentationCount,
+    isAttributeOnlyEnded,
+    isAttributeOnlyStarted,
     isClosingTag,
     isCommentedLine,
     isEmptyLine,
@@ -325,7 +348,15 @@ function hasHTMLLineMustacheCode(line) {
 }
 
 function isHTLMClosingTag(line) {
-  return !!line.match(/<\/[a-z]/i);
+  return !!line.match(/<\/[a-z]/i) || line.endsWith('/>');
+}
+
+function isHTMLAttributeOnlyEnded(line) {
+  return line.endsWith('}"');
+}
+
+function isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth) {
+  return line.endsWith('= "{');
 }
 
 function isHTMLLineVueBinding(line, attributeNames) {
