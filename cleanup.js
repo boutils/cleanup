@@ -10,6 +10,7 @@ const COLOR_FROM_TYPE = {
   ok: '\x1b[32m%s\x1b[0m',
   warning: '\x1b[33m%s\x1b[0m',
 };
+const TAG_WITHOUT_CLOSE = new Set(['img', 'hr']);
 
 const warnings = {};
 
@@ -77,8 +78,13 @@ async function checkVUEFiles() {
 
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
-      const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth);
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
+      const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
+      if(previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
+        currentBlockDepth--;
+      }
+
+      const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagName);
       linesInfo.push(lineInfo);
 
       currentBlockDepth = lineInfo.isClosingTag ? lineInfo.depth - 1 : lineInfo.depth;
@@ -209,7 +215,7 @@ function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   return isInsideAttribute ? originalIndentation + 4 : originalIndentation + 2;
 }
 
-function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
+function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagName) {
   const isEmptyLine = !line;
   const isCommentedLine = line.trim().startsWith('<!--');
   const indentationCount = computeHTMLLineIndentation(line);
@@ -224,8 +230,8 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth) {
   const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
   const eventName = computeHTMLLineEventName(line, equalPosition);
   const isClosingTag = isHTLMClosingTag(line);
-  const tagName = extractTagName(line, hasStartingTag);
-  const allowMultipleTags = isMultipleTagsAllowed(line, tagName);
+  const tagName = extractTagName(line, hasStartingTag, previousTagName);
+  const allowMultipleTags = isMultipleTagsAllowed(line, hasStartingTag, tagName);
   const depth = computeLineDepth(currentBlockDepth, hasStartingTag, hasEndingTag);
   const isAttributeOnlyStarted = isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth);
   const isAttributeOnlyEnded = isHTMLAttributeOnlyEnded(line, tagName, isClosingTag, depth);
@@ -306,9 +312,9 @@ function computeHTMLLineIndentation(line) {
   return result;
 }
 
-function extractTagName(line, hasStartingTag) {
+function extractTagName(line, hasStartingTag, previousTagName) {
   if (!hasStartingTag) {
-    return;
+    return previousTagName;
   }
 
   const startTagPos = line.indexOf('<');
@@ -363,8 +369,8 @@ function isHTMLLineVueBinding(line, attributeNames) {
   return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
 }
 
-function isMultipleTagsAllowed(line, tagName) {
-  if (tagName !== 'span') {
+function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
+  if (tagName !== 'span' || !hasStartingTag) {
     return false;
   }
 
