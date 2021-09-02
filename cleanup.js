@@ -11,6 +11,7 @@ const COLOR_FROM_TYPE = {
   warning: '\x1b[33m%s\x1b[0m',
 };
 const TAG_WITHOUT_CLOSE = new Set(['img', 'hr']);
+const SECTION_SEPARATOR = '// -------------------------------------------------------------------------';
 
 const warnings = {};
 
@@ -50,7 +51,14 @@ async function checkVMCFiles() {
     try {
       const results = await Vuedoc.parse({ filename: file });
       const properties = ['props', 'data', 'computed', 'methods'];
+      const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+      const isFileWithSection = data.includes(SECTION_SEPARATOR);
+
       for (const property of properties) {
+        if (property === 'methods' && isFileWithSection) {
+          continue;
+        }
+
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
         const sortingErrors = getSortingError(names);
         if (sortingErrors) {
@@ -80,7 +88,7 @@ async function checkVUEFiles() {
       const lineNumber = lineIndex + 1;
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
       const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
-      if(previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
+      if (previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
         currentBlockDepth--;
       }
 
