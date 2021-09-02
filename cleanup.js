@@ -216,7 +216,10 @@ async function checkVUEFiles() {
 
 function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   const originalIndentation = lineInfo.depth * 2;
-  if (lineInfo.hasStartingTag || (lineInfo.isClosingTag && !isInsideAttribute)) {
+  if (
+    lineInfo.hasStartingTag ||
+    (lineInfo.isClosingTag && !isInsideAttribute && (!lineInfo.hasEndingTag || lineInfo.tagName !== 'span'))
+  ) {
     return originalIndentation;
   }
 
