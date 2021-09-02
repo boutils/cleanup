@@ -10,7 +10,7 @@ const COLOR_FROM_TYPE = {
   ok: '\x1b[32m%s\x1b[0m',
   warning: '\x1b[33m%s\x1b[0m',
 };
-const TAG_WITHOUT_CLOSE = new Set(['img', 'hr']);
+const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr']);
 const SECTION_SEPARATOR = '// -------------------------------------------------------------------------';
 
 const warnings = {};
@@ -87,12 +87,12 @@ async function checkVUEFiles() {
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
-      const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
+
       if (previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
         currentBlockDepth--;
       }
 
-      const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagName);
+      const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
       linesInfo.push(lineInfo);
 
       if (lineInfo.isClosingTag && !lineInfo.isShortClosingTag) {
@@ -233,9 +233,10 @@ function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   return isInsideAttribute ? originalIndentation + 4 : originalIndentation + 2;
 }
 
-function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagName) {
+function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo) {
+  const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
   const isEmptyLine = !line;
-  const isCommentedLine = line.trim().startsWith('<!--');
+  const isCommentedLine = isHTMLCommentedLine(line, previousLineInfo);
   const indentationCount = computeHTMLLineIndentation(line);
   const hasStartingTag = hasHTMLLineStartingTag(line, indentationCount);
   const hasEndingTag = hasHTMLLineEndingTag(line);
@@ -274,9 +275,20 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagNam
     isEmptyLine,
     isShortClosingTag,
     isVueBinding,
+    line,
     lineNumber,
     tagName,
   };
+}
+
+function isHTMLCommentedLine(line, previousLineInfo) {
+  if (line.trim().startsWith('<!--') || line.includes('-->')) {
+    return true;
+  } else if (previousLineInfo.line?.includes('-->')) {
+    return false;
+  } else {
+    return !!previousLineInfo.isCommentedLine;
+  }
 }
 
 function computeEqualPosition(line) {
