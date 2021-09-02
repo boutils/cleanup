@@ -332,8 +332,9 @@ function extractTagName(line, hasStartingTag, previousTagName) {
   const trimmedLine = line.substr(startTagPos + 1);
   const spacePos = trimmedLine.includes(' ') ? trimmedLine.indexOf(' ') : trimmedLine.length;
   const endTagPos = trimmedLine.includes('>') ? trimmedLine.indexOf('>') : trimmedLine.length;
+  const shortEndTagPos = trimmedLine.includes('/>') ? trimmedLine.indexOf('/>') : trimmedLine.length;
 
-  const endNameTagPos = Math.min(spacePos, endTagPos);
+  const endNameTagPos = Math.min(spacePos, endTagPos, shortEndTagPos);
 
   return trimmedLine.substr(0, endNameTagPos);
 }
@@ -365,7 +366,7 @@ function hasHTMLLineMustacheCode(line) {
 }
 
 function isHTLMClosingTag(line) {
-  return !!line.match(/<\/[a-z]/i) || line.endsWith('/>');
+  return !!line.match(/<\/[a-z]/i) || line.includes('/>');
 }
 
 function isHTMLAttributeOnlyEnded(line) {
