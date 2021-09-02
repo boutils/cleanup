@@ -117,13 +117,14 @@ async function checkVUEFiles() {
       if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
         const expectedIndentation = computeExpectedIndentation(lineInfo, isInsideAttribute);
 
-        if (expectedIndentation !== lineInfo.indentationCount) {
+        if (expectedIndentation !== lineInfo.indentationCount && !lineInfo.allowMultipleTags) {
           addWarning(
             file,
             lineNumber,
             'bad indentation',
             `Indentation should be ${expectedIndentation} instead of ${lineInfo.indentationCount}`
           );
+          break;
         }
       }
 
@@ -356,7 +357,7 @@ function extractTagName(line, hasStartingTag, previousTagName) {
 
   const endNameTagPos = Math.min(spacePos, endTagPos, shortEndTagPos);
 
-  return trimmedLine.substr(0, endNameTagPos);
+  return trimmedLine.substr(0, endNameTagPos).replace('/', '');
 }
 
 function hasHTMLLineBackTick(line) {
