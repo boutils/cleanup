@@ -95,7 +95,11 @@ async function checkVUEFiles() {
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagName);
       linesInfo.push(lineInfo);
 
-      currentBlockDepth = lineInfo.isClosingTag ? lineInfo.depth - 1 : lineInfo.depth;
+      if (lineInfo.isClosingTag && !lineInfo.isShortClosingTag) {
+        currentBlockDepth = lineInfo.depth - 1;
+      } else {
+        currentBlockDepth = lineInfo.depth;
+      }
 
       if (lineInfo.isAttributeOnlyEnded) {
         isInsideAttribute = false;
@@ -218,7 +222,10 @@ function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   const originalIndentation = lineInfo.depth * 2;
   if (
     lineInfo.hasStartingTag ||
-    (lineInfo.isClosingTag && !isInsideAttribute && (!lineInfo.hasEndingTag || lineInfo.tagName !== 'span'))
+    (lineInfo.isClosingTag &&
+      !isInsideAttribute &&
+      !lineInfo.isShortClosingTag &&
+      (!lineInfo.hasEndingTag || lineInfo.tagName !== 'span'))
   ) {
     return originalIndentation;
   }
@@ -246,7 +253,7 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagNam
   const depth = computeLineDepth(currentBlockDepth, hasStartingTag, hasEndingTag);
   const isAttributeOnlyStarted = isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth);
   const isAttributeOnlyEnded = isHTMLAttributeOnlyEnded(line, tagName, isClosingTag, depth);
-
+  const isShortClosingTag = isHTLMShortClosingTag(line);
   return {
     allowMultipleTags,
     attributeNames,
@@ -265,6 +272,7 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousTagNam
     isClosingTag,
     isCommentedLine,
     isEmptyLine,
+    isShortClosingTag,
     isVueBinding,
     lineNumber,
     tagName,
@@ -366,7 +374,11 @@ function hasHTMLLineMustacheCode(line) {
 }
 
 function isHTLMClosingTag(line) {
-  return !!line.match(/<\/[a-z]/i) || line.includes('/>');
+  return !!line.match(/<\/[a-z]/i) || isHTLMShortClosingTag(line);
+}
+
+function isHTLMShortClosingTag(line) {
+  return line.includes('/>');
 }
 
 function isHTMLAttributeOnlyEnded(line) {
