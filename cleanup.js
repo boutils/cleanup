@@ -15,16 +15,20 @@ const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr']);
 const SECTION_SEPARATOR = '// -------------------------------------------------------------------------';
 
 const warnings = {};
-
+const info = {};
 function addWarning(file, lineNumber, type, message) {
   warnings[file] = warnings[file] || [];
   warnings[file].push({ lineNumber, type, message });
 }
 
+function addInfo(file, lineNumber, type, message) {
+  info[file] = info[file] || [];
+  info[file].push({ lineNumber, type, message });
+}
+
 async function checker() {
   await checkVMCFiles();
   await checkVUEFiles();
-  printWarnings();
 }
 
 async function checkVMCFiles() {
@@ -206,18 +210,29 @@ async function cleanTestFiles() {
   const fileSequencesPaths = getFilesFromDirectory(DIRECTORY, '.sequences.json');
   const fileTestsPaths = getFilesFromDirectory(DIRECTORY, '.test.json');
 
+  let hasAtLeastOneUpdate = false;
   for (const fileSequencesPath of fileSequencesPaths) {
-    processSequence(fileSequencesPath);
+    const isFileUpdated = processSequence(fileSequencesPath);
+    if (isFileUpdated) {
+      hasAtLeastOneUpdate = true;
+      addInfo(fileSequencesPath, null, 'stepParamsSorting', 'this file has been sorted automatically');
+    }
   }
 
   for (const fileTestsPath of fileTestsPaths) {
-    processTest(fileTestsPath);
+    const isFileUpdated = processTest(fileTestsPath);
+    if (isFileUpdated) {
+      hasAtLeastOneUpdate = true;
+      addInfo(fileTestsPath, null, 'stepParamsSorting', 'this file has been sorted automatically');
+    }
   }
 
-  try {
-    await execute("prettier '**/*.{test.json,sequences.json}' --write");
-  } catch (e) {
-    console.error(e.message);
+  if (hasAtLeastOneUpdate) {
+    try {
+      await execute("prettier '**/*.{test.json,sequences.json}' --write");
+    } catch (e) {
+      console.error(e.message);
+    }
   }
 }
 
@@ -336,9 +351,9 @@ function computeLineDepth(currentBlockDepth, hasStartingTag) {
   return hasStartingTag ? currentBlockDepth + 1 : currentBlockDepth;
 }
 
-function countWarningsEntries(warnings) {
+function countInfoOrWarningsEntries(infoOrWarnings) {
   let count = 0;
-  for (const entries of Object.values(warnings)) {
+  for (const entries of Object.values(infoOrWarnings)) {
     count += entries.length;
   }
   return count;
@@ -508,49 +523,75 @@ function log(message, type) {
   console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message);
 }
 
-function printWarnings() {
-  const countFilesWithWarnings = Object.keys(warnings).length;
-  const countWarnings = countWarningsEntries(warnings);
-
-  if (countFilesWithWarnings > 0) {
-    log('/**************************************************************************', 'comment');
-    log(` *        ${countWarnings} warnings in ${countFilesWithWarnings} files`, 'comment');
-    log(' **************************************************************************/', 'comment');
+function printInfoAndWarningsResume(infoOrWarnings, type) {
+  const countFilesWithInfoOrWarnings = Object.keys(infoOrWarnings).length;
+  if (countFilesWithInfoOrWarnings > 0) {
+    log(`  ❌ ${countFilesWithInfoOrWarnings} file(s) with ${type}s found`, 'warning');
   } else {
-    log('Yeah!, All good', 'ok');
+    log('  ✅ All good', 'ok');
+  }
+}
+
+function printInfoAndWarnings(infoOrWarnings, type) {
+  const countFilesWithInfoOrWarnings = Object.keys(infoOrWarnings).length;
+  const countInfoOrWarnings = countInfoOrWarningsEntries(infoOrWarnings);
+
+  if (countFilesWithInfoOrWarnings > 0) {
+    log('/**************************************************************************', 'comment');
+    log(` *        ${countInfoOrWarnings} ${type}s in ${countFilesWithInfoOrWarnings} files`, 'comment');
+    log(' **************************************************************************/', 'comment');
   }
 
-  for (const file of Object.keys(warnings)) {
+  for (const file of Object.keys(infoOrWarnings)) {
     const fileName = file.replace(/^.*[\\\/]/, '');
     log('\n' + fileName, 'info');
     log(file, 'path');
-    for (const warning of warnings[file]) {
-      const lineMsg = warning.lineNumber ? `[line ${warning.lineNumber}] ` : '';
-      log(`\t${lineMsg}(${warning.type}) ${warning.message}`, 'warning');
+    for (const infoOrWarning of infoOrWarnings[file]) {
+      const lineMsg = infoOrWarning.lineNumber ? `[line ${infoOrWarning.lineNumber}] ` : '';
+      log(`\t${lineMsg}(${infoOrWarning.type}) ${infoOrWarning.message}`, 'warning');
     }
   }
 }
 
 function processSequence(filePath, type) {
+  let isFileUpdated = false;
   const sequences = readFile(filePath);
   for (const sequence of sequences) {
-    sortParams(sequence.steps);
+    const isSequenceSorted = sortParams(sequence.steps);
+    if (isSequenceSorted) {
+      isFileUpdated = true;
+    }
   }
 
-  const data = JSON.stringify(sequences, null, 2);
-  fs.writeFileSync(filePath, data);
+  if (isFileUpdated) {
+    const data = JSON.stringify(sequences, null, 2);
+    fs.writeFileSync(filePath, data);
+  }
+
+  return isFileUpdated;
 }
 
 function processTest(filePath, type) {
+  let isFileUpdated = false;
   const test = readFile(filePath);
   for (const sequence of test.sequences || []) {
-    sortParams(sequence.steps);
+    const isTestSorted = sortParams(sequence.steps);
+    if (isTestSorted) {
+      isFileUpdated = true;
+    }
   }
 
-  sortParams(test.steps);
+  const isTestSorted = sortParams(test.steps);
+  if (isTestSorted) {
+    isFileUpdated = true;
+  }
 
-  const data = JSON.stringify(test, null, 2);
-  fs.writeFileSync(filePath, data);
+  if (isFileUpdated) {
+    const data = JSON.stringify(test, null, 2);
+    fs.writeFileSync(filePath, data);
+  }
+
+  return isFileUpdated;
 }
 
 function readFile(filePath) {
@@ -562,17 +603,28 @@ function sortParams(steps) {
     return;
   }
 
+  let isUpdated = false;
   for (const step of steps) {
     if (step.params && !Array.isArray(step.params)) {
-      step.params = sortObject(step.params);
+      const sorted = sortObject(step.params);
+      if (JSON.stringify(step.params) !== JSON.stringify(sorted)) {
+        step.params = sorted;
+        isUpdated = true;
+      }
     }
 
     if (step.repeatWith) {
       for (const [i, instance] of Object.entries(step.repeatWith)) {
-        step.repeatWith[i] = sortObject(instance);
+        const sorted = sortObject(instance);
+        if (JSON.stringify(instance) !== JSON.stringify(sorted)) {
+          step.repeatWith[i] = sortObject(instance);
+          isUpdated = true;
+        }
       }
     }
   }
+
+  return isUpdated;
 }
 
 function sortObject(object) {
@@ -584,7 +636,17 @@ function sortObject(object) {
     }, {});
 }
 
-console.log('Cleaning test files...');
-cleanTestFiles();
-console.log('Check code files...');
-checker();
+async function go() {
+  log('Cleaning test files...', 'comment');
+  await cleanTestFiles();
+  printInfoAndWarningsResume(info, 'info');
+
+  log('Check code files...', 'comment');
+  await checker();
+  printInfoAndWarningsResume(warnings, 'warning');
+
+  printInfoAndWarnings(info, 'info');
+  printInfoAndWarnings(warnings, 'warning');
+}
+
+go();
