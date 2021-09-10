@@ -1,7 +1,8 @@
+const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
+const { exec } = require('child_process');
 
 const DIRECTORY = './src';
-const fs = require('fs');
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
   comment: '\x1b[36m%s\x1b[0m',
@@ -20,28 +21,10 @@ function addWarning(file, lineNumber, type, message) {
   warnings[file].push({ lineNumber, type, message });
 }
 
-function isMatchingFilter(fileName, filter) {
-  return !filter || fileName.includes(filter);
-}
-
-function getFilesFromDirectory(directory, filter) {
-  const files = [];
-  const items = fs.readdirSync(directory);
-  for (const item of items) {
-    const itemPath = directory + '/' + item;
-    const stat = fs.statSync(itemPath);
-
-    if (stat.isFile()) {
-      if (isMatchingFilter(itemPath, filter)) {
-        files.push(itemPath);
-      }
-    } else if (stat.isDirectory()) {
-      const subfiles = getFilesFromDirectory(itemPath).filter((it) => isMatchingFilter(it, filter));
-      files.push(...subfiles);
-    }
-  }
-
-  return files;
+async function checker() {
+  await checkVMCFiles();
+  await checkVUEFiles();
+  printWarnings();
 }
 
 async function checkVMCFiles() {
@@ -219,6 +202,29 @@ async function checkVUEFiles() {
   }
 }
 
+async function cleanTestFiles() {
+  const fileSequencesPaths = getFilesFromDirectory(DIRECTORY, '.sequences.json');
+  const fileTestsPaths = getFilesFromDirectory(DIRECTORY, '.test.json');
+
+  for (const fileSequencesPath of fileSequencesPaths) {
+    processSequence(fileSequencesPath);
+  }
+
+  for (const fileTestsPath of fileTestsPaths) {
+    processTest(fileTestsPath);
+  }
+
+  try {
+    await execute("prettier '**/*.{test.json,sequences.json}' --write");
+  } catch (e) {
+    console.error(e.message);
+  }
+}
+
+function computeEqualPosition(line) {
+  return line.indexOf('=');
+}
+
 function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   const originalIndentation = lineInfo.depth * 2;
   if (
@@ -232,6 +238,50 @@ function computeExpectedIndentation(lineInfo, isInsideAttribute) {
   }
 
   return isInsideAttribute ? originalIndentation + 4 : originalIndentation + 2;
+}
+
+function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
+  if (hasStartingTag && hasEndingTag) {
+    const startingTagPosition = line.indexOf('<') || 0;
+    line = line.substr(startingTagPosition, line.indexOf('>'));
+    equalPosition = equalPosition - startingTagPosition;
+  }
+
+  if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
+    return line
+      .trim()
+      .replace('>', '')
+      .split(' ')
+      .filter((it) => it[0] !== '<');
+  } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
+    const left = line.substr(0, equalPosition).trim().split(' ');
+    const attributeName = left[left.length - 1];
+    if (attributeName) {
+      return [attributeName.startsWith(':') ? attributeName.substr(1) : attributeName];
+    }
+  }
+
+  return [];
+}
+
+function computeHTMLLineEventName(line, equalPosition) {
+  const trimmedLine = line.trim();
+  if (trimmedLine.startsWith('@')) {
+    return line.substr(0, equalPosition).trim().replace('@', '');
+  }
+}
+
+function computeHTMLLineIndentation(line) {
+  let result = 0;
+  for (const char of line) {
+    if (char !== ' ') {
+      return result;
+    }
+
+    result++;
+  }
+
+  return result;
 }
 
 function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo) {
@@ -282,66 +332,29 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineIn
   };
 }
 
-function isHTMLCommentedLine(line, previousLineInfo) {
-  if (line.trim().startsWith('<!--') || line.includes('-->')) {
-    return true;
-  } else if (previousLineInfo.line?.includes('-->')) {
-    return false;
-  } else {
-    return !!previousLineInfo.isCommentedLine;
-  }
-}
-
-function computeEqualPosition(line) {
-  return line.indexOf('=');
-}
-
 function computeLineDepth(currentBlockDepth, hasStartingTag) {
   return hasStartingTag ? currentBlockDepth + 1 : currentBlockDepth;
 }
 
-function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
-  if (hasStartingTag && hasEndingTag) {
-    const startingTagPosition = line.indexOf('<') || 0;
-    line = line.substr(startingTagPosition, line.indexOf('>'));
-    equalPosition = equalPosition - startingTagPosition;
+function countWarningsEntries(warnings) {
+  let count = 0;
+  for (const entries of Object.values(warnings)) {
+    count += entries.length;
   }
-
-  if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
-    return line
-      .trim()
-      .replace('>', '')
-      .split(' ')
-      .filter((it) => it[0] !== '<');
-  } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
-    const left = line.substr(0, equalPosition).trim().split(' ');
-    const attributeName = left[left.length - 1];
-    if (attributeName) {
-      return [attributeName.startsWith(':') ? attributeName.substr(1) : attributeName];
-    }
-  }
-
-  return [];
+  return count;
 }
 
-function computeHTMLLineEventName(line, equalPosition) {
-  const trimmedLine = line.trim();
-  if (trimmedLine.startsWith('@')) {
-    return line.substr(0, equalPosition).trim().replace('@', '');
-  }
-}
+function execute(command) {
+  return new Promise(function (resolve, reject) {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
 
-function computeHTMLLineIndentation(line) {
-  let result = 0;
-  for (const char of line) {
-    if (char !== ' ') {
-      return result;
-    }
-
-    result++;
-  }
-
-  return result;
+      resolve(stdout.trim());
+    });
+  });
 }
 
 function extractTagName(line, hasStartingTag, previousTagName) {
@@ -358,60 +371,6 @@ function extractTagName(line, hasStartingTag, previousTagName) {
   const endNameTagPos = Math.min(spacePos, endTagPos, shortEndTagPos);
 
   return trimmedLine.substr(0, endNameTagPos).replace('/', '');
-}
-
-function hasHTMLLineBackTick(line) {
-  return line.includes('`');
-}
-
-function hasHTMLLinePipe(line) {
-  return line.includes('|');
-}
-
-function hasHTMLLineDollar(line) {
-  return line.includes('$');
-}
-
-function hasHTMLLineStartingTag(line, indentationCount) {
-  return !!line.match(/<[a-z]/i);
-}
-
-function hasHTMLLineEndingTag(line) {
-  const lastIndexArg = line.lastIndexOf('"');
-  const endOfLine = lastIndexArg > -1 ? line.substr(lastIndexArg) : line;
-  return endOfLine.includes('>') && endOfLine.substr(line.length - 2) !== '->';
-}
-
-function hasHTMLLineMustacheCode(line) {
-  return line.includes('{{');
-}
-
-function isHTLMClosingTag(line) {
-  return !!line.match(/<\/[a-z]/i) || isHTLMShortClosingTag(line);
-}
-
-function isHTLMShortClosingTag(line) {
-  return line.includes('/>');
-}
-
-function isHTMLAttributeOnlyEnded(line) {
-  return line.endsWith('}"');
-}
-
-function isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth) {
-  return line.endsWith('= "{');
-}
-
-function isHTMLLineVueBinding(line, attributeNames) {
-  return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
-}
-
-function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
-  if (tagName !== 'span' || !hasStartingTag) {
-    return false;
-  }
-
-  return line.match(/span/g).length > 1;
 }
 
 function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
@@ -440,6 +399,26 @@ function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
   return errors;
 }
 
+function getFilesFromDirectory(directory, filter) {
+  const files = [];
+  const items = fs.readdirSync(directory);
+  for (const item of items) {
+    const itemPath = directory + '/' + item;
+    const stat = fs.statSync(itemPath);
+
+    if (stat.isFile()) {
+      if (isMatchingFilter(itemPath, filter)) {
+        files.push(itemPath);
+      }
+    } else if (stat.isDirectory()) {
+      const subfiles = getFilesFromDirectory(itemPath).filter((it) => isMatchingFilter(it, filter));
+      files.push(...subfiles);
+    }
+  }
+
+  return files;
+}
+
 function getSortingError(arr, lineNumber = null) {
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i].toLowerCase().startsWith('v-if')) {
@@ -457,16 +436,76 @@ function getSortingError(arr, lineNumber = null) {
   return null;
 }
 
-function log(message, type) {
-  console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message);
+function hasHTMLLineBackTick(line) {
+  return line.includes('`');
 }
 
-function countWarningsEntries(warnings) {
-  let count = 0;
-  for (const entries of Object.values(warnings)) {
-    count += entries.length;
+function hasHTMLLineDollar(line) {
+  return line.includes('$');
+}
+
+function hasHTMLLineEndingTag(line) {
+  const lastIndexArg = line.lastIndexOf('"');
+  const endOfLine = lastIndexArg > -1 ? line.substr(lastIndexArg) : line;
+  return endOfLine.includes('>') && endOfLine.substr(line.length - 2) !== '->';
+}
+
+function hasHTMLLineMustacheCode(line) {
+  return line.includes('{{');
+}
+
+function hasHTMLLinePipe(line) {
+  return line.includes('|');
+}
+
+function hasHTMLLineStartingTag(line, indentationCount) {
+  return !!line.match(/<[a-z]/i);
+}
+
+function isHTMLAttributeOnlyEnded(line) {
+  return line.endsWith('}"');
+}
+
+function isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth) {
+  return line.endsWith('= "{');
+}
+
+function isHTLMClosingTag(line) {
+  return !!line.match(/<\/[a-z]/i) || isHTLMShortClosingTag(line);
+}
+
+function isHTMLCommentedLine(line, previousLineInfo) {
+  if (line.trim().startsWith('<!--') || line.includes('-->')) {
+    return true;
+  } else if (previousLineInfo.line?.includes('-->')) {
+    return false;
+  } else {
+    return !!previousLineInfo.isCommentedLine;
   }
-  return count;
+}
+
+function isHTMLLineVueBinding(line, attributeNames) {
+  return attributeNames.length === 1 && line.includes(':' + attributeNames[0]);
+}
+
+function isHTLMShortClosingTag(line) {
+  return line.includes('/>');
+}
+
+function isMatchingFilter(fileName, filter) {
+  return !filter || fileName.includes(filter);
+}
+
+function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
+  if (tagName !== 'span' || !hasStartingTag) {
+    return false;
+  }
+
+  return line.match(/span/g).length > 1;
+}
+
+function log(message, type) {
+  console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message);
 }
 
 function printWarnings() {
@@ -492,10 +531,60 @@ function printWarnings() {
   }
 }
 
-async function checker() {
-  await checkVMCFiles();
-  await checkVUEFiles();
-  printWarnings();
+function processSequence(filePath, type) {
+  const sequences = readFile(filePath);
+  for (const sequence of sequences) {
+    sortParams(sequence.steps);
+  }
+
+  const data = JSON.stringify(sequences, null, 2);
+  fs.writeFileSync(filePath, data);
 }
 
+function processTest(filePath, type) {
+  const test = readFile(filePath);
+  for (const sequence of test.sequences || []) {
+    sortParams(sequence.steps);
+  }
+
+  sortParams(test.steps);
+
+  const data = JSON.stringify(test, null, 2);
+  fs.writeFileSync(filePath, data);
+}
+
+function readFile(filePath) {
+  return JSON.parse(fs.readFileSync(filePath));
+}
+
+function sortParams(steps) {
+  if (!steps) {
+    return;
+  }
+
+  for (const step of steps) {
+    if (step.params && !Array.isArray(step.params)) {
+      step.params = sortObject(step.params);
+    }
+
+    if (step.repeatWith) {
+      for (const [i, instance] of Object.entries(step.repeatWith)) {
+        step.repeatWith[i] = sortObject(instance);
+      }
+    }
+  }
+}
+
+function sortObject(object) {
+  return Object.keys(object)
+    .sort()
+    .reduce((obj, key) => {
+      obj[key] = object[key];
+      return obj;
+    }, {});
+}
+
+console.log('Cleaning test files...');
+cleanTestFiles();
+console.log('Check code files...');
 checker();
