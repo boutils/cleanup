@@ -87,7 +87,9 @@ function getSCSSBlocks(ast) {
           continue;
         }
 
-        block.push({ line: d.start.line, value: d.value });
+        if (declaration.value.length === 1) {
+          block.push({ line: d.start.line, value: d.value });
+        }
       }
     }
   }
