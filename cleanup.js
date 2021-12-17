@@ -31,6 +31,7 @@ async function checker() {
   await checkVMCFiles();
   await checkVUEFiles();
   await checkCSSFiles();
+  await checkJSFiles();
 }
 
 function findCSSBlockError(blocks) {
@@ -121,6 +122,14 @@ async function checkCSSFiles() {
   }
 }
 
+async function checkJSFiles() {
+  //const filePaths = getFilesFromDirectory(DIRECTORY, 'code-range.vmc.js');
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  for (const filePath of filePaths) {
+    checkImports(filePath);
+  }
+}
+
 async function checkVMCFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
 
@@ -194,7 +203,11 @@ async function checkVUEFiles() {
       if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
         const expectedIndentation = computeExpectedIndentation(lineInfo, isInsideAttribute);
 
-        if (expectedIndentation !== lineInfo.indentationCount && !lineInfo.allowMultipleTags) {
+        if (
+          expectedIndentation !== lineInfo.indentationCount &&
+          !lineInfo.allowMultipleTags &&
+          !file.endsWith('sd-function-details.vue')
+        ) {
           addWarning(
             file,
             lineNumber,
@@ -212,7 +225,7 @@ async function checkVUEFiles() {
         lineIndex > 0 &&
         previousLineInfo.hasEndingTag
       ) {
-        addWarning(file, lineNumber, 'empty line', `Add an empty line before`);
+        addWarning(file, lineNumber, 'empty line', 'Add an empty line before');
       }
 
       if (
@@ -324,6 +337,114 @@ async function cleanTestFiles() {
       console.error(e.message);
     }
   }
+}
+
+function findDuplicates(arr) {
+  return arr.filter((item, index) => arr.indexOf(item) != index);
+}
+
+function checkImports(filePath) {
+  const importsLines = getAndCheckImportLines(filePath);
+  const locations = importsLines.map((it) => it.line.split(' from ')[1].replace(/'/g, '').replace(/;/g, ''));
+
+  for (const duplicate of findDuplicates(locations)) {
+    addWarning(filePath, null, 'duplicate', `import "${duplicate}" is duplicated`);
+  }
+
+  const firstImportSortingError = getImportSortingError(locations, importsLines);
+  if (firstImportSortingError) {
+    addWarning(filePath, firstImportSortingError.lineNumber, 'sorting', `import ${firstImportSortingError.message}`);
+  }
+}
+
+function getAndCheckImportLines(filePath) {
+  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  const lines = file.split('\n');
+  const importLines = [];
+  let emptyLinePosition = null;
+  let hasEmptyLineAfterImports = false;
+  let isCurrentImportOnMultipleLines = false;
+  for (const [lineIndex, line] of lines.entries()) {
+    const lineNumber = lineIndex + 1;
+    if (line.startsWith('import')) {
+      isCurrentImportOnMultipleLines = !line.includes(' from ');
+      if (!isCurrentImportOnMultipleLines) {
+        importLines.push({ line, lineNumber });
+        if (
+          !line.endsWith("'util';") &&
+          !line.includes('fermat/test/utils') &&
+          !line.includes('lib/column-charts') &&
+          !line.includes('kyu/lib/ui') &&
+          !line.includes('@') &&
+          line.includes('/') &&
+          !line.includes('.')
+        ) {
+          addWarning(filePath, lineNumber, 'missing extension', `Add an extension to import "${line}"`);
+        }
+      }
+    } else if (line !== '' && !isCurrentImportOnMultipleLines) {
+      if (!hasEmptyLineAfterImports && importLines.length > 0) {
+        addWarning(filePath, importLines.length + 1, 'empty line', 'Add an empty line after imports');
+      }
+
+      break;
+    } else if (!isCurrentImportOnMultipleLines) {
+      hasEmptyLineAfterImports = true;
+      if (lines[lineIndex + 1].startsWith('import')) {
+        emptyLinePosition = importLines.length + 1;
+      }
+    } else if (isCurrentImportOnMultipleLines && line.includes(' from ')) {
+      importLines.push({ line, lineNumber });
+    }
+  }
+
+  if (emptyLinePosition) {
+    addWarning(filePath, emptyLinePosition, 'empty line', 'Remove this empty line');
+  }
+
+  return importLines;
+}
+
+function getImportSortingError(arr, importsLines) {
+  let firstErrorIndex = null;
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (!arr[i].toLowerCase().includes('/') && arr[i + 1].toLowerCase().includes('/')) {
+      continue;
+    } else if (!arr[i].toLowerCase().startsWith('.') && arr[i + 1].toLowerCase().startsWith('.')) {
+      continue;
+    } else if (arr[i].toLowerCase().includes('/') && !arr[i + 1].toLowerCase().includes('/')) {
+      firstErrorIndex = i;
+    } else if (arr[i].toLowerCase().startsWith('.') && !arr[i + 1].toLowerCase().startsWith('.')) {
+      firstErrorIndex = i;
+    }
+
+    if (firstErrorIndex === null) {
+      const ext = getFileExtension(arr[i]);
+      const sameExtension = hasSameExtension(arr[i], arr[i + 1]);
+      const str1 = sameExtension ? arr[i].replace(`.${ext}`, '').toLowerCase() : arr[i].toLowerCase();
+      const str2 = sameExtension ? arr[i + 1].replace(`.${ext}`, '').toLowerCase() : arr[i + 1].toLowerCase();
+      if (str1 > str2) {
+        firstErrorIndex = i;
+      }
+    }
+  }
+
+  if (firstErrorIndex !== null) {
+    return {
+      lineNumber: importsLines[firstErrorIndex].lineNumber,
+      message: `"${importsLines[firstErrorIndex].line}" should be after "${importsLines[firstErrorIndex + 1].line}"`,
+    };
+  }
+
+  return null;
+}
+
+function hasSameExtension(filename1, filename1) {
+  return getFileExtension(filename1) === getFileExtension(filename1);
+}
+
+function getFileExtension(filename) {
+  return filename.split('.').pop().toLowerCase();
 }
 
 function computeEqualPosition(line) {
@@ -598,7 +719,7 @@ function isHTLMShortClosingTag(line) {
 }
 
 function isMatchingFilter(fileName, filter) {
-  return !filter || fileName.includes(filter);
+  return !filter || fileName.endsWith(filter);
 }
 
 function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
@@ -645,7 +766,7 @@ function printInfoAndWarnings(infoOrWarnings, type) {
 
 function processSequence(filePath, type) {
   let isFileUpdated = false;
-  const sequences = readFile(filePath);
+  const sequences = readJSONFile(filePath);
   for (const sequence of sequences) {
     const isSequenceSorted = sortParams(sequence.steps);
     if (isSequenceSorted) {
@@ -663,7 +784,7 @@ function processSequence(filePath, type) {
 
 function processTest(filePath, type) {
   let isFileUpdated = false;
-  const test = readFile(filePath);
+  const test = readJSONFile(filePath);
   for (const sequence of test.sequences || []) {
     const isTestSorted = sortParams(sequence.steps);
     if (isTestSorted) {
@@ -684,7 +805,7 @@ function processTest(filePath, type) {
   return isFileUpdated;
 }
 
-function readFile(filePath) {
+function readJSONFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath));
 }
 
