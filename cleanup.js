@@ -32,6 +32,7 @@ async function checker() {
   await checkVUEFiles();
   await checkCSSFiles();
   await checkJSFiles();
+  await checkJSonFiles();
 }
 
 function findCSSBlockError(blocks) {
@@ -305,6 +306,17 @@ async function checkVUEFiles() {
       if (lineInfo.isAttributeOnlyStarted) {
         isInsideAttribute = true;
       }
+    }
+  }
+}
+
+async function checkJSonFiles() {
+  const files = getFilesFromDirectory(DIRECTORY, '.spec.json');
+  for (const file of files) {
+    const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+    const json = JSON.parse(data);
+    if(json.length === 1 && !json[0].options) {
+      addWarning(file, null, 'empty spec', 'Remove this spec file, it is unused');
     }
   }
 }
