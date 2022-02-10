@@ -315,7 +315,7 @@ async function checkJSonFiles() {
   for (const file of files) {
     const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     const json = JSON.parse(data);
-    if(json.length === 1 && !json[0].options) {
+    if (json.length === 1 && !json[0].options) {
       addWarning(file, null, 'empty spec', 'Remove this spec file, it is unused');
     }
   }
@@ -402,7 +402,9 @@ function getAndCheckImportLines(filePath) {
       break;
     } else if (!isCurrentImportOnMultipleLines) {
       hasEmptyLineAfterImports = true;
-      if (lines[lineIndex + 1].startsWith('import')) {
+      if (!lines[lineIndex + 1]) {
+        addWarning(filePath, null, 'empty file', 'Remove this empty file');
+      } else if (lines[lineIndex + 1].startsWith('import')) {
         emptyLinePosition = importLines.length + 1;
       }
     } else if (isCurrentImportOnMultipleLines && line.includes(' from ')) {
