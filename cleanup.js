@@ -188,6 +188,9 @@ async function checkVUEFiles() {
         currentBlockDepth = lineInfo.depth;
       }
 
+      const nextLineInfo =
+        lines[lineIndex + 1] && computeHTMLLineInfo(lines[lineIndex + 1], lineNumber + 1, currentBlockDepth, lineInfo);
+
       if (lineInfo.isAttributeOnlyEnded) {
         isInsideAttribute = false;
       }
@@ -195,6 +198,16 @@ async function checkVUEFiles() {
       // console.log('line ' + lineNumber, '"' + line + '"');
       // console.log('info', lineInfo);
       // console.log('-------');
+      if (
+        lineInfo.isEmptyLine &&
+        previousLineInfo.hasEndingTag &&
+        !previousLineInfo.isClosingTag &&
+        !previousLineInfo.hasStartingTag &&
+        (nextLineInfo.isClosingTag || nextLineInfo.isEmptyLine) &&
+        !nextLineInfo.hasStartingTag
+      ) {
+        addWarning(file, lineNumber, 'empty line', 'Remove this empty line');
+      }
 
       if (lineInfo.isCommentedLine) {
         //addWarning(file, lineNumber, 'comment', `This line is a comment, consider to remove it`);
