@@ -242,6 +242,14 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'empty line', 'Add an empty line before');
       }
 
+      if(lineInfo.attributeNames.length > 0) {
+        for (const attribute of lineInfo.attributeNames) {
+          if(hasUpperCase(attribute)) {
+            addWarning(file, lineNumber, 'case', `'${attribute}' should be kebab case (no upper case)`);
+          }
+        }
+      }
+
       if (
         (lineInfo.eventName || lineInfo.attributeNames.length > 0) &&
         lineInfo.equalPosition > -1 &&
@@ -321,6 +329,39 @@ async function checkVUEFiles() {
       }
     }
   }
+}
+
+function computeCharCase(ch) {
+
+  if (!isNaN(ch * 1)){
+    return 'ch is numeric';
+  }
+
+  if (ch === ch.toLowerCase()) {
+    return 'lower case';
+  }
+
+  return 'upper case';
+}
+
+const IGNORE_KEYWORDS_CASES = ['preserveAspectRatio', 'viewBox'];
+
+function hasUpperCase(string) {
+  if (IGNORE_KEYWORDS_CASES.includes(string)) {
+    return false;
+  }
+
+  for (const ch of string) {
+    if(ch === ':') {
+      return false;
+    }
+
+    if(computeCharCase(ch) === 'upper case') {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 async function checkJSonFiles() {
