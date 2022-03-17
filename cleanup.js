@@ -1,3 +1,11 @@
+/*
+TODOS:
+
+- Detect when there is only one attribute on a separate line
+  <div
+    class = "foo">
+*/
+
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
@@ -242,9 +250,9 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'empty line', 'Add an empty line before');
       }
 
-      if(lineInfo.attributeNames.length > 0) {
+      if (lineInfo.attributeNames.length > 0) {
         for (const attribute of lineInfo.attributeNames) {
-          if(hasUpperCase(attribute)) {
+          if (hasUpperCase(attribute)) {
             addWarning(file, lineNumber, 'case', `'${attribute}' should be kebab case (no upper case)`);
           }
         }
@@ -332,8 +340,7 @@ async function checkVUEFiles() {
 }
 
 function computeCharCase(ch) {
-
-  if (!isNaN(ch * 1)){
+  if (!isNaN(ch * 1)) {
     return 'ch is numeric';
   }
 
@@ -352,11 +359,11 @@ function hasUpperCase(string) {
   }
 
   for (const ch of string) {
-    if(ch === ':') {
+    if (ch === ':') {
       return false;
     }
 
-    if(computeCharCase(ch) === 'upper case') {
+    if (computeCharCase(ch) === 'upper case') {
       return true;
     }
   }
