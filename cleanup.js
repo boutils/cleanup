@@ -454,6 +454,10 @@ function getAndCheckImportLines(filePath) {
         ) {
           addWarning(filePath, lineNumber, 'missing extension', `Add an extension to import "${line}"`);
         }
+
+        if (line.includes("from 'fermat'") && line.includes('utils')) {
+          addWarning(filePath, lineNumber, 'wrong repo', `Fermat's 'utils' should be imported from Principia`);
+        }
       }
     } else if (line !== '' && !isCurrentImportOnMultipleLines) {
       if (!hasEmptyLineAfterImports && importLines.length > 0) {
