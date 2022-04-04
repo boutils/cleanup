@@ -299,6 +299,16 @@ async function checkVUEFiles() {
         }
       }
 
+      if (
+        ((cummulatedAttributeNames.length === 1 && cummulatedEventNames.length === 0) ||
+          (cummulatedAttributeNames.length === 0 && cummulatedEventNames.length === 1)) &&
+        lineInfo.hasEndingTag &&
+        !lineInfo.hasStartingTag &&
+        previousLineInfo.attributeNames.length === 0
+      ) {
+        addWarning(file, lineNumber, 'only-one-attribute', 'Attribute should be on the previous line');
+      }
+
       if (lineInfo.eventName) {
         cummulatedEventNames.push(lineInfo.eventName);
 
