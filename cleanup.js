@@ -181,6 +181,11 @@ async function checkVUEFiles() {
 
     for (const [lineIndex, line] of lines.entries()) {
       const lineNumber = lineIndex + 1;
+
+      if (line.includes('this.')) {
+        addWarning(file, lineNumber, 'invalid this', 'Remove "this."');
+      }
+
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
 
       if (previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
