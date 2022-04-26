@@ -4,6 +4,8 @@ TODOS:
 - Detect when there is only one attribute on a separate line
   <div
     class = "foo">
+
+- Detect when there is no empty line before when a line starts with `case XXX:` or `default`
 */
 
 const fs = require('fs');
