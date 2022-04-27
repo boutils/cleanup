@@ -6,6 +6,7 @@ TODOS:
     class = "foo">
 
 - Detect when there is no empty line before when a line starts with `case XXX:` or `default`
+- Detect when events (@...) ends with 'ed'
 */
 
 const fs = require('fs');
