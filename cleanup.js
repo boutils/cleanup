@@ -6,7 +6,6 @@ TODOS:
     class = "foo">
 
 - Detect when there is no empty line before when a line starts with `case XXX:` or `default`
-- Detect when events (@...) ends with 'ed'
 */
 
 const fs = require('fs');
@@ -236,7 +235,8 @@ async function checkVUEFiles() {
         if (
           expectedIndentation !== lineInfo.indentationCount &&
           !lineInfo.allowMultipleTags &&
-          !file.endsWith('sd-function-details.vue')
+          !file.endsWith('sd-function-details.vue') &&
+          !file.endsWith('sd-text-editable.vue')
         ) {
           addWarning(
             file,
@@ -272,6 +272,10 @@ async function checkVUEFiles() {
         !line.includes(' = ')
       ) {
         addWarning(file, lineNumber, 'space', `'=' should be surronded by at least one space`);
+      }
+
+      if (lineInfo.eventName?.endsWith('ed')) {
+        addWarning(file, lineNumber, 'past participle', `"${lineInfo.eventName}" should not end with 'ed'`);
       }
 
       if (lineInfo.hasBackTick && !lineInfo.hasDollar && !lineInfo.hasPipe) {
