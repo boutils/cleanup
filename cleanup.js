@@ -1,11 +1,5 @@
 /*
 TODOS:
-
-- Detect when there is only one attribute on a separate line
-  <div
-    class = "foo">
-
-- Detect when there is no empty line before when a line starts with `case XXX:` or `default`
 */
 
 const fs = require('fs');
@@ -138,6 +132,7 @@ async function checkJSFiles() {
   const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   for (const filePath of filePaths) {
     checkImports(filePath);
+    checkSwitchCase(filePath);
   }
 }
 
@@ -436,6 +431,25 @@ async function cleanTestFiles() {
 
 function findDuplicates(arr) {
   return arr.filter((item, index) => arr.indexOf(item) != index);
+}
+
+function checkSwitchCase(filePath) {
+  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  const lines = file.split('\n');
+
+  for (const [lineIndex, line] of lines.entries()) {
+    if (line.trim().startsWith('case') || line.trim() === 'default:') {
+      const previousLine = lines[lineIndex - 1].trim();
+      if (
+        previousLine &&
+        !previousLine.startsWith('switch (') &&
+        !previousLine.startsWith('case') &&
+        !previousLine.startsWith('//')
+      ) {
+        addWarning(filePath, lineIndex + 1, 'empty line', 'Add an empty line before');
+      }
+    }
+  }
 }
 
 function checkImports(filePath) {
