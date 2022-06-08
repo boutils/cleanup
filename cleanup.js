@@ -1,7 +1,7 @@
 /*
 TODOS:
 */
-
+const IS_PARTICULA = process.cwd().endsWith('particula');
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
@@ -37,6 +37,7 @@ async function checker() {
   await checkCSSFiles();
   await checkJSFiles();
   await checkJSonFiles();
+  await checkExports();
 }
 
 function findCSSBlockError(blocks) {
@@ -134,6 +135,74 @@ async function checkJSFiles() {
     checkImports(filePath);
     checkSwitchCase(filePath);
   }
+}
+
+async function checkExports() {
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
+    .concat(getFilesFromDirectory('./test', '.js'))
+    .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
+
+  if (IS_PARTICULA) {
+    jsAndVueFilePaths = jsAndVueFilePaths
+      .concat(getFilesFromDirectory('../praxis/src', '.js'))
+      .concat(getFilesFromDirectory('../praxis/test', '.js'))
+      .concat(getFilesFromDirectory('../praxis/src', '.vue'));
+  }
+
+  const _exports = {};
+  for (const filePath of jsFilePaths) {
+    accumulateExports(_exports, filePath);
+  }
+
+  for (const [keyword, _export] of Object.entries(_exports)) {
+    const isFound = false;
+    for (const filePath of jsAndVueFilePaths) {
+      const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+      if (file.includes(keyword) && filePath !== _export.file) {
+        _export.used = true;
+        break;
+      }
+    }
+  }
+
+  for (const [keyword, _export] of Object.entries(_exports)) {
+    if (!_export.used) {
+      addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
+    }
+  }
+}
+
+function accumulateExports(_exports, filePath) {
+  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  const lines = file.split('\n');
+
+  for (const [lineIndex, line] of lines.entries()) {
+    const trimmedLine = line.trim();
+    if (
+      (!trimmedLine.startsWith('export') && !trimmedLine.startsWith('import')) ||
+      filePath.includes('dom-helpers.js') ||
+      trimmedLine.startsWith('export {')
+    ) {
+      continue;
+    }
+
+    if (trimmedLine.startsWith('export const') && !trimmedLine.startsWith('export const {')) {
+      const keyword = computeExportKeyword('export const', trimmedLine, ' =');
+      _exports[keyword] = { used: false, file: filePath, lineNumber: lineIndex + 1 };
+    } else if (trimmedLine.startsWith('export function*')) {
+      const keyword = computeExportKeyword('export function*', trimmedLine, '(');
+      _exports[keyword] = { used: false, file: filePath, lineNumber: lineIndex + 1 };
+    } else if (trimmedLine.startsWith('export function')) {
+      const keyword = computeExportKeyword('export function', trimmedLine, '(');
+      _exports[keyword] = { used: false, file: filePath, lineNumber: lineIndex + 1 };
+    }
+  }
+}
+
+function computeExportKeyword(key, line, delimiter) {
+  const startIndex = line.indexOf(key) + key.length + 1;
+  return line.substr(startIndex, line.indexOf(delimiter) - startIndex);
 }
 
 async function checkVMCFiles() {
