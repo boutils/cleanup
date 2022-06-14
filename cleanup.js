@@ -1,5 +1,6 @@
 /*
 TODOS:
+- Check `issueLink` without `skip`
 */
 const IS_PARTICULA = process.cwd().endsWith('particula');
 const fs = require('fs');
