@@ -1,7 +1,7 @@
 /*
 TODOS:
-- Check `issueLink` without `skip`
 */
+
 const IS_PARTICULA = process.cwd().endsWith('particula');
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
@@ -134,7 +134,12 @@ async function checkJSFiles() {
   const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   for (const filePath of filePaths) {
     checkImports(filePath);
-    checkSwitchCase(filePath);
+
+    const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+    const lines = file.split('\n');
+
+    checkSwitchCase(filePath, lines);
+    checkAndShortAnd(filePath, lines);
   }
 }
 
@@ -503,10 +508,30 @@ function findDuplicates(arr) {
   return arr.filter((item, index) => arr.indexOf(item) != index);
 }
 
-function checkSwitchCase(filePath) {
-  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
-  const lines = file.split('\n');
+function checkAndShortAnd(filePath, lines) {
+  for (const [lineIndex, line] of lines.entries()) {
+    const index = line.indexOf(' && ');
+    if (index === -1) {
+      continue;
+    }
 
+    const before = line.substr(0, index);
+    const beforeKeyword = before.substr(before.lastIndexOf(' ') + 1);
+    const after = line.substr(index + 4);
+    const afterKeyword = after.substr(0, after.indexOf(' '));
+
+    if (afterKeyword.startsWith(`${beforeKeyword}.`)) {
+      addWarning(
+        filePath,
+        lineIndex + 1,
+        'shortand',
+        `Replace '${beforeKeyword} && ${afterKeyword}' by '${afterKeyword.replace('.', '?.')}'`
+      );
+    }
+  }
+}
+
+function checkSwitchCase(filePath, lines) {
   for (const [lineIndex, line] of lines.entries()) {
     if (line.trim().startsWith('case') || line.trim() === 'default:') {
       const previousLine = lines[lineIndex - 1].trim();
