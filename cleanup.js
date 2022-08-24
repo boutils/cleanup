@@ -2,13 +2,12 @@
 TODOS:
 */
 
-const IS_PARTICULA = process.cwd().endsWith('particula');
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
-const DIRECTORY = './src';
+const DIRECTORY = './ui';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
   comment: '\x1b[36m%s\x1b[0m',
@@ -148,13 +147,6 @@ async function checkExports() {
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
     .concat(getFilesFromDirectory('./test', '.js'))
     .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
-
-  if (IS_PARTICULA) {
-    jsAndVueFilePaths = jsAndVueFilePaths
-      .concat(getFilesFromDirectory('../praxis/src', '.js'))
-      .concat(getFilesFromDirectory('../praxis/test', '.js'))
-      .concat(getFilesFromDirectory('../praxis/src', '.vue'));
-  }
 
   const _exports = {};
   for (const filePath of jsFilePaths) {
