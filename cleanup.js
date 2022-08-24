@@ -569,7 +569,7 @@ function getAndCheckImportLines(filePath) {
         if (
           !line.endsWith("'util';") &&
           !line.includes('fermat/test/utils') &&
-          !line.includes('lib/column-charts') &&
+          !line.includes('uiLib/column-charts') &&
           !line.includes('kyu/lib/ui') &&
           !line.includes('@') &&
           line.includes('/') &&
