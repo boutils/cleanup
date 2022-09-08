@@ -1,5 +1,9 @@
 /*
-TODOS:
+TODOS: find empty class
+find not used components
+find not used sequences => expectAssetRichTooltipLayerName
+find not used events
+find stoa key not used
 */
 
 const fs = require('fs');
