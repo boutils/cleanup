@@ -4,6 +4,8 @@ find not used components
 find not used sequences => expectAssetRichTooltipLayerName
 find not used events
 find stoa key not used
+find CSS class not used
+Check arguments for every helper function
 */
 
 const fs = require('fs');
