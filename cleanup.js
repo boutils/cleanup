@@ -134,6 +134,13 @@ async function checkCSSFiles() {
   }
 }
 
+const IGNORE_FILES = [
+  './test/lib/fermat/assemblyscript/binder.test.js',
+  './test/lib/fermat/data/periods-filter.test.js',
+  './test/lib/fermat/utils/runner.js',
+  './test/lib/fermat/utils/workbook-runner-3.js',
+];
+
 async function checkJSFiles() {
   //const filePaths = getFilesFromDirectory(DIRECTORY, 'code-range.vmc.js');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
@@ -143,8 +150,11 @@ async function checkJSFiles() {
     const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
     const lines = file.split('\n');
 
-    checkSwitchCase(filePath, lines);
     checkAndShortAnd(filePath, lines);
+
+    if (!IGNORE_FILES.includes(filePath)) {
+      checkSwitchCase(filePath, lines);
+    }
   }
 }
 
@@ -156,7 +166,9 @@ async function checkExports() {
 
   const _exports = {};
   for (const filePath of jsFilePaths) {
-    accumulateExports(_exports, filePath);
+    if (!IGNORE_FILES.includes(filePath)) {
+      accumulateExports(_exports, filePath);
+    }
   }
 
   for (const [keyword, _export] of Object.entries(_exports)) {
