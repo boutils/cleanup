@@ -232,11 +232,15 @@ async function checkVMCFiles() {
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
 
       for (const property of properties) {
+        const names = results[property].map((it) => it.name.replace(/-/g, ''));
+        if (!file.includes('demo.vmc.js')) {
+          checkUnusedProperty(property, names, file);
+        }
+
         if (property === 'methods' && isFileWithSection) {
           continue;
         }
 
-        const names = results[property].map((it) => it.name.replace(/-/g, ''));
         const sortingErrors = getSortingError(names);
         if (sortingErrors) {
           addWarning(file, null, 'sorting', `${property} ${sortingErrors}`);
@@ -244,6 +248,52 @@ async function checkVMCFiles() {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+}
+
+const PUBLIC_METHODS = [
+  'sd-code-autocomplete__selectDown',
+  'sd-code-autocomplete__selectUp',
+  'sd-text-editable__setWriteMode',
+];
+const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars'];
+
+function checkUnusedProperty(property, names, vmcFile) {
+  if (names.length === 0) {
+    return;
+  }
+
+  const pathArray = vmcFile.split('/');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
+  const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
+  const vueFile = pathArray
+    .slice(0, pathArray.length - offset)
+    .concat(fileName + '.vue')
+    .join('/');
+
+  const vmcFileContent = fs.readFileSync(vmcFile, { encoding: 'utf8', flag: 'r' });
+  const vueFileContent = fs.readFileSync(vueFile, { encoding: 'utf8', flag: 'r' });
+
+  const vmcText = property === 'props' ? vmcFileContent.toLowerCase() : vmcFileContent;
+  const vueText = property === 'props' ? vueFileContent.toLowerCase() : vueFileContent;
+
+  // console.log('property', property);
+  // console.log('names', names);
+  // console.log('vmc', vmcFile);
+  // console.log('vue', vueFile);
+  // console.log('vmcText', vmcText);
+  // console.log('-------------------------------------');
+
+  for (const name of names) {
+    const _name = `${fileName}__${name}`;
+    if (PUBLIC_METHODS.includes(_name) || METHODS_USED_BY_MIXINS.includes(_name)) {
+      continue;
+    }
+
+    const hasInVMC = [...vmcText.matchAll(new RegExp(name, 'g'))].length > 1 || vmcText.includes('this[');
+    if (!vueText.includes(name) && !hasInVMC && name !== 'prefixid') {
+      addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used`);
     }
   }
 }
