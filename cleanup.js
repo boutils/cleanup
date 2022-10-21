@@ -230,9 +230,9 @@ async function checkVMCFiles() {
       const pathArray = file.split('/');
       const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
       const results = await Vuedoc.parse({ filename: file });
-      vmcFiles[componentName] = results;
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+      vmcFiles[componentName] = { ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
 
       for (const property of properties) {
@@ -302,11 +302,19 @@ function checkUnusedProperty(property, names, vmcFile) {
   }
 }
 
+const vueFiles = {};
 async function checkVUEFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vue');
   for (const file of files) {
-    const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
-    const lines = data.split('\n');
+    const pathArray = file.split('/');
+    const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
+    vueFiles[componentName] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+  }
+
+  for (const file of getFilesFromDirectory(DIRECTORY, '.vue')) {
+    const pathArray = file.split('/');
+    const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
+    const lines = vueFiles[componentName].split('\n');
     const linesInfo = [];
 
     let cummulatedAttributeNames = [];
@@ -347,6 +355,7 @@ async function checkVUEFiles() {
       // console.log('line ' + lineNumber, '"' + line + '"');
       // console.log('info', lineInfo);
       // console.log('-------');
+
       if (
         lineInfo.isEmptyLine &&
         previousLineInfo.hasEndingTag &&
@@ -402,6 +411,12 @@ async function checkVUEFiles() {
             checkAttributeInVueFile(file, lineNumber, attribute, lineInfo.tagName);
           }
         }
+      }
+
+      const eventModifierPos = lineInfo.eventName?.indexOf('.');
+      const eventName = eventModifierPos > -1 ? lineInfo.eventName?.substr(0, eventModifierPos) : lineInfo.eventName;
+      if (eventName && shouldCheckEvent(eventName, lineInfo.tagName)) {
+        checkEventInVueFile(file, lineNumber, eventName, lineInfo.tagName);
       }
 
       if (
@@ -643,6 +658,31 @@ function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
   const props = vmcFiles[tagName].props.map((it) => it.name);
   if (!props.includes(prop)) {
     addWarning(filePath, lineNumber, 'unused prop', `Prop '${prop}' should be removed`);
+  }
+}
+
+const IGNORE_EVENTS = ['click', 'contextMenu', 'mouseenter', 'mouseleave'];
+function shouldCheckEvent(eventName, tagName) {
+  return !IGNORE_EVENTS.includes(eventName) && !!tagName && (tagName.startsWith('sd-') || tagName.startsWith('stoic-'));
+}
+
+function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
+  const vmcText =
+    vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
+  const vueText = vueFiles[tagName] || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
+  const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
+  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
+
+  const specText = specFile ? fs.readFileSync(specFile, { encoding: 'utf8', flag: 'r' }) : '';
+  const libText = libFile ? fs.readFileSync(libFile, { encoding: 'utf8', flag: 'r' }) : '';
+
+  if (
+    !vueText.includes(eventName) &&
+    !vmcText.includes(eventName) &&
+    !specText.includes(eventName) &&
+    !libText.includes(eventName)
+  ) {
+    addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed`);
   }
 }
 
