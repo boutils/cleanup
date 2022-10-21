@@ -221,12 +221,16 @@ function computeExportKeyword(key, line, delimiter) {
   return line.substr(startIndex, line.indexOf(delimiter) - startIndex);
 }
 
+let vmcFiles = {};
 async function checkVMCFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
 
   for (const file of files) {
     try {
+      const pathArray = file.split('/');
+      const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
       const results = await Vuedoc.parse({ filename: file });
+      vmcFiles[componentName] = results;
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
@@ -392,6 +396,10 @@ async function checkVUEFiles() {
         for (const attribute of lineInfo.attributeNames) {
           if (hasUpperCase(attribute)) {
             addWarning(file, lineNumber, 'case', `'${attribute}' should be kebab case (no upper case)`);
+          }
+
+          if (shouldCheckAttribute(attribute, lineInfo.tagName)) {
+            checkAttributeInVueFile(file, lineNumber, attribute, lineInfo.tagName);
           }
         }
       }
@@ -618,6 +626,23 @@ function checkImports(filePath) {
   const firstImportSortingError = getImportSortingError(locations, importsLines);
   if (firstImportSortingError) {
     addWarning(filePath, firstImportSortingError.lineNumber, 'sorting', `import ${firstImportSortingError.message}`);
+  }
+}
+
+const IGNORE_ATTRIBUTES = ['class', 'id', 'key', 'ref', 'style', 'tabindex'];
+function shouldCheckAttribute(attribute, tagName) {
+  return (
+    !attribute.startsWith('v-') &&
+    !IGNORE_ATTRIBUTES.includes(attribute) &&
+    !!tagName &&
+    (tagName.startsWith('sd-') || tagName.startsWith('stoic-'))
+  );
+}
+
+function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
+  const props = vmcFiles[tagName].props.map((it) => it.name);
+  if (!props.includes(prop)) {
+    addWarning(filePath, lineNumber, 'unused prop', `Prop '${prop}' should be removed`);
   }
 }
 
