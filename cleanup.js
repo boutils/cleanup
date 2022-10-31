@@ -1,5 +1,6 @@
 /*
 TODOS: find empty class
+Nom des @events commencent par un verbe et ne terminent pas par "ed"
 find not used components
 find not used sequences => expectAssetRichTooltipLayerName
 find not used events
