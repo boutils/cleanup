@@ -262,6 +262,7 @@ const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectUp',
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onRightClick',
+  'stoic-journey-outline-transform-form__optionsSpec',
 ];
 const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars'];
 
