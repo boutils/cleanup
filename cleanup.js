@@ -1,5 +1,7 @@
 /*
-TODOS: find empty class
+TODOS:
+Check name for every vmc
+find empty class
 Nom des @events commencent par un verbe et ne terminent pas par "ed"
 find not used components
 find not used sequences => expectAssetRichTooltipLayerName
