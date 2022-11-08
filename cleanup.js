@@ -660,6 +660,11 @@ function shouldCheckAttribute(attribute, tagName) {
 }
 
 function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
+  if (!vmcFiles[tagName]) {
+    addWarning(filePath, lineNumber, 'unknown component', `Component '${tagName}' is unknown`);
+    return;
+  }
+
   const props = vmcFiles[tagName].props.map((it) => it.name);
   if (!props.includes(prop)) {
     addWarning(filePath, lineNumber, 'unused prop', `Prop '${prop}' should be removed`);
