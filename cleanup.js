@@ -48,6 +48,14 @@ async function checker() {
   await checkExports();
 }
 
+const filesContents = {};
+function readAndIndexFiles() {
+  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
+  for (const file of files) {
+    filesContents[file] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+  }
+}
+
 function findCSSBlockError(blocks) {
   const errors = [];
   for (const block of blocks) {
@@ -121,9 +129,10 @@ async function checkCSSFiles() {
 
   for (const file of files) {
     try {
-      const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+      const data = filesContents[file];
       const ast = parse(data);
       const blocks = getSCSSBlocks(ast);
+      //console.log('classes', getCSSClasses(ast));
       const sortingErrors = findCSSBlockError(blocks);
       if (sortingErrors) {
         for (sortingError of sortingErrors) {
@@ -149,7 +158,7 @@ async function checkJSFiles() {
   for (const filePath of filePaths) {
     checkImports(filePath);
 
-    const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+    const file = filesContents[filePath];
     const lines = file.split('\n');
 
     checkAndShortAnd(filePath, lines);
@@ -176,7 +185,7 @@ async function checkExports() {
   for (const [keyword, _export] of Object.entries(_exports)) {
     const isFound = false;
     for (const filePath of jsAndVueFilePaths) {
-      const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+      const file = filesContents[filePath];
       if (file.includes(keyword) && filePath !== _export.file) {
         _export.used = true;
         break;
@@ -192,7 +201,7 @@ async function checkExports() {
 }
 
 function accumulateExports(_exports, filePath) {
-  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  const file = filesContents[filePath];
   const lines = file.split('\n');
 
   for (const [lineIndex, line] of lines.entries()) {
@@ -233,7 +242,7 @@ async function checkVMCFiles() {
       const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
       const results = await Vuedoc.parse({ filename: file });
       const properties = ['props', 'data', 'computed', 'methods'];
-      const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+      const data = filesContents[file];
       vmcFiles[componentName] = { ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
 
@@ -280,18 +289,11 @@ function checkUnusedProperty(property, names, vmcFile) {
     .concat(fileName + '.vue')
     .join('/');
 
-  const vmcFileContent = fs.readFileSync(vmcFile, { encoding: 'utf8', flag: 'r' });
-  const vueFileContent = fs.readFileSync(vueFile, { encoding: 'utf8', flag: 'r' });
+  const vmcFileContent = filesContents[vmcFile];
+  const vueFileContent = filesContents[vueFile];
 
   const vmcText = property === 'props' ? vmcFileContent.toLowerCase() : vmcFileContent;
   const vueText = property === 'props' ? vueFileContent.toLowerCase() : vueFileContent;
-
-  // console.log('property', property);
-  // console.log('names', names);
-  // console.log('vmc', vmcFile);
-  // console.log('vue', vueFile);
-  // console.log('vmcText', vmcText);
-  // console.log('-------------------------------------');
 
   for (const name of names) {
     const _name = `${fileName}__${name}`;
@@ -312,7 +314,7 @@ async function checkVUEFiles() {
   for (const file of files) {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
-    vueFiles[componentName] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+    vueFiles[componentName] = filesContents[file];
   }
 
   for (const file of getFilesFromDirectory(DIRECTORY, '.vue')) {
@@ -355,10 +357,6 @@ async function checkVUEFiles() {
       if (lineInfo.isAttributeOnlyEnded) {
         isInsideAttribute = false;
       }
-
-      // console.log('line ' + lineNumber, '"' + line + '"');
-      // console.log('info', lineInfo);
-      // console.log('-------');
 
       if (
         lineInfo.isEmptyLine &&
@@ -553,7 +551,7 @@ function hasUpperCase(string) {
 async function checkJSonFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.spec.json');
   for (const file of files) {
-    const data = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+    const data = filesContents[file];
     const json = JSON.parse(data);
     if (json.length === 1 && !json[0].options) {
       addWarning(file, null, 'empty spec', 'Remove this spec file, it is unused');
@@ -660,7 +658,7 @@ function shouldCheckAttribute(attribute, tagName) {
 
 function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
   if (!vmcFiles[tagName]) {
-    addWarning(filePath, lineNumber, 'unknown component', `Component '${tagName}' is unknown`);
+    //addWarning(filePath, lineNumber, 'unknown component', `Component '${tagName}' is unknown`);
     return;
   }
 
@@ -682,8 +680,8 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
   const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
 
-  const specText = specFile ? fs.readFileSync(specFile, { encoding: 'utf8', flag: 'r' }) : '';
-  const libText = libFile ? fs.readFileSync(libFile, { encoding: 'utf8', flag: 'r' }) : '';
+  const specText = specFile ? filesContents[specFile] : '';
+  const libText = libFile ? filesContents[libFile] : '';
 
   if (
     !vueText.includes(eventName) &&
@@ -696,7 +694,10 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
 }
 
 function getAndCheckImportLines(filePath) {
-  const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  const file = filesContents[filePath];
+  if (!file) {
+    console.error('NOT FOUND', filePath);
+  }
   const lines = file.split('\n');
   const importLines = [];
   let emptyLinePosition = null;
@@ -1150,7 +1151,7 @@ function processTest(filePath, type) {
 }
 
 function readJSONFile(filePath) {
-  return JSON.parse(fs.readFileSync(filePath));
+  return JSON.parse(filesContents[filePath]);
 }
 
 function sortParams(steps) {
@@ -1192,6 +1193,9 @@ function sortObject(object) {
 }
 
 async function go() {
+  log('Read files content...', 'comment');
+  await readAndIndexFiles();
+
   log('Cleaning test files...', 'comment');
   await cleanTestFiles();
   printInfoAndWarningsResume(info, 'info');
