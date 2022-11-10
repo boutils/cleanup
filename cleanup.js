@@ -71,6 +71,24 @@ function findCSSBlockError(blocks) {
   return errors;
 }
 
+function getCSSClasses(ast) {
+  if (ast.type !== 'class') {
+    const classes = [];
+    for (const v of ast.value) {
+      if (typeof v === 'object') {
+        const subSelectors = getCSSClasses(v);
+        if (subSelectors.length > 0) {
+          classes.push(...subSelectors);
+        }
+      }
+    }
+
+    return classes;
+  }
+
+  return [{ name: ast.value[0].value, line: ast.start.line }];
+}
+
 function getSCSSBlocks(ast) {
   if (ast.type !== 'block') {
     const blocks = [];
