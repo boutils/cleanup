@@ -291,6 +291,7 @@ const PUBLIC_METHODS = [
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onRightClick',
   'stoic-journey-outline-transform-form__optionsSpec',
+  'stoic-palette__pushTextToSearchField',
 ];
 const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars'];
 
