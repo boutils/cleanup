@@ -15,10 +15,7 @@ const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
-//const DIRECTORY = './ui/components/sd-asset-rich-tooltip';
-const DIRECTORY =
-  './ui/components/stoic-app/components/stoic-workbook/components/stoic-sheet/components/stoic-sheet-outline-control';
-//const DIRECTORY = './ui';
+const DIRECTORY = './ui';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
   comment: '\x1b[36m%s\x1b[0m',
@@ -74,24 +71,13 @@ function findCSSBlockError(blocks) {
   return errors;
 }
 
-const IGNORED_CLASSES = ['theme--dark'];
-let isIgnored = false;
 function getCSSClasses(ast) {
-  if (isIgnored && ast.type === 'selector') {
-    isIgnored = false;
-  }
-
   if (ast.type !== 'class') {
     const classes = [];
     for (const v of ast.value) {
-      if (ast.type === 'pseudo_class') {
-        isIgnored = true;
-        return classes;
-      }
-
       if (typeof v === 'object') {
         const subSelectors = getCSSClasses(v);
-        if (subSelectors.length > 0 && !isIgnored) {
+        if (subSelectors.length > 0) {
           classes.push(...subSelectors);
         }
       }
@@ -100,9 +86,7 @@ function getCSSClasses(ast) {
     return classes;
   }
 
-  console.log('=>', ast);
-  const className = ast.value[0].value;
-  return !IGNORED_CLASSES.includes(className) ? [{ name: className, line: ast.start.line }] : [];
+  return [{ name: ast.value[0].value, line: ast.start.line }];
 }
 
 function getSCSSBlocks(ast) {
@@ -164,32 +148,13 @@ async function checkCSSFiles() {
   for (const file of files) {
     try {
       const data = filesContents[file];
-      if (data.includes('v-deep')) {
-        addWarning(file, null, 'deprecated', 'v-deep has been deprecated, replace this by `:deep(<inner-selector>)`');
-      }
       const ast = parse(data);
       const blocks = getSCSSBlocks(ast);
+      //console.log('classes', getCSSClasses(ast));
       const sortingErrors = findCSSBlockError(blocks);
       if (sortingErrors) {
         for (sortingError of sortingErrors) {
           addWarning(file, sortingError.lineNumber, 'sorting', sortingError.message);
-        }
-      }
-
-      const pathArray = file.split('/');
-      const vueFileName = pathArray[pathArray.length - 1].replace('.scss', '.vue');
-      const vueFilePath = pathArray
-        .slice(0, pathArray.length - 2)
-        .concat(vueFileName)
-        .join('/');
-      const vueFileContent = filesContents[vueFilePath];
-
-      if (vueFileContent && !vueFileContent.includes(':class') && !vueFileContent.includes(':content-class')) {
-        const classes = getCSSClasses(ast);
-        for (const class_ of classes) {
-          if (!filesContents[vueFilePath].includes(class_.name)) {
-            addWarning(file, class_.line, 'unused class', `Remove class '${class_.name}'. It is not used.`);
-          }
         }
       }
     } catch (e) {
@@ -738,7 +703,6 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const libText = libFile ? filesContents[libFile] : '';
 
   if (
-    vueText &&
     !vueText.includes(eventName) &&
     !vmcText.includes(eventName) &&
     !specText.includes(eventName) &&
