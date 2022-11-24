@@ -693,6 +693,8 @@ function shouldCheckEvent(eventName, tagName) {
   return !IGNORE_EVENTS.includes(eventName) && !!tagName && (tagName.startsWith('sd-') || tagName.startsWith('stoic-'));
 }
 
+const IGNORED_EVENTS = ['sd-table-base__updateColumn'];
+
 function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const vmcText =
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
@@ -703,11 +705,14 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const specText = specFile ? filesContents[specFile] : '';
   const libText = libFile ? filesContents[libFile] : '';
 
+  const _name = `${tagName}__${eventName}`;
+
   if (
     !vueText.includes(eventName) &&
     !vmcText.includes(eventName) &&
     !specText.includes(eventName) &&
-    !libText.includes(eventName)
+    !libText.includes(eventName) &&
+    !IGNORED_EVENTS.includes(_name)
   ) {
     addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed`);
   }
