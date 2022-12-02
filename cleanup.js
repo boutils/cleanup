@@ -693,7 +693,7 @@ function shouldCheckEvent(eventName, tagName) {
   return !IGNORE_EVENTS.includes(eventName) && !!tagName && (tagName.startsWith('sd-') || tagName.startsWith('stoic-'));
 }
 
-const IGNORED_EVENTS = ['sd-table-base__updateColumn'];
+const IGNORED_EVENTS = ['sd-table-base__updateColumn', 'sd-table-base__fetchDiscussion'];
 
 function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const vmcText =
