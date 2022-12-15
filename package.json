@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@vuedoc/parser": "^3.3.0",
+    "@vuedoc/parser": "^3.4.0",
     "lodash": "^4.17.21",
     "scss-parser": "^1.0.5"
   }
