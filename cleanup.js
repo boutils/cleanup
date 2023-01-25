@@ -71,22 +71,30 @@ function findCSSBlockError(blocks) {
   return errors;
 }
 
+const IGNORED_CLASSES = ['active', 'theme--dark', 'sd-grid', 'sd-draggable-drag-in-progress'];
 function getCSSClasses(ast) {
-  if (ast.type !== 'class') {
-    const classes = [];
-    for (const v of ast.value) {
-      if (typeof v === 'object') {
-        const subSelectors = getCSSClasses(v);
-        if (subSelectors.length > 0) {
-          classes.push(...subSelectors);
-        }
-      }
-    }
+  let classes = [];
 
-    return classes;
+  if (ast.type === 'class') {
+    classes = ast.value.map((it) => it.value);
   }
 
-  return [{ name: ast.value[0].value, line: ast.start.line }];
+  if (Array.isArray(ast.value)) {
+    if (
+      ast.type === 'rule' &&
+      ast.value[0].type === 'selector' &&
+      ast.value[0].value[0].type === 'function' &&
+      ast.value[0].value[0].value[0].value[0].value === 'deep'
+    ) {
+      return [];
+    }
+
+    for (const subAst of ast.value) {
+      classes.push(...getCSSClasses(subAst));
+    }
+  }
+
+  return classes.filter((it) => !IGNORED_CLASSES.includes(it) && !it.startsWith('v-'));
 }
 
 function getSCSSBlocks(ast) {
@@ -148,13 +156,32 @@ async function checkCSSFiles() {
   for (const file of files) {
     try {
       const data = filesContents[file];
+      if (data.includes('v-deep')) {
+        addWarning(file, null, 'deprecated', 'v-deep has been deprecated, replace this by `:deep(<inner-selector>)`');
+      }
       const ast = parse(data);
       const blocks = getSCSSBlocks(ast);
-      //console.log('classes', getCSSClasses(ast));
       const sortingErrors = findCSSBlockError(blocks);
       if (sortingErrors) {
         for (sortingError of sortingErrors) {
           addWarning(file, sortingError.lineNumber, 'sorting', sortingError.message);
+        }
+      }
+
+      const pathArray = file.split('/');
+      const vueFileName = pathArray[pathArray.length - 1].replace('.scss', '.vue');
+      const vueFilePath = pathArray
+        .slice(0, pathArray.length - 2)
+        .concat(vueFileName)
+        .join('/');
+      const vueFileContent = filesContents[vueFilePath];
+
+      if (vueFileContent && !vueFileContent.includes(':class') && !vueFileContent.includes(':content-class')) {
+        const classes = getCSSClasses(ast);
+        for (const class_ of classes) {
+          if (!filesContents[vueFilePath].includes(class_)) {
+            addWarning(file, class_.line, 'unused class', `Remove class '${class_}'. It is not used.`);
+          }
         }
       }
     } catch (e) {
@@ -763,6 +790,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const _name = `${tagName}__${eventName}`;
 
   if (
+    vueText &&
     !vueText.includes(eventName) &&
     !vmcText.includes(eventName) &&
     !specText.includes(eventName) &&
