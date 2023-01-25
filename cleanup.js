@@ -446,6 +446,15 @@ async function checkVUEFiles() {
         continue;
       }
 
+      if (
+        line.includes('"scss"') &&
+        line.includes('<style') &&
+        !line.includes('unscoped') &&
+        !line.includes('scoped')
+      ) {
+        addWarning(file, lineNumber, 'unscoped CSS', 'CSS is unscoped');
+      }
+
       if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
         const expectedIndentation = computeExpectedIndentation(lineInfo, isInsideAttribute);
 
