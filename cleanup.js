@@ -178,8 +178,17 @@ async function checkJSFiles() {
 
     const file = filesContents[filePath];
     const lines = file.split('\n');
+    const linesInfo = [];
 
-    checkAndShortAnd(filePath, lines);
+    for (const [lineIndex, line] of lines.entries()) {
+      const previousLineInfo = linesInfo[lineIndex - 1] || {};
+      const lineNumber = lineIndex + 1;
+      const lineInfo = computeHTMLLineInfo(line, lineNumber, -1, previousLineInfo);
+      linesInfo.push(lineInfo);
+
+      checkAndShortAnd(filePath, lineInfo.line, lineNumber);
+      checkLineBackTicks(filePath, lineInfo, lineNumber);
+    }
 
     if (!IGNORE_FILES.includes(filePath)) {
       checkSwitchCase(filePath, lines);
@@ -328,6 +337,46 @@ function checkUnusedProperty(property, names, vmcFile) {
   }
 }
 
+function checkLineSingleQuotes(file, lineInfo, lineNumber) {
+  const { line } = lineInfo;
+  const hasSingleQuote = line.includes("'");
+
+  if (hasSingleQuote) {
+    const string = line.replace(/ /g, '');
+    if (string.includes("='") && (line.match(/=/g) || []).length === 1) {
+      addWarning(file, lineNumber, 'quote', 'Use double quotes instead of single"');
+    }
+  }
+}
+
+function checkLineBackTicks(file, lineInfo, lineNumber) {
+  const { line } = lineInfo;
+  const isVueFile = file.endsWith('.vue');
+  if (isVueFile && lineInfo.hasBackTick && !lineInfo.hasDollar && !lineInfo.hasPipe) {
+    addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, there is no variable inside`);
+    return;
+  }
+
+  if (isVueFile && lineInfo.hasBackTick && !lineInfo.isVueBinding && !lineInfo.hasMustacheCode) {
+    addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, this is not a vue binding`);
+    return;
+  }
+
+  if (lineInfo.hasBackTick && !lineInfo.isCommentedLine && !line.includes('//')) {
+    const singleQuotePos = line.indexOf("'");
+    if ((singleQuotePos > -1 && singleQuotePos < line.indexOf('`')) || (line.match(/`/g) || []).length === 1) {
+      return;
+    }
+
+    if (
+      !line.includes('${') ||
+      (line.includes('`${') && line.includes('}`') && (line.match(/{/g) || []).length === 1)
+    ) {
+      addWarning(file, lineNumber, 'BackTick', 'BackTick should be removed"');
+    }
+  }
+}
+
 const vueFiles = {};
 async function checkVUEFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vue');
@@ -337,7 +386,7 @@ async function checkVUEFiles() {
     vueFiles[componentName] = filesContents[file];
   }
 
-  for (const file of getFilesFromDirectory(DIRECTORY, '.vue')) {
+  for (const file of files) {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
     const lines = vueFiles[componentName].split('\n');
@@ -364,6 +413,9 @@ async function checkVUEFiles() {
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
       linesInfo.push(lineInfo);
+
+      checkLineSingleQuotes(file, lineInfo, lineNumber);
+      checkLineBackTicks(file, lineInfo, lineNumber);
 
       if (lineInfo.isClosingTag && !lineInfo.isShortClosingTag) {
         currentBlockDepth = lineInfo.depth - 1;
@@ -451,14 +503,6 @@ async function checkVUEFiles() {
 
       if (lineInfo.eventName?.endsWith('ed')) {
         addWarning(file, lineNumber, 'past participle', `"${lineInfo.eventName}" should not end with 'ed'`);
-      }
-
-      if (lineInfo.hasBackTick && !lineInfo.hasDollar && !lineInfo.hasPipe) {
-        addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, there is no variable inside`);
-      }
-
-      if (lineInfo.hasBackTick && !lineInfo.isVueBinding && !lineInfo.hasMustacheCode) {
-        addWarning(file, lineNumber, 'BackTick', `BackTick should be removed, this is not a vue binding`);
       }
 
       if (lineInfo.attributeNames.length > 0 && previousLineInfo.eventName && !previousLineInfo.hasEndingTag) {
@@ -613,26 +657,24 @@ function findDuplicates(arr) {
   return arr.filter((item, index) => arr.indexOf(item) != index);
 }
 
-function checkAndShortAnd(filePath, lines) {
-  for (const [lineIndex, line] of lines.entries()) {
-    const index = line.indexOf(' && ');
-    if (index === -1) {
-      continue;
-    }
+function checkAndShortAnd(filePath, line, lineNumber) {
+  const index = line.indexOf(' && ');
+  if (index === -1) {
+    return;
+  }
 
-    const before = line.substr(0, index);
-    const beforeKeyword = before.substr(before.lastIndexOf(' ') + 1);
-    const after = line.substr(index + 4);
-    const afterKeyword = after.substr(0, after.indexOf(' '));
+  const before = line.substr(0, index);
+  const beforeKeyword = before.substr(before.lastIndexOf(' ') + 1);
+  const after = line.substr(index + 4);
+  const afterKeyword = after.substr(0, after.indexOf(' '));
 
-    if (afterKeyword.startsWith(`${beforeKeyword}.`)) {
-      addWarning(
-        filePath,
-        lineIndex + 1,
-        'shortand',
-        `Replace '${beforeKeyword} && ${afterKeyword}' by '${afterKeyword.replace('.', '?.')}'`
-      );
-    }
+  if (afterKeyword.startsWith(`${beforeKeyword}.`)) {
+    addWarning(
+      filePath,
+      lineNumber,
+      'shortand',
+      `Replace '${beforeKeyword} && ${afterKeyword}' by '${afterKeyword.replace('.', '?.')}'`
+    );
   }
 }
 
@@ -887,7 +929,7 @@ function computeHTMLLineIndentation(line) {
 function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo) {
   const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
   const isEmptyLine = !line;
-  const isCommentedLine = isHTMLCommentedLine(line, previousLineInfo);
+  const isCommentedLine = isHTMLCommentedLine(line, previousLineInfo) || isJSCommentedLine(line, previousLineInfo);
   const indentationCount = computeHTMLLineIndentation(line);
   const hasStartingTag = hasHTMLLineStartingTag(line, indentationCount);
   const hasEndingTag = hasHTMLLineEndingTag(line);
@@ -1078,6 +1120,16 @@ function isHTMLCommentedLine(line, previousLineInfo) {
   if (line.trim().startsWith('<!--') || line.includes('-->')) {
     return true;
   } else if (previousLineInfo.line?.includes('-->')) {
+    return false;
+  } else {
+    return !!previousLineInfo.isCommentedLine;
+  }
+}
+
+function isJSCommentedLine(line, previousLineInfo) {
+  if (line.trim().startsWith('//') || line.trim().startsWith('/*') || line.includes('*/')) {
+    return true;
+  } else if (previousLineInfo.line?.includes('*/') || previousLineInfo.line?.trim()?.startsWith('//')) {
     return false;
   } else {
     return !!previousLineInfo.isCommentedLine;
