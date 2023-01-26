@@ -6,7 +6,6 @@ Nom des @events commencent par un verbe et ne terminent pas par "ed"
 find not used components
 find not used sequences => expectAssetRichTooltipLayerName
 find stoa key not used
-find CSS class not used
 Check arguments for every helper function
 */
 
@@ -71,7 +70,7 @@ function findCSSBlockError(blocks) {
   return errors;
 }
 
-const IGNORED_CLASSES = ['active', 'theme--dark', 'sd-grid', 'sd-draggable-drag-in-progress'];
+const IGNORED_CLASSES = ['active', 'sd-grid', 'sd-draggable-drag-in-progress', 'theme--dark'];
 function getCSSClasses(ast) {
   let classes = [];
 
