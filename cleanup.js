@@ -641,6 +641,10 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'unscoped CSS', 'CSS is unscoped');
       }
 
+      if (line.endsWith(' ')) {
+        addWarning(file, lineNumber, 'trailing spaces', 'Remove trailing spaces');
+      }
+
       if (!lineInfo.isEmptyLine && lineInfo.depth > -1) {
         const expectedIndentation = computeExpectedIndentation(lineInfo, isInsideAttribute);
 
