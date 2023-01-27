@@ -463,6 +463,7 @@ const IGNORE_CLASSES = [
   'title',
   'caption',
   'overline',
+  'sd-column-selector',
   'sd-dropdown',
   'sd-expandable-list-item-action-sort-items',
   'sd-filter-rule-form',
@@ -502,6 +503,7 @@ const CLASSES_USED_BY_TEST = [
   'sd-table-pagination-demo-page-length-slider',
   'sd-visual-demo-visual-selector',
   'sd-visual-placeholder-icon',
+  'split-count-selector',
 ];
 
 function isIgnoredClass(class_, file, lineNumber) {
