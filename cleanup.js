@@ -1,5 +1,8 @@
 /*
 TODOS:
+replace ":text-id          = "identifier + '-size-in-memory'"" by template string
+attribute with ' instead of "
+wrong attribute name => `class` is valid but `classes` is not
 Check name for every vmc
 find empty class
 Nom des @events commencent par un verbe et ne terminent pas par "ed"
@@ -71,7 +74,7 @@ function findCSSBlockError(blocks) {
 }
 
 const IGNORED_CLASSES = ['active', 'sd-grid', 'sd-draggable-drag-in-progress', 'theme--dark'];
-function getCSSClasses(ast) {
+function getCSSClasses(ast, ignoreDeep = false) {
   let classes = [];
 
   if (ast.type === 'class') {
@@ -81,6 +84,7 @@ function getCSSClasses(ast) {
   if (Array.isArray(ast.value)) {
     if (
       ast.type === 'rule' &&
+      ignoreDeep &&
       ast.value[0].type === 'selector' &&
       ast.value[0].value[0].type === 'function' &&
       ast.value[0].value[0].value[0].value[0].value === 'deep'
@@ -89,7 +93,7 @@ function getCSSClasses(ast) {
     }
 
     for (const subAst of ast.value) {
-      classes.push(...getCSSClasses(subAst));
+      classes.push(...getCSSClasses(subAst, ignoreDeep));
     }
   }
 
@@ -176,7 +180,7 @@ async function checkCSSFiles() {
       const vueFileContent = filesContents[vueFilePath];
 
       if (vueFileContent && !vueFileContent.includes(':class') && !vueFileContent.includes(':content-class')) {
-        const classes = getCSSClasses(ast);
+        const classes = getCSSClasses(ast, true);
         for (const class_ of classes) {
           if (!filesContents[vueFilePath].includes(class_)) {
             addWarning(file, class_.line, 'unused class', `Remove class '${class_}'. It is not used.`);
@@ -403,9 +407,136 @@ function checkLineBackTicks(file, lineInfo, lineNumber) {
   }
 }
 
+const SEPARATOR = [' ', ','];
+function extractDynamicClassNames(input) {
+  let str = input.trim().replace(':class', '');
+  const classNames = [];
+  let pos = str.indexOf(':');
+  while (pos > -1) {
+    const beforeString = str.substr(0, pos);
+    for (const separator of SEPARATOR) {
+      const last = beforeString.lastIndexOf(separator);
+      if (last > -1 && last < pos) {
+        const classStr = beforeString.substr(last + 1, pos);
+        const className = classStr.replace(/'/g, '');
+        if (className) {
+          classNames.push(className);
+        }
+
+        str = str.substr(last + 2 + classStr.length);
+        break;
+      }
+    }
+
+    pos = str.indexOf(':');
+  }
+
+  return classNames;
+}
+
+function isMarginPaddingClass(className) {
+  return className.length < 8 && (className.at(0) === 'p' || className.at(0) === 'm') && className.at(2) === '-';
+}
+
+function getClassListFromAttribute(attributeLine) {
+  const start = attributeLine.indexOf('"') + 1;
+  const str = attributeLine.substr(start, attributeLine.lastIndexOf('"') - start);
+
+  if (attributeLine.includes(':class')) {
+    if (attributeLine.includes('{')) {
+      return extractDynamicClassNames(attributeLine);
+    }
+
+    return [];
+  } else {
+    return str.split(' ');
+  }
+}
+
+const IGNORE_CLASSES = [
+  'active',
+  'disabled',
+  'fill-height',
+  'flex-column',
+  'headline',
+  'identifier',
+  'title',
+  'caption',
+  'overline',
+  'sd-dropdown',
+  'sd-expandable-list-item-action-sort-items',
+  'sd-filter-rule-form',
+  'sd-filtering-bar',
+  'sd-filtering-bar-error',
+  'sd-form-banner-bottom',
+  'sd-form-control-slider',
+  'sd-font-family-entry',
+  'sd-icons-selector-icon',
+  'sd-menu-item-sub-label',
+  'sd-menu-item-description',
+  'sd-menu-item-right-text',
+  'sd-quality-bar',
+  'sd-viewer-markdown',
+  'sd-tooltip-slot-container',
+  'stoic-notebook-editor-block-gutter',
+  'stoic-notebook-editor-block-gutter-active',
+  'stoic-notebook-editor-block-gutter-actions',
+  'stoic-notebook-editor-block-gutter-buttons',
+  'stoic-notebook-editor-block-gutter-close',
+  'stoic-notebook-editor-block-gutter-close-pinned',
+  'syntax',
+  'table',
+];
+const CLASSES_USED_BY_TEST = [
+  'demo-sd-delete-dialog-custom-message-input',
+  'without-left-filtering-dots',
+  'sd-conversation-comment',
+  'sd-conversation-add-comment',
+  'sd-data-structuring-step-action-button',
+  'sd-description-tooltip-description',
+  'sd-menu-item-slot',
+  'sd-name-dialog-name-field',
+  'sd-section-demo-slot',
+  'sd-section-demo-custom-header-title',
+  'sd-table-pagination-demo-page-count-slider',
+  'sd-table-pagination-demo-page-length-slider',
+  'sd-visual-demo-visual-selector',
+  'sd-visual-placeholder-icon',
+];
+
+function isIgnoredClass(class_, file, lineNumber) {
+  return (
+    IGNORE_CLASSES.includes(class_) ||
+    CLASSES_USED_BY_TEST.includes(class_) ||
+    isMarginPaddingClass(class_) ||
+    class_.endsWith('--text') ||
+    class_.startsWith('elevation-') ||
+    class_.startsWith('v-') ||
+    class_.startsWith('body-') ||
+    class_.startsWith('display-') ||
+    class_.startsWith('subtitle-') ||
+    class_.startsWith('d-') ||
+    class_.startsWith('text-') ||
+    class_.startsWith('mdi-') ||
+    class_.startsWith('align-') ||
+    class_.includes('__') ||
+    (file.includes('sd-function-details.vue') && lineNumber === 12) ||
+    (file.includes('stoic-panel-visual-designer-bindings.vue') && lineNumber === 30)
+  );
+}
+
 const vueFiles = {};
 async function checkVUEFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vue');
+
+  const themeAstCSS = filesContents['./ui/scss/theme.scss'] ? parse(filesContents['./ui/scss/theme.scss']) : null;
+  const themeClasses = themeAstCSS ? getCSSClasses(themeAstCSS) : [];
+  const stoicAstCSS = filesContents['./ui/scss/stoic.scss'] ? parse(filesContents['./ui/scss/stoic.scss']) : null;
+  const stoicClasses = stoicAstCSS ? getCSSClasses(stoicAstCSS) : [];
+  const mixinsAstCSS = filesContents['./ui/scss/mixins.scss'] ? parse(filesContents['./ui/scss/mixins.scss']) : null;
+  const mixinsClasses = mixinsAstCSS ? getCSSClasses(mixinsAstCSS) : [];
+  const globalClasses = themeClasses.concat(stoicClasses).concat(mixinsClasses);
+
   for (const file of files) {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
@@ -416,6 +547,14 @@ async function checkVUEFiles() {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
     const lines = vueFiles[componentName].split('\n');
+    const cssFile = pathArray
+      .slice(0, pathArray.length - 1)
+      .concat(['lib', componentName + '.scss'])
+      .join('/');
+    const astContent = filesContents[cssFile] || filesContents[cssFile.replace('.scss', '.unscoped.scss')];
+    const astCSS = astContent ? parse(astContent) : null;
+    const astClasses = astCSS ? getCSSClasses(astCSS) : [];
+    const classes = astClasses.concat(globalClasses);
     const linesInfo = [];
 
     let cummulatedAttributeNames = [];
@@ -438,6 +577,25 @@ async function checkVUEFiles() {
       }
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
+      if (lineInfo.attributeNames.length === 1 && lineInfo.attributeNames[0] === 'class') {
+        if (lineInfo.line.includes(':class') && lineInfo.line.includes('"{')) {
+          if (!lineInfo.line.includes('"{ ') || !lineInfo.line.includes(' }')) {
+            addWarning(file, lineNumber, 'add space', `Add 'space' after '{'  and before '}' in dynamic class.`);
+          }
+
+          if (lineInfo.line.trim().includes(' : ')) {
+            addWarning(file, lineNumber, 'remove space', `Remove 'space' before ':' in dynamic class.`);
+          }
+        }
+
+        const classList = getClassListFromAttribute(lineInfo.line);
+        for (const class_ of classList) {
+          if (!classes.includes(class_) && !isIgnoredClass(class_, file, lineNumber)) {
+            addWarning(file, lineNumber, 'unused class', `Remove class '${class_}'. It is not used.`);
+          }
+        }
+      }
+
       linesInfo.push(lineInfo);
 
       checkLineSingleQuotes(file, lineInfo, lineNumber);
