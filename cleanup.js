@@ -42,14 +42,12 @@ function addInfo(file, lineNumber, type, message) {
 }
 
 async function checker() {
-  /*
   await checkVMCFiles();
   await checkVUEFiles();
   await checkCSSFiles();
   await checkJSFiles();
   await checkJSonFiles();
   await checkExports();
-  */
   await checkFunctions();
 }
 
