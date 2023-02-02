@@ -42,12 +42,139 @@ function addInfo(file, lineNumber, type, message) {
 }
 
 async function checker() {
+  /*
   await checkVMCFiles();
   await checkVUEFiles();
   await checkCSSFiles();
   await checkJSFiles();
   await checkJSonFiles();
   await checkExports();
+  */
+  await checkFunctions();
+}
+
+const allFunctions = {};
+async function checkFunctions() {
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  for (const filePath of jsFilePaths) {
+    const fileContent = filesContents[filePath];
+    const lines = fileContent.split('\n');
+    let areExportFunctionsDeclaredFirst = true;
+    let isExported = true;
+    let errorReportedForCurrentFile = false;
+
+    for (const [lineIndex, rawLine] of lines.entries()) {
+      const line = rawLine.trim();
+
+      if (!line.startsWith('export function ') && !line.startsWith('function ')) {
+        continue;
+      }
+
+      const fnInfo = parseFunction(filePath, line);
+      allFunctions[`${filePath}/${fnInfo.name}`] = fnInfo;
+      if (fnInfo.error) {
+        addWarning(filePath, lineIndex + 1, 'function declaration', fnInfo.error);
+      }
+
+      if (fnInfo.exported) {
+        if (!isExported && !errorReportedForCurrentFile) {
+          errorReportedForCurrentFile = true;
+          addWarning(
+            filePath,
+            lineIndex + 1,
+            'function declaration',
+            `Exported function '${fnInfo.name}' should be before private function`
+          );
+        }
+      } else {
+        isExported = false;
+      }
+    }
+  }
+
+  //console.log('allFunctions', allFunctions);
+}
+
+function parseFunction(filePath, line) {
+  const result = {
+    filePath,
+    name: null,
+    args: [],
+    exported: false,
+    requiredArgsCount: 0,
+    optionalArgsCount: 0,
+    error: null,
+  };
+
+  let clean = line;
+  if (clean.startsWith('export')) {
+    clean = clean.substring(7);
+    result.exported = true;
+  }
+
+  if (clean.startsWith('function')) {
+    clean = clean.substring(9);
+  }
+
+  if (clean.endsWith('{')) {
+    clean = clean.substring(0, clean.length - 1);
+  }
+
+  clean = clean.trim();
+
+  const separators = [
+    { start: '{', end: '}' },
+    { start: '[', end: ']' },
+  ];
+
+  for (const separator of separators) {
+    let objectIndex = clean.indexOf(separator.start);
+    while (objectIndex > -1) {
+      let countStart = 1;
+      const substr = clean.substring(objectIndex + 1);
+      for (const [charPos, char] of substr.split('').entries()) {
+        if (char === separator.start) {
+          countStart++;
+        } else if (char === separator.end) {
+          countStart--;
+          if (countStart === 0) {
+            const toRep = clean.substring(objectIndex, objectIndex + charPos + 2);
+            clean = clean.replace(toRep, 'null');
+            objectIndex = clean.indexOf(separator.start);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  const start = clean.indexOf('(');
+  const end = clean.lastIndexOf(')');
+  result.name = clean.substring(0, start);
+  const args = clean.substring(start + 1, end).split(',');
+  result.args = args.map((txt, i) => {
+    txt = txt.trim();
+    const isOptional = txt.includes('=');
+
+    if (isOptional) {
+      result.optionalArgsCount++;
+    } else {
+      if (result.optionalArgsCount > 0) {
+        result.error = 'Move optional arguments at the end';
+      }
+
+      result.requiredArgsCount++;
+    }
+
+    return {
+      name: isOptional ? txt.substring(0, txt.indexOf('=')).trim() : txt,
+      txt,
+      required: !isOptional,
+      position: i + 1,
+    };
+  });
+
+  return result;
 }
 
 const filesContents = {};
