@@ -51,6 +51,46 @@ async function checker() {
   await checkFunctions();
 }
 
+function checkFunctionInFile(filePath, fn) {
+  const fileContent = filesContents[filePath];
+  if (!fileContent) {
+    return;
+  }
+  const isVueFile = filePath.endsWith('.vue');
+  const lines = fileContent.split('\n');
+  for (const [lineIndex, line] of lines.entries()) {
+    const indexStart = line.indexOf(`${fn.name}(`);
+    const isExternalCallToLibFn = line.includes(`lib.${fn.name}(`);
+
+    if (
+      indexStart > -1 &&
+      !line.includes('function') &&
+      (line.endsWith(',') || line.includes(';') || (isVueFile && isExternalCallToLibFn)) &&
+      (!line.includes(`.${fn.name}(`) || isExternalCallToLibFn)
+    ) {
+      const argsStartString = replaceObjectArgs(line.substring(indexStart + `${fn.name}`.length));
+      const argsString = argsStartString.substring(0, argsStartString.indexOf(')'));
+      const args = argsString.split(',');
+      const totalArgs = fn.requiredArgsCount + fn.optionalArgsCount;
+      if (args.length > totalArgs) {
+        addWarning(
+          filePath,
+          lineIndex + 1,
+          'function call',
+          `The function '${fn.name}' accepts only ${totalArgs} args but have ${args.length}`
+        );
+      } else if (args.length < fn.requiredArgsCount) {
+        addWarning(
+          fn.filePath,
+          fn.line,
+          'function declaration',
+          `The function '${fn.name}' has ${fn.requiredArgsCount} required args but is called sometimes with ${args.length}`
+        );
+      }
+    }
+  }
+}
+
 const allFunctions = {};
 async function checkFunctions() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
@@ -68,7 +108,7 @@ async function checkFunctions() {
         continue;
       }
 
-      const fnInfo = parseFunction(filePath, line);
+      const fnInfo = parseFunction(filePath, line, lineIndex + 1);
       allFunctions[`${filePath}/${fnInfo.name}`] = fnInfo;
       if (fnInfo.error) {
         addWarning(filePath, lineIndex + 1, 'function declaration', fnInfo.error);
@@ -90,12 +130,64 @@ async function checkFunctions() {
     }
   }
 
-  //console.log('allFunctions', allFunctions);
+  for (const fn of Object.values(allFunctions)) {
+    if (fn.isComponentFunction) {
+      checkFunctionInFile(fn.filePath, fn);
+
+      const pathArray = fn.filePath.split('/');
+      const componentName = pathArray[pathArray.length - 1].replace('.lib.js', '');
+      pathArray[pathArray.length - 1] = componentName + '.vmc.js';
+      const vmcFilePath = pathArray.join('/');
+      checkFunctionInFile(vmcFilePath, fn);
+
+      pathArray.splice(-1);
+      pathArray[pathArray.length - 1] = componentName + '.vue';
+      const vueFilePath = pathArray.join('/');
+      checkFunctionInFile(vueFilePath, fn);
+    }
+  }
 }
 
-function parseFunction(filePath, line) {
+function replaceObjectArgs(string) {
+  const before = string.substr(0, string.indexOf('(') + 1);
+  string = string.substring(before.length);
+  const separators = [
+    { start: '(', end: ')', replacement: '' },
+    { start: '{', end: '}', replacement: 'null' },
+    { start: '[', end: ']', replacement: 'null' },
+  ];
+
+  for (const separator of separators) {
+    let objectIndex = string.indexOf(separator.start);
+    while (objectIndex > -1 && objectIndex < string.length - 1) {
+      let countStart = 1;
+      const substr = string.substring(objectIndex + 1);
+      for (const [charPos, char] of substr.split('').entries()) {
+        if (char === separator.start) {
+          countStart++;
+        } else if (char === separator.end) {
+          countStart--;
+          if (countStart === 0) {
+            const toRep = string.substring(objectIndex, objectIndex + charPos + 2);
+            string = string.replace(toRep, separator.replacement);
+            objectIndex = string.indexOf(separator.start);
+            break;
+          }
+        }
+      }
+
+      objectIndex = -1;
+    }
+  }
+
+  return before + string;
+}
+
+function parseFunction(filePath, line, lineNumber) {
   const result = {
     filePath,
+    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.js'),
+    line: lineNumber,
     name: null,
     args: [],
     exported: false,
@@ -119,32 +211,7 @@ function parseFunction(filePath, line) {
   }
 
   clean = clean.trim();
-
-  const separators = [
-    { start: '{', end: '}' },
-    { start: '[', end: ']' },
-  ];
-
-  for (const separator of separators) {
-    let objectIndex = clean.indexOf(separator.start);
-    while (objectIndex > -1) {
-      let countStart = 1;
-      const substr = clean.substring(objectIndex + 1);
-      for (const [charPos, char] of substr.split('').entries()) {
-        if (char === separator.start) {
-          countStart++;
-        } else if (char === separator.end) {
-          countStart--;
-          if (countStart === 0) {
-            const toRep = clean.substring(objectIndex, objectIndex + charPos + 2);
-            clean = clean.replace(toRep, 'null');
-            objectIndex = clean.indexOf(separator.start);
-            break;
-          }
-        }
-      }
-    }
-  }
+  clean = replaceObjectArgs(clean);
 
   const start = clean.indexOf('(');
   const end = clean.lastIndexOf(')');
