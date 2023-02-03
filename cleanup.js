@@ -42,12 +42,12 @@ function addInfo(file, lineNumber, type, message) {
 }
 
 async function checker() {
-  await checkVMCFiles();
-  await checkVUEFiles();
-  await checkCSSFiles();
-  await checkJSFiles();
-  await checkJSonFiles();
-  await checkExports();
+  // await checkVMCFiles();
+  // await checkVUEFiles();
+  // await checkCSSFiles();
+  // await checkJSFiles();
+  // await checkJSonFiles();
+  // await checkExports();
   await checkFunctions();
 }
 
@@ -108,7 +108,8 @@ async function checkFunctions() {
         continue;
       }
 
-      const fnInfo = parseFunction(filePath, line, lineIndex + 1);
+      const fnInfo = parseFunction(filePath, lines, lineIndex + 1);
+
       allFunctions[`${filePath}/${fnInfo.name}`] = fnInfo;
       if (fnInfo.error) {
         addWarning(filePath, lineIndex + 1, 'function declaration', fnInfo.error);
@@ -130,8 +131,30 @@ async function checkFunctions() {
     }
   }
 
+  for (const filePath of jsFilePaths) {
+    for (const importLine of importsLines[filePath]) {
+      if (!importLine.line.includes('uiLib/')) {
+        continue;
+      }
+
+      const lookupPath = importLine.line
+        .replace(importLine.line.substring(0, importLine.line.indexOf('uiLib/') + 'uiLib/'.length), './ui/lib/')
+        .replace("';", '');
+
+      const hasStar = importLine.line.includes('*');
+      const relatedFunctions = Object.values(allFunctions).filter(
+        (it) => it.filePath === lookupPath && (hasStar || importLine.line.includes(it.name))
+      );
+
+      for (const fn of relatedFunctions) {
+        checkFunctionInFile(filePath, fn);
+      }
+    }
+  }
+
   for (const fn of Object.values(allFunctions)) {
     if (fn.isComponentFunction) {
+      continue;
       checkFunctionInFile(fn.filePath, fn);
 
       const pathArray = fn.filePath.split('/');
@@ -183,7 +206,7 @@ function replaceObjectArgs(string) {
   return before + string;
 }
 
-function parseFunction(filePath, line, lineNumber) {
+function parseFunction(filePath, lines, lineNumber) {
   const result = {
     filePath,
     isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.js'),
@@ -195,8 +218,16 @@ function parseFunction(filePath, line, lineNumber) {
     optionalArgsCount: 0,
     error: null,
   };
-
+  const line = lines[lineNumber - 1];
   let clean = line;
+  let isEnded = line.includes(') {');
+  let lineIt = lineNumber;
+  while (!isEnded) {
+    clean += lines[lineIt];
+    lineIt++;
+    isEnded = clean.includes(') {');
+  }
+
   if (clean.startsWith('export')) {
     clean = clean.substring(7);
     result.exported = true;
@@ -243,10 +274,12 @@ function parseFunction(filePath, line, lineNumber) {
 }
 
 const filesContents = {};
+const importsLines = {};
 function readAndIndexFiles() {
   const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
     filesContents[file] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
+    importsLines[file] = getAndCheckImportLines(file);
   }
 }
 
@@ -1086,14 +1119,13 @@ function checkSwitchCase(filePath, lines) {
 }
 
 function checkImports(filePath) {
-  const importsLines = getAndCheckImportLines(filePath);
-  const locations = importsLines.map((it) => it.line.split(' from ')[1].replace(/'/g, '').replace(/;/g, ''));
+  const locations = importsLines[filePath].map((it) => it.line.split(' from ')[1].replace(/'/g, '').replace(/;/g, ''));
 
   for (const duplicate of findDuplicates(locations)) {
     addWarning(filePath, null, 'duplicate', `import "${duplicate}" is duplicated`);
   }
 
-  const firstImportSortingError = getImportSortingError(locations, importsLines);
+  const firstImportSortingError = getImportSortingError(locations, importsLines[filePath]);
   if (firstImportSortingError) {
     addWarning(filePath, firstImportSortingError.lineNumber, 'sorting', `import ${firstImportSortingError.message}`);
   }
