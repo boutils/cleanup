@@ -42,12 +42,12 @@ function addInfo(file, lineNumber, type, message) {
 }
 
 async function checker() {
-  // await checkVMCFiles();
-  // await checkVUEFiles();
-  // await checkCSSFiles();
-  // await checkJSFiles();
-  // await checkJSonFiles();
-  // await checkExports();
+  await checkVMCFiles();
+  await checkVUEFiles();
+  await checkCSSFiles();
+  await checkJSFiles();
+  await checkJSonFiles();
+  await checkExports();
   await checkFunctions();
 }
 
@@ -154,7 +154,6 @@ async function checkFunctions() {
 
   for (const fn of Object.values(allFunctions)) {
     if (fn.isComponentFunction) {
-      continue;
       checkFunctionInFile(fn.filePath, fn);
 
       const pathArray = fn.filePath.split('/');
@@ -180,12 +179,15 @@ function replaceObjectArgs(string) {
     { start: '[', end: ']', replacement: 'null' },
   ];
 
+  debugger;
+
   for (const separator of separators) {
     let objectIndex = string.indexOf(separator.start);
     while (objectIndex > -1 && objectIndex < string.length - 1) {
       let countStart = 1;
       const substr = string.substring(objectIndex + 1);
-      for (const [charPos, char] of substr.split('').entries()) {
+      const chars = substr.split('');
+      for (const [charPos, char] of chars.entries()) {
         if (char === separator.start) {
           countStart++;
         } else if (char === separator.end) {
@@ -196,10 +198,10 @@ function replaceObjectArgs(string) {
             objectIndex = string.indexOf(separator.start);
             break;
           }
+        } else if (chars.length - 1 === charPos) {
+          objectIndex = -1;
         }
       }
-
-      objectIndex = -1;
     }
   }
 
