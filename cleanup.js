@@ -179,8 +179,6 @@ function replaceObjectArgs(string) {
     { start: '[', end: ']', replacement: 'null' },
   ];
 
-  debugger;
-
   for (const separator of separators) {
     let objectIndex = string.indexOf(separator.start);
     while (objectIndex > -1 && objectIndex < string.length - 1) {
