@@ -586,7 +586,7 @@ function checkUnusedProperty(property, names, vmcFile) {
     }
 
     const hasInVMC = [...vmcText.matchAll(new RegExp(name, 'g'))].length > 1 || vmcText.includes('this[');
-    if (!vueText.includes(name) && !hasInVMC && name !== 'prefixid') {
+    if (!vueText.includes(name) && !hasInVMC && name !== 'prefixid' && name !== 'isidentifier') {
       addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used`);
     }
   }
