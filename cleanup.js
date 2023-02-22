@@ -1162,6 +1162,7 @@ const IGNORED_EVENTS = [
   'sd-table-base__updateColumn',
   'sd-table-base__fetchDiscussion',
   'sd-table-base__updateGroupbyAggregation',
+  'stoic-sheet-editor__fetchFile',
 ];
 
 function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
