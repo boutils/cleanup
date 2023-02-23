@@ -1162,6 +1162,7 @@ const IGNORED_EVENTS = [
   'sd-table-base__updateColumn',
   'sd-table-base__fetchDiscussion',
   'sd-table-base__updateGroupbyAggregation',
+  'sd-viewer-html__fetchFile',
   'stoic-sheet-editor__fetchFile',
 ];
 
