@@ -919,6 +919,10 @@ async function checkVUEFiles() {
 
       if (lineInfo.attributeNames.length > 0) {
         for (const attribute of lineInfo.attributeNames) {
+          if (lineInfo.hasStartingTag && line.lastIndexOf('  ') > line.indexOf('<')) {
+            addWarning(file, lineNumber, 'space', 'Too much spaces');
+          }
+
           if (hasUpperCase(attribute)) {
             addWarning(file, lineNumber, 'case', `'${attribute}' should be kebab case (no upper case)`);
           }
