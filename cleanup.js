@@ -1,7 +1,6 @@
 /*
 TODOS:
-replace ":text-id          = "identifier + '-size-in-memory'"" by template string
-attribute with ' instead of "
+vmc attribute validation and order (props, methods,...)
 wrong attribute name => `class` is valid but `classes` is not
 Check name for every vmc
 find empty class
@@ -804,6 +803,25 @@ async function checkVUEFiles() {
       }
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
+      if (lineInfo.attributeValue && lineInfo.attributeValue.includes("'") && lineInfo.attributeValue.includes('+')) {
+        const arr = lineInfo.attributeValue.split('+');
+        const templateStrArr = arr.map((it) => {
+          const exp = it.trim();
+          if (exp.startsWith("'")) {
+            return exp.replace(/'/g, '');
+          } else {
+            return '${' + exp + '}';
+          }
+        });
+        addWarning(
+          file,
+          lineNumber,
+          'template string',
+          '`' + templateStrArr.join('') + '`',
+          `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join('')}\`' (template string).`
+        );
+      }
+
       if (lineInfo.attributeNames.length === 1 && lineInfo.attributeNames[0] === 'class') {
         if (lineInfo.line.includes(':class') && lineInfo.line.includes('"{')) {
           if (!lineInfo.line.includes('"{ ') || !lineInfo.line.includes(' }')) {
@@ -1332,6 +1350,29 @@ function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equal
   return [];
 }
 
+function computeHTMLLineAttributeValue(line, hasStartingTag, hasEndingTag, equalPosition, attributeNames) {
+  if (hasStartingTag && hasEndingTag) {
+    const startingTagPosition = line.indexOf('<') || 0;
+    line = line.substr(startingTagPosition, line.indexOf('>'));
+    equalPosition = equalPosition - startingTagPosition;
+  }
+
+  if (hasStartingTag && (!hasEndingTag || equalPosition === -1)) {
+    return line
+      .trim()
+      .replace('>', '')
+      .split(' ')
+      .filter((it) => it[0] !== '<');
+  } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
+    const res = line
+      .substr(equalPosition + 1)
+      .trim()
+      .replace('>', '')
+      .replace(/"/g, '');
+    return res;
+  }
+}
+
 function computeHTMLLineEventName(line, equalPosition) {
   const trimmedLine = line.trim();
   if (trimmedLine.startsWith('@')) {
@@ -1365,6 +1406,13 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineIn
   const hasPipe = hasHTMLLinePipe(line);
   const equalPosition = computeEqualPosition(line);
   const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
+  const attributeValue = computeHTMLLineAttributeValue(
+    line,
+    hasStartingTag,
+    hasEndingTag,
+    equalPosition,
+    attributeNames
+  );
   const isVueBinding = isHTMLLineVueBinding(line, attributeNames);
   const eventName = computeHTMLLineEventName(line, equalPosition);
   const isClosingTag = isHTLMClosingTag(line);
@@ -1377,6 +1425,7 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineIn
   return {
     allowMultipleTags,
     attributeNames,
+    attributeValue,
     depth,
     equalPosition,
     eventName,
@@ -1608,7 +1657,8 @@ function printInfoAndWarnings(infoOrWarnings, type) {
   for (const file of Object.keys(infoOrWarnings)) {
     const fileName = file.replace(/^.*[\\\/]/, '');
     log('\n' + fileName, 'info');
-    log(file, 'path');
+    const link = infoOrWarnings[file][0]?.lineNumber ? `${file}:${infoOrWarnings[file][0].lineNumber}` : file;
+    log(link, 'path');
     for (const infoOrWarning of infoOrWarnings[file]) {
       const lineMsg = infoOrWarning.lineNumber ? `[line ${infoOrWarning.lineNumber}] ` : '';
       log(`\t${lineMsg}(${infoOrWarning.type}) ${infoOrWarning.message}`, 'warning');
