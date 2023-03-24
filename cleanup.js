@@ -926,6 +926,15 @@ async function checkVUEFiles() {
           if (shouldCheckAttribute(attribute, lineInfo.tagName)) {
             checkAttributeInVueFile(file, lineNumber, attribute, lineInfo.tagName);
           }
+
+          if (isValidHtmlTag(lineInfo.tagName) && !isValidHtmlAttribute(attribute)) {
+            addWarning(
+              file,
+              lineNumber,
+              'invalid attribute',
+              `'${attribute}' is invalid for tag '${lineInfo.tagName}'`
+            );
+          }
         }
       }
 
@@ -1093,6 +1102,42 @@ async function cleanTestFiles() {
       console.error(e.message);
     }
   }
+}
+
+const VALID_HTML_TAGS = ['a', 'body', 'br', 'div', 'head', 'img', 'li', 'hr', 'p', 'span', 'style', 'u', 'ul'];
+function isValidHtmlTag(tag) {
+  return VALID_HTML_TAGS.includes(tag);
+}
+
+const VALID_HTML_ATTRIBUTES = [
+  'alt',
+  'class',
+  'contenteditable',
+  'crossorigin',
+  'disabled',
+  'href',
+  'id',
+  'key',
+  'lang',
+  'ref',
+  'slot',
+  'src',
+  'style',
+  'tabindex',
+  'target',
+  'title',
+  'v-click-outside',
+  'v-if',
+  'v-else',
+  'v-else-if',
+  'v-for',
+  'v-html',
+  'v-on',
+  'v-show',
+];
+
+function isValidHtmlAttribute(attribute) {
+  return VALID_HTML_ATTRIBUTES.includes(attribute) || attribute.startsWith('v-can') || attribute.startsWith('data-');
 }
 
 function findDuplicates(arr) {
@@ -1342,7 +1387,7 @@ function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equal
   } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
     const left = line.substr(0, equalPosition).trim().split(' ');
     const attributeName = left[left.length - 1];
-    if (attributeName) {
+    if (attributeName && !attributeName.includes('<')) {
       return [attributeName.startsWith(':') ? attributeName.substr(1) : attributeName];
     }
   }
