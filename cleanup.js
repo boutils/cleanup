@@ -796,6 +796,10 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'invalid this', 'Remove "this."');
       }
 
+      if (line.includes('mdi-') && !line.includes('mdi-rotate')) {
+        addWarning(file, lineNumber, 'missing term', 'Remove hardcoded "mdi-"');
+      }
+
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
 
       if (previousLineInfo.hasEndingTag && TAG_WITHOUT_CLOSE.has(previousLineInfo.tagName)) {
