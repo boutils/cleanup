@@ -807,6 +807,11 @@ async function checkVUEFiles() {
       }
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
+      /*
+      console.log('=>', line);
+      console.log(lineInfo);
+      console.log('---------');
+      */
       if (lineInfo.attributeValue && lineInfo.attributeValue.includes("'") && lineInfo.attributeValue.includes('+')) {
         const arr = lineInfo.attributeValue.split('+');
         const templateStrArr = arr.map((it) => {
@@ -826,21 +831,32 @@ async function checkVUEFiles() {
         );
       }
 
-      if (lineInfo.attributeNames.length === 1 && lineInfo.attributeNames[0] === 'class') {
-        if (lineInfo.line.includes(':class') && lineInfo.line.includes('"{')) {
-          if (!lineInfo.line.includes('"{ ') || !lineInfo.line.includes(' }')) {
-            addWarning(file, lineNumber, 'add space', `Add 'space' after '{'  and before '}' in dynamic class.`);
-          }
-
-          if (lineInfo.line.trim().includes(' : ')) {
-            addWarning(file, lineNumber, 'remove space', `Remove 'space' before ':' in dynamic class.`);
-          }
+      if (lineInfo.attributeNames.length === 1) {
+        if (
+          lineInfo.attributeNames[0] === 'style' &&
+          !lineInfo.isVueBinding &&
+          !line.includes('break-') &&
+          !line.includes('url(')
+        ) {
+          addWarning(file, lineNumber, 'inline css', 'style should be in a dedicated stylesheet');
         }
 
-        const classList = getClassListFromAttribute(lineInfo.line);
-        for (const class_ of classList) {
-          if (!classes.includes(class_) && !isIgnoredClass(class_, file, lineNumber)) {
-            addWarning(file, lineNumber, 'unused class', `Remove class '${class_}'. It is not used.`);
+        if (lineInfo.attributeNames[0] === 'class') {
+          if (lineInfo.line.includes(':class') && lineInfo.line.includes('"{')) {
+            if (!lineInfo.line.includes('"{ ') || !lineInfo.line.includes(' }')) {
+              addWarning(file, lineNumber, 'add space', `Add 'space' after '{'  and before '}' in dynamic class.`);
+            }
+
+            if (lineInfo.line.trim().includes(' : ')) {
+              addWarning(file, lineNumber, 'remove space', `Remove 'space' before ':' in dynamic class.`);
+            }
+          }
+
+          const classList = getClassListFromAttribute(lineInfo.line);
+          for (const class_ of classList) {
+            if (!classes.includes(class_) && !isIgnoredClass(class_, file, lineNumber)) {
+              addWarning(file, lineNumber, 'unused class', `Remove class '${class_}'. It is not used.`);
+            }
           }
         }
       }
