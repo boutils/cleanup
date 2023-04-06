@@ -624,6 +624,7 @@ function checkLineBackTicks(file, lineInfo, lineNumber) {
 
     if (
       !file.includes('test/lib/kyu') &&
+      !file.includes('test/lib/fermat') &&
       (!line.includes('${') || (line.includes('`${') && line.includes('}`') && (line.match(/{/g) || []).length === 1))
     ) {
       addWarning(file, lineNumber, 'BackTick', 'BackTick should be removed"');
