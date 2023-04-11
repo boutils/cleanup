@@ -557,7 +557,7 @@ const PUBLIC_METHODS = [
   'stoic-journey-outline-transform-form__optionsSpec',
   'stoic-palette__pushTextToSearchField',
 ];
-const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars'];
+const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars', 'sd-name-dialog__emptynametext'];
 
 function checkUnusedProperty(property, names, vmcFile) {
   if (names.length === 0) {
