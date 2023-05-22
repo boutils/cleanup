@@ -558,7 +558,12 @@ const PUBLIC_METHODS = [
   'stoic-journey-outline-transform-form__optionsSpec',
   'stoic-palette__pushTextToSearchField',
 ];
-const METHODS_USED_BY_MIXINS = ['sd-name-dialog__forbiddenChars', 'sd-name-dialog__emptynametext'];
+const METHODS_USED_BY_MIXINS = [
+  'sd-name-dialog__forbiddenChars',
+  'sd-name-dialog__emptynametext',
+  'sd-table-base__columnconfiguration',
+  'sd-table-base__isconfigurationformshown',
+];
 
 function checkUnusedProperty(property, names, vmcFile) {
   if (names.length === 0) {
@@ -1248,7 +1253,9 @@ function shouldCheckEvent(eventName, tagName) {
 }
 
 const IGNORED_EVENTS = [
+  'sd-table-base__blurColumnConfigurator',
   'sd-table-base__updateColumn',
+  'sd-table-base__updateColumnConfigurator',
   'sd-table-base__fetchDiscussion',
   'sd-table-base__updateGroupbyAggregation',
   'sd-viewer-html__fetchFile',
