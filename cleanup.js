@@ -1254,6 +1254,7 @@ function shouldCheckEvent(eventName, tagName) {
 
 const IGNORED_EVENTS = [
   'sd-table-base__blurColumnConfigurator',
+  'sd-table-base__clickKeepColumn',
   'sd-table-base__updateColumn',
   'sd-table-base__updateColumnConfigurator',
   'sd-table-base__fetchDiscussion',
