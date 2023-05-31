@@ -861,7 +861,11 @@ async function checkVUEFiles() {
 
           const classList = getClassListFromAttribute(lineInfo.line);
           for (const class_ of classList) {
-            if (!classes.includes(class_) && !isIgnoredClass(class_, file, lineNumber)) {
+            if (
+              !classes.includes(class_) &&
+              !isIgnoredClass(class_, file, lineNumber) &&
+              lineNumber !== 4 /* component is identified by a class at this line */
+            ) {
               addWarning(file, lineNumber, 'unused class', `Remove class '${class_}'. It is not used.`);
             }
           }
