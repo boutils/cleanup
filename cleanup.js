@@ -557,6 +557,7 @@ const PUBLIC_METHODS = [
   'stoic-journey-outline-recipe__onRightClick',
   'stoic-journey-outline-transform-form__optionsSpec',
   'stoic-palette__pushTextToSearchField',
+  'stoic-view-composer-add-item__showActionsMenu',
   'stoic-view-composer-toolbar__showActionsMenu',
 ];
 const METHODS_USED_BY_MIXINS = [
