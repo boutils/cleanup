@@ -5,7 +5,6 @@ vmc attribute validation and order (props, methods,...)
 wrong attribute name => `class` is valid but `classes` is not
 Check name for every vmc
 find empty class
-Nom des @events commencent par un verbe et ne terminent pas par "ed"
 find not used components
 find not used sequences => expectAssetRichTooltipLayerName
 find stoa key not used
