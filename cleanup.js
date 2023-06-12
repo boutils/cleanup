@@ -514,6 +514,12 @@ function computeExportKeyword(key, line, delimiter) {
   return line.substr(startIndex, line.indexOf(delimiter) - startIndex);
 }
 
+function camalize(str) {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, function (match, chr) {
+    return chr.toUpperCase();
+  });
+}
+
 let vmcFiles = {};
 async function checkVMCFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
@@ -527,6 +533,18 @@ async function checkVMCFiles() {
       const data = filesContents[file];
       vmcFiles[componentName] = { ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
+
+      if (!results.name.endsWith('.vmc')) {
+        const validComponentName = camalize(componentName);
+        if (results.name !== validComponentName) {
+          addWarning(
+            file,
+            null,
+            'name',
+            `Wrong VMC component name: replace '${results.name}' by '${validComponentName}'`
+          );
+        }
+      }
 
       for (const property of properties) {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
