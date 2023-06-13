@@ -1,5 +1,6 @@
 /*
 TODOS:
+Order `cases` in switch
 Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
 wrong attribute name => `class` is valid but `classes` is not
