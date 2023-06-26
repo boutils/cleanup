@@ -573,7 +573,7 @@ const PUBLIC_METHODS = [
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onContainerClick',
   'stoic-journey-outline-recipe__onRightClick',
-  'stoic-journey-outline-transform-form__optionsSpec',
+  'stoic-journey-outline-transform__optionsSpec',
   'stoic-palette__pushTextToSearchField',
   'stoic-view-composer-add-item__showActionsMenu',
   'stoic-view-composer-toolbar__showActionsMenu',
