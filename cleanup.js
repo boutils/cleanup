@@ -1,5 +1,6 @@
 /*
 TODOS:
+Check that importedCOmponents are used
 Order `cases` in switch
 Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
