@@ -1280,6 +1280,7 @@ function shouldCheckEvent(eventName, tagName) {
 const IGNORED_EVENTS = [
   'sd-table-base__blurColumnConfigurator',
   'sd-table-base__clickKeepColumn',
+  'sd-table-base__searchColumn',
   'sd-table-base__updateColumn',
   'sd-table-base__updateColumnConfigurator',
   'sd-table-base__fetchDiscussion',
@@ -1308,7 +1309,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     !libText.includes(eventName) &&
     !IGNORED_EVENTS.includes(_name)
   ) {
-    addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed`);
+    addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed (${_name})`);
   }
 }
 
