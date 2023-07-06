@@ -279,6 +279,10 @@ const importsLines = {};
 function readAndIndexFiles() {
   const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
+    if (file.includes('.ts')) {
+      continue;
+    }
+
     filesContents[file] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     importsLines[file] = getAndCheckImportLines(file);
   }
