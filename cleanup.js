@@ -1276,7 +1276,7 @@ function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
   }
 }
 
-const IGNORE_EVENTS = ['click', 'contextMenu', 'dblclick', 'mouseenter', 'mouseleave'];
+const IGNORE_EVENTS = ['click', 'contextMenu', 'dblclick', 'mousedown', 'mouseenter', 'mouseleave'];
 function shouldCheckEvent(eventName, tagName) {
   return !IGNORE_EVENTS.includes(eventName) && !!tagName && (tagName.startsWith('sd-') || tagName.startsWith('stoic-'));
 }
