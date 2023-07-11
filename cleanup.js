@@ -572,6 +572,8 @@ async function checkVMCFiles() {
   }
 }
 
+const IGNORED_PROPS = ['sd-sheet__transfers'];
+
 const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
   'sd-code-autocomplete__selectUp',
@@ -611,13 +613,13 @@ function checkUnusedProperty(property, names, vmcFile) {
 
   for (const name of names) {
     const _name = `${fileName}__${name}`;
-    if (PUBLIC_METHODS.includes(_name) || METHODS_USED_BY_MIXINS.includes(_name)) {
+    if (IGNORED_PROPS.includes(_name) || PUBLIC_METHODS.includes(_name) || METHODS_USED_BY_MIXINS.includes(_name)) {
       continue;
     }
 
     const hasInVMC = [...vmcText.matchAll(new RegExp(name, 'g'))].length > 1 || vmcText.includes('this[');
     if (!vueText.includes(name) && !hasInVMC && name !== 'prefixid' && name !== 'isidentifier') {
-      addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used`);
+      addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})`);
     }
   }
 }
@@ -1282,6 +1284,7 @@ function shouldCheckEvent(eventName, tagName) {
 }
 
 const IGNORED_EVENTS = [
+  'sd-sheet__fetchFile',
   'sd-table-base__blurColumnConfigurator',
   'sd-table-base__clickKeepColumn',
   'sd-table-base__searchColumn',
