@@ -1,6 +1,6 @@
 /*
 TODOS:
-Check that importedCOmponents are used
+Check that importedComponents are used
 Order `cases` in switch
 Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
@@ -468,6 +468,19 @@ async function checkJSFiles() {
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
       const lineNumber = lineIndex + 1;
       const lineInfo = computeHTMLLineInfo(line, lineNumber, -1, previousLineInfo);
+
+      const trim = line?.trim();
+      if (
+        line.length > 0 &&
+        !trim.startsWith('}') &&
+        !trim.startsWith(')') &&
+        !trim.startsWith(':') &&
+        !trim.startsWith('break;') &&
+        previousLineInfo?.line?.trim() === '}'
+      ) {
+        addWarning(filePath, lineNumber, 'empty line', 'Add an empty line');
+      }
+
       linesInfo.push(lineInfo);
       checkAndShortAnd(filePath, lineInfo.line, lineNumber);
       checkLineBackTicks(filePath, lineInfo, lineNumber);
