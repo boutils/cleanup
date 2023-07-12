@@ -1,6 +1,5 @@
 /*
 TODOS:
-Check async without await.
 Check that importedCOmponents are used
 Order `cases` in switch
 Sort `components` in VMC files
@@ -58,6 +57,7 @@ function checkFunctionInFile(filePath, fn) {
   if (!fileContent) {
     return;
   }
+
   const isVueFile = filePath.endsWith('.vue');
   const lines = fileContent.split('\n');
   for (const [lineIndex, line] of lines.entries()) {
@@ -432,8 +432,8 @@ const IGNORE_FILES = [
 ];
 
 async function checkJSFiles() {
-  //const filePaths = getFilesFromDirectory(DIRECTORY, 'code-range.vmc.js');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test/ui', '.js'));
   for (const filePath of filePaths) {
     checkImports(filePath);
 
@@ -441,12 +441,34 @@ async function checkJSFiles() {
     const lines = file.split('\n');
     const linesInfo = [];
 
+    let isInsideAsyncFn = false;
+    let asyncFnLineIndex = -1;
+    let hasAwait = false;
+    let countCurlyBracket = 0;
     for (const [lineIndex, line] of lines.entries()) {
+      if (line.includes('async ')) {
+        isInsideAsyncFn = true;
+        asyncFnLineIndex = lineIndex;
+        countCurlyBracket = 1;
+        hasAwait = false;
+      } else if (isInsideAsyncFn && (line.includes('}') || line.includes('{'))) {
+        countCurlyBracket = countCurlyBracket + (line.match(/{/g)?.length || 0) - (line.match(/}/g)?.length || 0);
+        if (countCurlyBracket === 0) {
+          isInsideAsyncFn = false;
+          if (!hasAwait) {
+            addWarning(filePath, asyncFnLineIndex + 1, 'ASYNC', `Remove 'async'`);
+          }
+        }
+      }
+
+      if (line.includes('await ')) {
+        hasAwait = true;
+      }
+
       const previousLineInfo = linesInfo[lineIndex - 1] || {};
       const lineNumber = lineIndex + 1;
       const lineInfo = computeHTMLLineInfo(line, lineNumber, -1, previousLineInfo);
       linesInfo.push(lineInfo);
-
       checkAndShortAnd(filePath, lineInfo.line, lineNumber);
       checkLineBackTicks(filePath, lineInfo, lineNumber);
     }
