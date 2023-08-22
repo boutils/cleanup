@@ -414,7 +414,7 @@ async function checkCSSFiles() {
       if (vueFileContent && !vueFileContent.includes(':class') && !vueFileContent.includes(':content-class')) {
         const classes = getCSSClasses(ast, true);
         for (const class_ of classes) {
-          if (!filesContents[vueFilePath].includes(class_)) {
+          if (!filesContents[vueFilePath].includes(class_) && !IGNORE_CLASSES.includes(class_)) {
             addWarning(file, class_.line, 'unused class', `Remove class '${class_}'. It is not used.`);
           }
         }
