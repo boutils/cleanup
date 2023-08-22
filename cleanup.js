@@ -627,6 +627,7 @@ const METHODS_USED_BY_MIXINS = [
   'sd-name-dialog__emptynametext',
   'sd-table-base__columnconfiguration',
   'sd-table-base__isconfigurationformshown',
+  'sd-table-base__waitForGridReady',
 ];
 
 function checkUnusedProperty(property, names, vmcFile) {
@@ -772,6 +773,7 @@ const IGNORE_CLASSES = [
   'sd-menu-item-description',
   'sd-menu-item-right-text',
   'sd-quality-bar',
+  'sd-column-sparkchart',
   'sd-viewer-markdown',
   'sd-tooltip-slot-container',
   'stoic-notebook-editor-block-gutter',
