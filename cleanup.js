@@ -1325,6 +1325,7 @@ function shouldCheckEvent(eventName, tagName) {
 const IGNORED_EVENTS = [
   'sd-sheet__fetchFile',
   'sd-table-base__blurColumnConfigurator',
+  'sd-table-base__clickInsertColumn',
   'sd-table-base__clickKeepColumn',
   'sd-table-base__searchColumn',
   'sd-table-base__updateColumn',
