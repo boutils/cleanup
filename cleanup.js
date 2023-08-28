@@ -1325,6 +1325,7 @@ function shouldCheckEvent(eventName, tagName) {
 const IGNORED_EVENTS = [
   'sd-sheet__fetchFile',
   'sd-table-base__blurColumnConfigurator',
+  'sd-table-base__clickClearSearch',
   'sd-table-base__clickInsertColumn',
   'sd-table-base__clickKeepColumn',
   'sd-table-base__searchColumn',
@@ -1332,6 +1333,7 @@ const IGNORED_EVENTS = [
   'sd-table-base__updateColumnConfigurator',
   'sd-table-base__fetchDiscussion',
   'sd-table-base__updateGroupbyAggregation',
+  'sd-table-base__vectorizeColumn',
   'sd-viewer-html__fetchFile',
   'stoic-sheet-editor__fetchFile',
 ];
