@@ -615,6 +615,7 @@ const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
   'sd-code-autocomplete__selectUp',
   'sd-sheet__onJourneyEditorRecordUpdate',
+  'sd-table-base__onGroupByAggregationUpdate',
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onContainerClick',
   'stoic-journey-outline-recipe__onRightClick',
