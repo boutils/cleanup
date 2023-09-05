@@ -1330,6 +1330,7 @@ const IGNORED_EVENTS = [
   'sd-table-base__clickClearSearch',
   'sd-table-base__clickInsertColumn',
   'sd-table-base__clickKeepColumn',
+  'sd-table-base__clickLoadJourney',
   'sd-table-base__searchColumn',
   'sd-table-base__updateColumn',
   'sd-table-base__updateColumnConfigurator',
