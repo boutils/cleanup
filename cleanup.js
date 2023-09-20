@@ -1326,6 +1326,7 @@ function shouldCheckEvent(eventName, tagName) {
 
 const IGNORED_EVENTS = [
   'sd-sheet__fetchFile',
+  'sd-sheet__openSortDialog',
   'sd-table-base__blurColumnConfigurator',
   'sd-table-base__clickClearSearch',
   'sd-table-base__clickInsertColumn',
@@ -1388,12 +1389,13 @@ function getAndCheckImportLines(filePath) {
           !line.includes('kyu/lib/ui') &&
           !line.includes('@') &&
           line.includes('/') &&
+          !line.includes("from 'lib/") &&
           !line.includes('.')
         ) {
           addWarning(filePath, lineNumber, 'missing extension', `Add an extension to import "${line}"`);
         }
 
-        if (line.includes("from 'fermat'") && line.includes('utils')) {
+        if (line.includes("from 'lib/fermat'") && line.includes('utils')) {
           addWarning(filePath, lineNumber, 'wrong repo', `Fermat's 'utils' should be imported from Principia`);
         }
       }
