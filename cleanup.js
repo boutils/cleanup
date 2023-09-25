@@ -19,24 +19,6 @@ const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
-async function test() {
-  const scenariosTxt = fs.readFileSync('./scenarios.txt', {
-    encoding: 'utf8',
-    flag: 'r',
-  });
-  const scenarios = JSON.parse(scenariosTxt);
-  //console.log('=>', Object.keys(scenarios));
-  for (const scenarioFileName of Object.keys(scenarios)) {
-    const { path, content } = scenarios[scenarioFileName];
-    console.log('=>', scenarioFileName, path);
-    const filepath = 'ui/components/' + path.substr(2).replace('.json', '.js');
-    fs.writeFileSync(filepath, content);
-  }
-}
-test();
-execute("prettier '**/*.test.js' --write");
-return;
-
 const DIRECTORY = './ui';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
