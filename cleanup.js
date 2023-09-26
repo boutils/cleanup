@@ -19,24 +19,6 @@ const Vuedoc = require('@vuedoc/parser');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
-async function test() {
-  const scenariosTxt = fs.readFileSync('./scenarios.txt', {
-    encoding: 'utf8',
-    flag: 'r',
-  });
-  const scenarios = JSON.parse(scenariosTxt);
-  //console.log('=>', Object.keys(scenarios));
-  for (const scenarioFileName of Object.keys(scenarios)) {
-    const { path, content } = scenarios[scenarioFileName];
-    console.log('=>', scenarioFileName, path);
-    const filepath = 'ui/components/' + path.substr(14).replace('.json', '.mjs');
-    fs.writeFileSync(filepath, content);
-  }
-}
-test();
-execute("prettier '**/*.test.mjs' --write");
-return;
-
 const DIRECTORY = './ui';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
@@ -114,7 +96,7 @@ function checkFunctionInFile(filePath, fn) {
 
 const allFunctions = {};
 async function checkFunctions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
   for (const filePath of jsFilePaths) {
     const fileContent = filesContents[filePath];
     const lines = fileContent.split('\n');
@@ -178,8 +160,8 @@ async function checkFunctions() {
       checkFunctionInFile(fn.filePath, fn);
 
       const pathArray = fn.filePath.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.lib.mjs', '');
-      pathArray[pathArray.length - 1] = componentName + '.vmc.mjs';
+      const componentName = pathArray[pathArray.length - 1].replace('.lib.js', '');
+      pathArray[pathArray.length - 1] = componentName + '.vmc.js';
       const vmcFilePath = pathArray.join('/');
       checkFunctionInFile(vmcFilePath, fn);
 
@@ -230,7 +212,7 @@ function replaceObjectArgs(string) {
 function parseFunction(filePath, lines, lineNumber) {
   const result = {
     filePath,
-    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.mjs'),
+    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.js'),
     line: lineNumber,
     name: null,
     args: [],
@@ -297,7 +279,7 @@ function parseFunction(filePath, lines, lineNumber) {
 const filesContents = {};
 const importsLines = {};
 function readAndIndexFiles() {
-  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.mjs'));
+  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
     if (file.includes('.ts')) {
       continue;
@@ -444,15 +426,15 @@ async function checkCSSFiles() {
 }
 
 const IGNORE_FILES = [
-  './test/lib/fermat/assemblyscript/binder.test.mjs',
-  './test/lib/fermat/data/periods-filter.test.mjs',
-  './test/lib/fermat/utils/runner.mjs',
-  './test/lib/fermat/utils/workbook-runner-3.mjs',
+  './test/lib/fermat/assemblyscript/binder.test.js',
+  './test/lib/fermat/data/periods-filter.test.js',
+  './test/lib/fermat/utils/runner.js',
+  './test/lib/fermat/utils/workbook-runner-3.js',
 ];
 
 async function checkJSFiles() {
-  //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test/ui', '.mjs'));
+  //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test/ui', '.js'));
   for (const filePath of filePaths) {
     checkImports(filePath);
 
@@ -512,9 +494,9 @@ async function checkJSFiles() {
 }
 
 async function checkExports() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
-  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
-    .concat(getFilesFromDirectory('./test', '.mjs'))
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
+    .concat(getFilesFromDirectory('./test', '.js'))
     .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
 
   const _exports = {};
@@ -550,7 +532,7 @@ function accumulateExports(_exports, filePath) {
     const trimmedLine = line.trim();
     if (
       (!trimmedLine.startsWith('export') && !trimmedLine.startsWith('import')) ||
-      filePath.includes('dom-helpers.mjs') ||
+      filePath.includes('dom-helpers.js') ||
       trimmedLine.startsWith('export {')
     ) {
       continue;
@@ -582,12 +564,12 @@ function camalize(str) {
 
 let vmcFiles = {};
 async function checkVMCFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vmc.mjs');
+  const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
 
   for (const file of files) {
     try {
       const pathArray = file.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+      const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
       const results = await Vuedoc.parse({ filename: file });
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = filesContents[file];
@@ -608,7 +590,7 @@ async function checkVMCFiles() {
 
       for (const property of properties) {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
-        if (!file.includes('demo.vmc.mjs')) {
+        if (!file.includes('demo.vmc.js')) {
           checkUnusedProperty(property, names, file);
         }
 
@@ -656,7 +638,7 @@ function checkUnusedProperty(property, names, vmcFile) {
   }
 
   const pathArray = vmcFile.split('/');
-  const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
   const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
   const vueFile = pathArray
     .slice(0, pathArray.length - offset)
@@ -1365,7 +1347,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
   const vueText = vueFiles[tagName] || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
-  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.mjs')[0];
+  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
 
   const specText = specFile ? filesContents[specFile] : '';
   const libText = libFile ? filesContents[libFile] : '';
