@@ -440,7 +440,7 @@ async function checkJSFiles() {
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
     .concat(getFilesFromDirectory('./test/ui', '.mjs'))
-    .filter((it) => !it.endsWith('.test.mjs') && !IGNORE_FILES[it]);
+    .filter((it) => !it.endsWith('.test.mjs') && !IGNORE_FILES.includes(it));
 
   for (const filePath of filePaths) {
     checkImports(filePath);
