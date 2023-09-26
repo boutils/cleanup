@@ -1,5 +1,6 @@
 /*
 TODOS:
+Clean test files => remove filter((it) => !it.endsWith('.test.mjs'))
 Remove "actions" from all spec files
 Check that importedComponents are used
 Order `cases` in switch
@@ -16,6 +17,7 @@ Check arguments for every helper function
 
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
+const JavascriptLoader = require('@vuedoc/parser/loader/javascript.js');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
@@ -96,7 +98,7 @@ function checkFunctionInFile(filePath, fn) {
 
 const allFunctions = {};
 async function checkFunctions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   for (const filePath of jsFilePaths) {
     const fileContent = filesContents[filePath];
     const lines = fileContent.split('\n');
@@ -160,8 +162,8 @@ async function checkFunctions() {
       checkFunctionInFile(fn.filePath, fn);
 
       const pathArray = fn.filePath.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.lib.js', '');
-      pathArray[pathArray.length - 1] = componentName + '.vmc.js';
+      const componentName = pathArray[pathArray.length - 1].replace('.lib.mjs', '');
+      pathArray[pathArray.length - 1] = componentName + '.vmc.mjs';
       const vmcFilePath = pathArray.join('/');
       checkFunctionInFile(vmcFilePath, fn);
 
@@ -212,7 +214,7 @@ function replaceObjectArgs(string) {
 function parseFunction(filePath, lines, lineNumber) {
   const result = {
     filePath,
-    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.js'),
+    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.mjs'),
     line: lineNumber,
     name: null,
     args: [],
@@ -279,7 +281,7 @@ function parseFunction(filePath, lines, lineNumber) {
 const filesContents = {};
 const importsLines = {};
 function readAndIndexFiles() {
-  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
+  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.mjs'));
   for (const file of files) {
     if (file.includes('.ts')) {
       continue;
@@ -426,15 +428,20 @@ async function checkCSSFiles() {
 }
 
 const IGNORE_FILES = [
-  './test/lib/fermat/assemblyscript/binder.test.js',
-  './test/lib/fermat/data/periods-filter.test.js',
-  './test/lib/fermat/utils/runner.js',
-  './test/lib/fermat/utils/workbook-runner-3.js',
+  './test/lib/fermat/assemblyscript/binder.test.mjs',
+  './test/lib/fermat/data/periods-filter.test.mjs',
+  './test/lib/fermat/utils/runner.mjs',
+  './test/lib/fermat/utils/workbook-runner-3.mjs',
+  './ui/generated/stoapedia-demo-specs.mjs',
+  './ui/generated/stoapedia-specs.mjs',
 ];
 
 async function checkJSFiles() {
-  //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test/ui', '.js'));
+  //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
+    .concat(getFilesFromDirectory('./test/ui', '.mjs'))
+    .filter((it) => !it.endsWith('.test.mjs') && !IGNORE_FILES[it]);
+
   for (const filePath of filePaths) {
     checkImports(filePath);
 
@@ -494,9 +501,9 @@ async function checkJSFiles() {
 }
 
 async function checkExports() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
-  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
-    .concat(getFilesFromDirectory('./test', '.js'))
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
+  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
+    .concat(getFilesFromDirectory('./test', '.mjs'))
     .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
 
   const _exports = {};
@@ -532,7 +539,7 @@ function accumulateExports(_exports, filePath) {
     const trimmedLine = line.trim();
     if (
       (!trimmedLine.startsWith('export') && !trimmedLine.startsWith('import')) ||
-      filePath.includes('dom-helpers.js') ||
+      filePath.includes('dom-helpers.mjs') ||
       trimmedLine.startsWith('export {')
     ) {
       continue;
@@ -564,19 +571,18 @@ function camalize(str) {
 
 let vmcFiles = {};
 async function checkVMCFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
+  const files = getFilesFromDirectory(DIRECTORY, '.vmc.mjs');
 
   for (const file of files) {
     try {
       const pathArray = file.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
-      const results = await Vuedoc.parse({ filename: file });
+      const componentName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+      const results = await Vuedoc.parse({ filename: file, loaders: [Vuedoc.Loader.extend('mjs', JavascriptLoader)] });
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = filesContents[file];
       vmcFiles[componentName] = { ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
-
-      if (!results.name.endsWith('.vmc')) {
+      if (!results.name?.endsWith('.vmc')) {
         const validComponentName = camalize(componentName);
         if (results.name !== validComponentName) {
           addWarning(
@@ -590,7 +596,7 @@ async function checkVMCFiles() {
 
       for (const property of properties) {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
-        if (!file.includes('demo.vmc.js')) {
+        if (!file.includes('demo.vmc.mjs')) {
           checkUnusedProperty(property, names, file);
         }
 
@@ -638,7 +644,7 @@ function checkUnusedProperty(property, names, vmcFile) {
   }
 
   const pathArray = vmcFile.split('/');
-  const fileName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
   const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
   const vueFile = pathArray
     .slice(0, pathArray.length - offset)
@@ -1177,36 +1183,6 @@ async function checkJSonFiles() {
   }
 }
 
-async function cleanTestFiles() {
-  const fileSequencesPaths = getFilesFromDirectory(DIRECTORY, '.sequences.json');
-  const fileTestsPaths = getFilesFromDirectory(DIRECTORY, '.test.json');
-
-  let hasAtLeastOneUpdate = false;
-  for (const fileSequencesPath of fileSequencesPaths) {
-    const isFileUpdated = processSequence(fileSequencesPath);
-    if (isFileUpdated) {
-      hasAtLeastOneUpdate = true;
-      addInfo(fileSequencesPath, null, 'stepParamsSorting', 'this file has been sorted automatically');
-    }
-  }
-
-  for (const fileTestsPath of fileTestsPaths) {
-    const isFileUpdated = processTest(fileTestsPath);
-    if (isFileUpdated) {
-      hasAtLeastOneUpdate = true;
-      addInfo(fileTestsPath, null, 'stepParamsSorting', 'this file has been sorted automatically');
-    }
-  }
-
-  if (hasAtLeastOneUpdate) {
-    try {
-      await execute("prettier '**/*.{test.json,sequences.json}' --write");
-    } catch (e) {
-      console.error(e.message);
-    }
-  }
-}
-
 const VALID_HTML_TAGS = ['a', 'body', 'br', 'div', 'head', 'img', 'li', 'hr', 'p', 'span', 'style', 'u', 'ul'];
 function isValidHtmlTag(tag) {
   return VALID_HTML_TAGS.includes(tag);
@@ -1347,7 +1323,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
   const vueText = vueFiles[tagName] || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
-  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
+  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.mjs')[0];
 
   const specText = specFile ? filesContents[specFile] : '';
   const libText = libFile ? filesContents[libFile] : '';
@@ -1912,8 +1888,6 @@ async function go() {
   log('Read files content...', 'comment');
   await readAndIndexFiles();
 
-  log('Cleaning test files...', 'comment');
-  await cleanTestFiles();
   printInfoAndWarningsResume(info, 'info');
 
   log('Check code files...', 'comment');
