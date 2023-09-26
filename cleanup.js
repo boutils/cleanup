@@ -440,7 +440,7 @@ async function checkJSFiles() {
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
     .concat(getFilesFromDirectory('./test/ui', '.mjs'))
-    .filter((it) => !it.endsWith('.test.mjs') && !IGNORE_FILES.includes(it));
+    .filter((it) => !IGNORE_FILES.includes(it));
 
   for (const filePath of filePaths) {
     checkImports(filePath);
@@ -465,6 +465,12 @@ async function checkJSFiles() {
           isInsideAsyncFn = false;
           if (!hasAwait) {
             addWarning(filePath, asyncFnLineIndex + 1, 'ASYNC', `Remove 'async'`);
+            // const newLines = [
+            //   ...lines.slice(0, asyncFnLineIndex),
+            //   lines[asyncFnLineIndex].replace('async', ''),
+            //   ...lines.slice(asyncFnLineIndex + 1),
+            // ];
+            // fs.writeFileSync(filePath, newLines.join('\n'));
           }
         }
       }
@@ -704,6 +710,7 @@ function checkLineBackTicks(file, lineInfo, lineNumber) {
     if (
       !file.includes('test/lib/kyu') &&
       !file.includes('test/lib/fermat') &&
+      (!line.includes("'") || !file.endsWith('test.mjs')) &&
       (!line.includes('${') || (line.includes('`${') && line.includes('}`') && (line.match(/{/g) || []).length === 1))
     ) {
       addWarning(file, lineNumber, 'BackTick', 'BackTick should be removed"');
