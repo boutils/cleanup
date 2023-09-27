@@ -461,7 +461,7 @@ async function checkJSFiles() {
         fnIndex = lineIndex;
       }
 
-      if (line.includes('await ') && !isInsideAsyncFn) {
+      if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn) {
         addWarning(filePath, fnIndex + 1, 'ASYNC', `Add 'async' here`);
 
         if (AUTOMATIC_FIX) {
