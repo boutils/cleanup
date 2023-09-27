@@ -21,6 +21,7 @@ const JavascriptLoader = require('@vuedoc/parser/loader/javascript.js');
 const { exec } = require('child_process');
 const { parse, stringify } = require('scss-parser');
 
+const AUTOMATIC_FIX = false;
 const DIRECTORY = './ui';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
@@ -453,7 +454,26 @@ async function checkJSFiles() {
     let asyncFnLineIndex = -1;
     let hasAwait = false;
     let countCurlyBracket = 0;
+    let fnIndex = -1;
+    let newLines = lines.slice();
     for (const [lineIndex, line] of lines.entries()) {
+      if (line.includes('() =>')) {
+        fnIndex = lineIndex;
+      }
+
+      if (line.includes('await ') && !isInsideAsyncFn) {
+        addWarning(filePath, fnIndex + 1, 'ASYNC', `Add 'async' here`);
+
+        if (AUTOMATIC_FIX) {
+          newLines = [
+            ...newLines.slice(0, fnIndex),
+            newLines[fnIndex].replace('() =>', 'async () =>'),
+            ...newLines.slice(fnIndex + 1),
+          ];
+          fs.writeFileSync(filePath, newLines.join('\n'));
+        }
+      }
+
       if (line.includes('async ')) {
         isInsideAsyncFn = true;
         asyncFnLineIndex = lineIndex;
@@ -465,12 +485,15 @@ async function checkJSFiles() {
           isInsideAsyncFn = false;
           if (!hasAwait) {
             addWarning(filePath, asyncFnLineIndex + 1, 'ASYNC', `Remove 'async'`);
-            // const newLines = [
-            //   ...lines.slice(0, asyncFnLineIndex),
-            //   lines[asyncFnLineIndex].replace('async', ''),
-            //   ...lines.slice(asyncFnLineIndex + 1),
-            // ];
-            // fs.writeFileSync(filePath, newLines.join('\n'));
+
+            if (AUTOMATIC_FIX) {
+              const newLines = [
+                ...newLines.slice(0, asyncFnLineIndex),
+                newLines[asyncFnLineIndex].replace('async', ''),
+                ...newLines.slice(asyncFnLineIndex + 1),
+              ];
+              fs.writeFileSync(filePath, newLines.join('\n'));
+            }
           }
         }
       }
