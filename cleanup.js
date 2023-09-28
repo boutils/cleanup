@@ -487,7 +487,7 @@ async function checkJSFiles() {
             addWarning(filePath, asyncFnLineIndex + 1, 'ASYNC', `Remove 'async'`);
 
             if (AUTOMATIC_FIX) {
-              const newLines = [
+              newLines = [
                 ...newLines.slice(0, asyncFnLineIndex),
                 newLines[asyncFnLineIndex].replace('async', ''),
                 ...newLines.slice(asyncFnLineIndex + 1),
@@ -1207,7 +1207,7 @@ async function checkJSonFiles() {
   for (const file of files) {
     const data = filesContents[file];
     const json = JSON.parse(data);
-    if (json.length === 1 && !json[0].options) {
+    if (json.length === 1 && (!json[0].options || Object.keys(json[0].options).length === 0)) {
       addWarning(file, null, 'empty spec', 'Remove this spec file, it is unused');
     }
   }
