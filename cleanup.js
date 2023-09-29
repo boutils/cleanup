@@ -594,6 +594,8 @@ function camalize(str) {
   });
 }
 
+const IGNORE_IMPORTS = ['sd-form-control'];
+
 let vmcFiles = {};
 async function checkVMCFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vmc.mjs');
@@ -606,6 +608,11 @@ async function checkVMCFiles() {
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = filesContents[file];
       const components = getComponentIdsUsed(data, file);
+      const sortingErrors = getSortingError(components);
+      if (sortingErrors && !IGNORE_IMPORTS.includes(componentName)) {
+        addWarning(file, null, 'sorting', `IMPORT components: ${sortingErrors}`);
+      }
+
       vmcFiles[componentName] = { components, ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
 
@@ -653,7 +660,7 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
       if (line.includes('}')) {
         const componentsIdsStr = line.slice(line.indexOf('{') + 2, line.indexOf('}') - 1);
 
-        componentIds.push(...componentsIdsStr.split(', '));
+        componentIds.push(...componentsIdsStr.split(', ').filter((it) => !it.startsWith('...')));
       } else {
         let endOfComponentsIsFound = false;
         let lineEndIndex = lineIndex;
@@ -661,7 +668,12 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
           lineEndIndex++;
           const currentLine = lines[lineEndIndex].trim();
           endOfComponentsIsFound = currentLine.includes('}');
-          if (!endOfComponentsIsFound && currentLine.trim() && !currentLine.startsWith('//')) {
+          if (
+            !endOfComponentsIsFound &&
+            currentLine.trim() &&
+            !currentLine.startsWith('//') &&
+            !currentLine.startsWith('...')
+          ) {
             let componentId = currentLine.replace(',', '').trim();
             if (currentLine.indexOf(':') > -1) {
               componentId = componentId.slice(0, currentLine.indexOf(':'));
