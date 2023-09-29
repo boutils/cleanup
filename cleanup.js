@@ -1,13 +1,10 @@
 /*
 TODOS:
-Clean test files => remove filter((it) => !it.endsWith('.test.mjs'))
-Remove "actions" from all spec files
 Check that importedComponents are used
 Order `cases` in switch
 Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
 wrong attribute name => `class` is valid but `classes` is not
-Check name for every vmc
 find empty class
 find not used components
 find not used sequences => expectAssetRichTooltipLayerName
@@ -609,8 +606,12 @@ async function checkVMCFiles() {
       const results = await Vuedoc.parse({ filename: file, loaders: [Vuedoc.Loader.extend('mjs', JavascriptLoader)] });
       const properties = ['props', 'data', 'computed', 'methods'];
       const data = filesContents[file];
-      vmcFiles[componentName] = { ...results, _text: data };
+      const components = getComponentIdsUsed(data, file);
+      vmcFiles[componentName] = { components, ...results, _text: data };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
+
+      checkIfComponentsAreUsed(componentName, file);
+
       if (!results.name?.endsWith('.vmc')) {
         const validComponentName = camalize(componentName);
         if (results.name !== validComponentName) {
@@ -644,6 +645,39 @@ async function checkVMCFiles() {
   }
 }
 
+function getComponentIdsUsed(vmcFileContent, filePath) {
+  const lines = vmcFileContent.split('\n');
+
+  const componentIds = [];
+  for (const [lineIndex, line] of lines.entries()) {
+    if (line.trim().startsWith('components:')) {
+      if (line.includes('}')) {
+        const componentsIdsStr = line.slice(line.indexOf('{') + 2, line.indexOf('}') - 1);
+
+        componentIds.push(...componentsIdsStr.split(', '));
+      } else {
+        let endOfComponentsIsFound = false;
+        let lineEndIndex = lineIndex;
+        while (!endOfComponentsIsFound) {
+          lineEndIndex++;
+          const currentLine = lines[lineEndIndex].trim();
+          endOfComponentsIsFound = currentLine.includes('}');
+          if (!endOfComponentsIsFound && currentLine.trim() && !currentLine.startsWith('//')) {
+            let componentId = currentLine.replace(',', '').trim();
+            if (currentLine.indexOf(':') > -1) {
+              componentId = componentId.slice(0, currentLine.indexOf(':'));
+            }
+
+            componentIds.push(componentId);
+          }
+        }
+      }
+    }
+  }
+
+  return componentIds;
+}
+
 const IGNORED_PROPS = ['sd-sheet__transfers'];
 
 const PUBLIC_METHODS = [
@@ -659,6 +693,7 @@ const PUBLIC_METHODS = [
   'stoic-view-composer-add-item__showActionsMenu',
   'stoic-view-composer-toolbar__showActionsMenu',
 ];
+
 const METHODS_USED_BY_MIXINS = [
   'sd-name-dialog__forbiddenChars',
   'sd-name-dialog__emptynametext',
@@ -667,6 +702,18 @@ const METHODS_USED_BY_MIXINS = [
   'sd-table-base__waitForGridReady',
 ];
 
+function getVueFilePathFromVmc(vmcFilePath) {
+  const pathArray = vmcFilePath.split('/');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+  const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
+  const vueFilePath = pathArray
+    .slice(0, pathArray.length - offset)
+    .concat(fileName + '.vue')
+    .join('/');
+
+  return vueFilePath;
+}
+
 function checkUnusedProperty(property, names, vmcFile) {
   if (names.length === 0) {
     return;
@@ -674,12 +721,7 @@ function checkUnusedProperty(property, names, vmcFile) {
 
   const pathArray = vmcFile.split('/');
   const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
-  const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
-  const vueFile = pathArray
-    .slice(0, pathArray.length - offset)
-    .concat(fileName + '.vue')
-    .join('/');
-
+  const vueFile = getVueFilePathFromVmc(vmcFile);
   const vmcFileContent = filesContents[vmcFile];
   const vueFileContent = filesContents[vueFile];
 
@@ -860,6 +902,25 @@ function isIgnoredClass(class_, file, lineNumber) {
     (file.includes('sd-function-details.vue') && lineNumber === 12) ||
     (file.includes('stoic-panel-visual-designer-bindings.vue') && lineNumber === 30)
   );
+}
+
+function checkIfComponentsAreUsed(componentName, vmcFilePath) {
+  const vueFilePath = getVueFilePathFromVmc(vmcFilePath);
+  const vueContent = filesContents[vueFilePath];
+  if (vueContent.includes('<component')) {
+    return;
+  }
+
+  for (const componentId of vmcFiles[componentName].components) {
+    const tag = '<' + kebabize(componentId);
+    if (!vueContent.includes(tag)) {
+      addWarning(vmcFilePath, null, 'unnecessary import', `IMPORT of '${componentId}' is not used. Please remove it.`);
+    }
+  }
+}
+
+function kebabize(str) {
+  return str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
 }
 
 const vueFiles = {};
