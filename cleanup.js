@@ -50,6 +50,33 @@ async function checker() {
   await checkJSonFiles();
   await checkExports();
   await checkFunctions();
+  await checkLibAndUtils();
+}
+
+function checkLibAndUtils() {
+  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.mjs')
+    .concat(getFilesFromDirectory(`${DIRECTORY}/lib`, '.mts'))
+    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.mjs'))
+    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.mts'));
+
+  const allImports = [];
+  for (const filePath of libUtilsFilePaths) {
+    const importStr = `from '${filePath.slice(2)}'`;
+    allImports.push(importStr);
+  }
+
+  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory(DIRECTORY, '.mts'));
+  let bigText = '';
+  for (const filePath of allJSPaths) {
+    bigText += fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+  }
+
+  //console.log(bigText);
+  for (const _imp of allImports) {
+    if (!bigText.includes(_imp)) {
+      addWarning(_imp, null, 'unused file', 'This lib/utils file is not used. Please remove!');
+    }
+  }
 }
 
 function checkFunctionInFile(filePath, fn) {
@@ -135,12 +162,12 @@ async function checkFunctions() {
 
   for (const filePath of jsFilePaths) {
     for (const importLine of importsLines[filePath]) {
-      if (!importLine.line.includes('uiLib/')) {
+      if (!importLine.line.includes('ui/lib/')) {
         continue;
       }
 
       const lookupPath = importLine.line
-        .replace(importLine.line.substring(0, importLine.line.indexOf('uiLib/') + 'uiLib/'.length), './ui/lib/')
+        .replace(importLine.line.substring(0, importLine.line.indexOf('ui/lib/') + 'ui/lib/'.length), './ui/lib/')
         .replace("';", '');
 
       const hasStar = importLine.line.includes('*');
@@ -1463,7 +1490,7 @@ function getAndCheckImportLines(filePath) {
         if (
           !line.endsWith("'util';") &&
           !line.includes('fermat/test/utils') &&
-          !line.includes('uiLib/column-charts') &&
+          !line.includes('ui/lib/column-charts') &&
           !line.includes('kyu/lib/ui') &&
           !line.includes('@') &&
           line.includes('/') &&
@@ -1987,6 +2014,7 @@ function sortObject(object) {
 }
 
 async function go() {
+  console.time('Executed in');
   log('Read files content...', 'comment');
   await readAndIndexFiles();
 
@@ -1998,6 +2026,7 @@ async function go() {
 
   printInfoAndWarnings(info, 'info');
   printInfoAndWarnings(warnings, 'warning');
+  console.timeEnd('Executed in');
 }
 
 go();
