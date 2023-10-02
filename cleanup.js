@@ -65,16 +65,27 @@ function checkLibAndUtils() {
     allImports.push(importStr);
   }
 
-  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory(DIRECTORY, '.mts'));
+  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(
+    getFilesFromDirectory(DIRECTORY, '.mts').concat(getFilesFromDirectory(DIRECTORY, '.vue'))
+  );
+
   let bigText = '';
   for (const filePath of allJSPaths) {
     bigText += fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
   }
 
-  //console.log(bigText);
   for (const _imp of allImports) {
     if (!bigText.includes(_imp)) {
       addWarning(_imp, null, 'unused file', 'This lib/utils file is not used. Please remove!');
+    }
+  }
+
+  for (const fn of Object.values(allFunctions)) {
+    if (fn.exported && (fn.filePath.includes('./ui/lib/') || fn.filePath.includes('./ui/utils/'))) {
+      bigText = bigText.replace(`export function ${fn.name}(`);
+      if (!bigText.includes(fn.name)) {
+        addWarning(fn.filePath, fn.line, 'unused function', `This function ${fn.name} is not used. Please remove!`);
+      }
     }
   }
 }
