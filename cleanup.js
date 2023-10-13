@@ -733,6 +733,7 @@ const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
   'sd-code-autocomplete__selectUp',
   'sd-sheet__onJourneyEditorRecordUpdate',
+  'sd-perspective-content-table__onGroupByAggregationUpdate',
   'sd-table-base__onGroupByAggregationUpdate',
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onContainerClick',
@@ -746,6 +747,9 @@ const PUBLIC_METHODS = [
 const METHODS_USED_BY_MIXINS = [
   'sd-name-dialog__forbiddenChars',
   'sd-name-dialog__emptynametext',
+  'sd-perspective-content-table__columnconfiguration',
+  'sd-perspective-content-table__isconfigurationformshown',
+  'sd-perspective-content-table__waitForGridReady',
   'sd-table-base__columnconfiguration',
   'sd-table-base__isconfigurationformshown',
   'sd-table-base__waitForGridReady',
@@ -1443,6 +1447,7 @@ function shouldCheckEvent(eventName, tagName) {
 const IGNORED_EVENTS = [
   'sd-sheet__fetchFile',
   'sd-sheet__openSortDialog',
+
   'sd-table-base__blurColumnConfigurator',
   'sd-table-base__clickClearSearch',
   'sd-table-base__clickInsertColumn',
@@ -1454,6 +1459,19 @@ const IGNORED_EVENTS = [
   'sd-table-base__fetchDiscussion',
   'sd-table-base__updateGroupbyAggregation',
   'sd-table-base__vectorizeColumn',
+
+  'sd-perspective-content-table__blurColumnConfigurator',
+  'sd-perspective-content-table__clickClearSearch',
+  'sd-perspective-content-table__clickInsertColumn',
+  'sd-perspective-content-table__clickKeepColumn',
+  'sd-perspective-content-table__clickLoadJourney',
+  'sd-perspective-content-table__searchColumn',
+  'sd-perspective-content-table__updateColumn',
+  'sd-perspective-content-table__updateColumnConfigurator',
+  'sd-perspective-content-table__fetchDiscussion',
+  'sd-perspective-content-table__updateGroupbyAggregation',
+  'sd-perspective-content-table__vectorizeColumn',
+
   'sd-viewer-html__fetchFile',
   'stoic-sheet-editor__fetchFile',
 ];
