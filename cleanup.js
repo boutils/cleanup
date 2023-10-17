@@ -733,6 +733,7 @@ const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
   'sd-code-autocomplete__selectUp',
   'sd-sheet__onJourneyEditorRecordUpdate',
+  'sd-perspective-content-table__getPerspective',
   'sd-perspective-content-table__onGroupByAggregationUpdate',
   'sd-table-base__onGroupByAggregationUpdate',
   'sd-text-editable__setWriteMode',
