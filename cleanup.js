@@ -1,5 +1,7 @@
 /*
 TODOS:
+Optimize `checkVUEFiles`, it takes too long to execute
+npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
 Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
@@ -51,6 +53,55 @@ async function checker() {
   await checkExports();
   await checkFunctions();
   await checkLibAndUtils();
+  await checkUnusedComponents();
+}
+
+const IGNORE_UNUSED_COMPONENTS = ['stoicShowroom'];
+
+function checkUnusedComponents() {
+  const allDeclaredComponentsIdsInVmc = new Set(IGNORE_UNUSED_COMPONENTS.map((it) => it.toLowerCase()));
+  for (const componentId of Object.keys(vueFiles)) {
+    for (const cpId of vmcFiles[componentId].components) {
+      if (cpId.charAt(0) === cpId.charAt(0).toUpperCase()) {
+        addWarning(
+          vmcFiles[componentId]._path,
+          null,
+          'incorrect component ID',
+          `Component '${cpId}' should not be upper cased, rename '${cpId}' to '${
+            cpId.toLowerCase()[0] + cpId.slice(1)
+          }'!`
+        );
+      }
+
+      allDeclaredComponentsIdsInVmc.add(cpId.toLowerCase());
+    }
+  }
+
+  for (const [id, importsLinesByfile] of Object.entries(importsLines)) {
+    for (const importsLine of importsLinesByfile) {
+      if (importsLine.line) {
+        if (importsLine.line.endsWith(".vue';")) {
+          const componentId = importsLine.line.replace(".vue';", '').split('/').pop();
+          allDeclaredComponentsIdsInVmc.add(camelize(componentId).toLowerCase());
+        }
+      }
+    }
+  }
+
+  for (const componentId of Object.keys(vueFiles)) {
+    if (componentId.endsWith('.demo')) {
+      continue;
+    }
+
+    if (!allDeclaredComponentsIdsInVmc.has(camelize(componentId).toLowerCase())) {
+      addWarning(
+        vueFiles[componentId]._path,
+        null,
+        'unused component',
+        `Component '${componentId} ${camelize(componentId)}' is used anywhere, please remove it!`
+      );
+    }
+  }
 }
 
 function checkLibAndUtils() {
@@ -626,7 +677,7 @@ function computeExportKeyword(key, line, delimiter) {
   return line.substr(startIndex, line.indexOf(delimiter) - startIndex);
 }
 
-function camalize(str) {
+function camelize(str) {
   return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, function (match, chr) {
     return chr.toUpperCase();
   });
@@ -651,13 +702,13 @@ async function checkVMCFiles() {
         addWarning(file, null, 'sorting', `IMPORT components: ${sortingErrors}`);
       }
 
-      vmcFiles[componentName] = { components, ...results, _text: data };
+      vmcFiles[componentName] = { components, ...results, _text: data, _path: file };
       const isFileWithSection = data.includes(SECTION_SEPARATOR);
 
       checkIfComponentsAreUsed(componentName, file);
 
       if (!results.name?.endsWith('.vmc')) {
-        const validComponentName = camalize(componentName);
+        const validComponentName = camelize(componentName);
         if (results.name !== validComponentName) {
           addWarning(
             file,
@@ -992,13 +1043,13 @@ async function checkVUEFiles() {
   for (const file of files) {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
-    vueFiles[componentName] = filesContents[file];
+    vueFiles[componentName] = { _text: filesContents[file], _path: file };
   }
 
   for (const file of files) {
     const pathArray = file.split('/');
     const componentName = pathArray[pathArray.length - 1].replace('.vue', '');
-    const lines = vueFiles[componentName].split('\n');
+    const lines = vueFiles[componentName]._text.split('\n');
     const cssFile = pathArray
       .slice(0, pathArray.length - 1)
       .concat(['lib', componentName + '.scss'])
@@ -1480,7 +1531,7 @@ const IGNORED_EVENTS = [
 function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const vmcText =
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
-  const vueText = vueFiles[tagName] || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
+  const vueText = vueFiles[tagName]?._text || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
   const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.mjs')[0];
 
