@@ -61,6 +61,10 @@ const IGNORE_UNUSED_COMPONENTS = ['stoicShowroom'];
 function checkUnusedComponents() {
   const allDeclaredComponentsIdsInVmc = new Set(IGNORE_UNUSED_COMPONENTS.map((it) => it.toLowerCase()));
   for (const componentId of Object.keys(vueFiles)) {
+    if (componentId.includes('.demo')) {
+      continue;
+    }
+
     for (const cpId of vmcFiles[componentId].components) {
       if (cpId.charAt(0) === cpId.charAt(0).toUpperCase()) {
         addWarning(
@@ -78,6 +82,10 @@ function checkUnusedComponents() {
   }
 
   for (const [id, importsLinesByfile] of Object.entries(importsLines)) {
+    if (id.includes('.demo.')) {
+      continue;
+    }
+
     for (const importsLine of importsLinesByfile) {
       if (importsLine.line) {
         if (importsLine.line.endsWith(".vue';")) {
@@ -98,7 +106,7 @@ function checkUnusedComponents() {
         vueFiles[componentId]._path,
         null,
         'unused component',
-        `Component '${componentId} ${camelize(componentId)}' is used anywhere, please remove it!`
+        `Component '${componentId}' is used anywhere, please remove it!`
       );
     }
   }
