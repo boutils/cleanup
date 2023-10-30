@@ -1,5 +1,6 @@
 /*
 TODOS:
+Find in vue files 2 empty lines in a row
 Optimize `checkVUEFiles`, it takes too long to execute
 npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
