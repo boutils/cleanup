@@ -543,11 +543,13 @@ const LINES_TO_REMOVE = [
 const PROPS = [
   'name',
   'components',
+  'mixins',
   'props',
   'data',
   'computed',
   'created',
   'mounted',
+  'beforeDestroy',
   'destroyed',
   'activated',
   'deactivated',
@@ -594,7 +596,7 @@ async function checkJSFiles() {
         for (const prop of PROPS) {
           const isFunction = prop === 'data' || prop === 'created' || prop === 'mounted';
           const start = isFunction ? `${prop}()` : `${prop}:`;
-          if (trimmedLine.startsWith(start)) {
+          if (line.startsWith(`  ${start}`)) {
             orderedProps.push(
               isFunction
                 ? trimmedLine.substr(0, trimmedLine.indexOf('('))
@@ -679,15 +681,12 @@ function checkOrderedVMCProps(filePath, orderedProps) {
   let lastProp = null;
   for (const prop of orderedProps) {
     const localIndex = PROPS.indexOf(prop);
-    if (index === null) {
-      index = localIndex;
-      lastProp = prop;
-    } else if (localIndex <= index) {
+    if (index !== null && localIndex <= index) {
       addWarning(filePath, null, 'VMC sorting', `VMC property '${prop}' should be before '${lastProp}'`);
-    } else {
-      index = localIndex;
-      lastProp = prop;
     }
+
+    index = localIndex;
+    lastProp = prop;
   }
 }
 
