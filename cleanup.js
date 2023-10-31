@@ -530,6 +530,7 @@ const IGNORE_FILES = [
   './ui/generated/stoapedia-specs.mjs',
 ];
 
+const LINES_TO_REMOVE = ['data() {},', 'computed: {},', 'created() {},', 'methods: {},', 'props: {},', 'watch: {},'];
 async function checkJSFiles() {
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
@@ -552,6 +553,10 @@ async function checkJSFiles() {
     for (const [lineIndex, line] of lines.entries()) {
       if (line.includes('() =>')) {
         fnIndex = lineIndex;
+      }
+
+      if (LINES_TO_REMOVE.includes(line.trim())) {
+        addWarning(filePath, lineIndex + 1, 'not used', 'Remove this line (empty)');
       }
 
       if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn) {
