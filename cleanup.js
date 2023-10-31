@@ -1,6 +1,5 @@
 /*
 TODOS:
-Find in vue files 2 empty lines in a row
 Optimize `checkVUEFiles`, it takes too long to execute
 npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
@@ -1167,6 +1166,10 @@ async function checkVUEFiles() {
 
       if (lineInfo.isAttributeOnlyEnded) {
         isInsideAttribute = false;
+      }
+
+      if (lineInfo.isEmptyLine && previousLineInfo.isEmptyLine) {
+        addWarning(file, lineNumber, 'empty line', 'Remove this empty line');
       }
 
       if (
