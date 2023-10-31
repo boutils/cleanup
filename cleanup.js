@@ -1,5 +1,6 @@
 /*
 TODOS:
+Extension is not 'js' but 'mjs';
 Optimize `checkVUEFiles`, it takes too long to execute
 npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
@@ -530,7 +531,30 @@ const IGNORE_FILES = [
   './ui/generated/stoapedia-specs.mjs',
 ];
 
-const LINES_TO_REMOVE = ['data() {},', 'computed: {},', 'created() {},', 'methods: {},', 'props: {},', 'watch: {},'];
+const LINES_TO_REMOVE = [
+  'data() {},',
+  'computed: {},',
+  'created() {},',
+  'mounted() {},',
+  'methods: {},',
+  'props: {},',
+  'watch: {},',
+];
+const PROPS = [
+  'name',
+  'components',
+  'props',
+  'data',
+  'computed',
+  'created',
+  'mounted',
+  'destroyed',
+  'activated',
+  'deactivated',
+  'methods',
+  'watch',
+];
+
 async function checkJSFiles() {
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
@@ -550,13 +574,34 @@ async function checkJSFiles() {
     let countCurlyBracket = 0;
     let fnIndex = -1;
     let newLines = lines.slice();
+    const orderedProps = [];
+    let isDefaultExport = false;
+
     for (const [lineIndex, line] of lines.entries()) {
+      const trimmedLine = line.trim();
+
       if (line.includes('() =>')) {
         fnIndex = lineIndex;
       }
 
-      if (LINES_TO_REMOVE.includes(line.trim())) {
+      if (LINES_TO_REMOVE.includes(trimmedLine)) {
         addWarning(filePath, lineIndex + 1, 'not used', 'Remove this line (empty)');
+      }
+
+      if (line.startsWith('export default {')) {
+        isDefaultExport = true;
+      } else if (filePath.includes('vmc.mjs') && isDefaultExport) {
+        for (const prop of PROPS) {
+          const isFunction = prop === 'data' || prop === 'created' || prop === 'mounted';
+          const start = isFunction ? `${prop}()` : `${prop}:`;
+          if (trimmedLine.startsWith(start)) {
+            orderedProps.push(
+              isFunction
+                ? trimmedLine.substr(0, trimmedLine.indexOf('('))
+                : trimmedLine.substr(0, trimmedLine.indexOf(':'))
+            );
+          }
+        }
       }
 
       if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn) {
@@ -621,8 +666,27 @@ async function checkJSFiles() {
       checkLineBackTicks(filePath, lineInfo, lineNumber);
     }
 
+    checkOrderedVMCProps(filePath, orderedProps);
+
     if (!IGNORE_FILES.includes(filePath)) {
       checkSwitchCase(filePath, lines);
+    }
+  }
+}
+
+function checkOrderedVMCProps(filePath, orderedProps) {
+  let index = null;
+  let lastProp = null;
+  for (const prop of orderedProps) {
+    const localIndex = PROPS.indexOf(prop);
+    if (index === null) {
+      index = localIndex;
+      lastProp = prop;
+    } else if (localIndex <= index) {
+      addWarning(filePath, null, 'VMC sorting', `VMC property '${prop}' should be before '${lastProp}'`);
+    } else {
+      index = localIndex;
+      lastProp = prop;
     }
   }
 }
