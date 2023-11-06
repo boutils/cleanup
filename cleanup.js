@@ -557,7 +557,16 @@ const PROPS = [
   'watch',
 ];
 
+function checkJsFileExtensions() {
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test/ui', '.js'));
+  for (const filePath of jsFilePaths) {
+    addWarning(filePath, null, 'no JS file', 'Change extension to ".mjs" instead of ".js"');
+  }
+}
+
 async function checkJSFiles() {
+  checkJsFileExtensions();
+
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
     .concat(getFilesFromDirectory('./test/ui', '.mjs'))
@@ -854,7 +863,7 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
   return componentIds;
 }
 
-const IGNORED_PROPS = ['sd-sheet__transfers'];
+const IGNORED_PROPS = ['sd-sheet__transfers', 'sd-sheet__users'];
 
 const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
