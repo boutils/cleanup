@@ -1490,6 +1490,7 @@ const VALID_HTML_ATTRIBUTES = [
   'tabindex',
   'target',
   'title',
+  'v-bind',
   'v-click-outside',
   'v-if',
   'v-else',
