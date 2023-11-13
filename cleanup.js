@@ -1346,7 +1346,7 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'space', `'=' should be surronded by at least one space`);
       }
 
-      if (lineInfo.eventName?.endsWith('ed')) {
+      if (lineInfo.eventName?.endsWith('ed') && !lineInfo.eventName?.endsWith(':focused')) {
         addWarning(file, lineNumber, 'past participle', `"${lineInfo.eventName}" should not end with 'ed'`);
       }
 
