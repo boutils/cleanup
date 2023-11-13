@@ -794,6 +794,15 @@ async function checkVMCFiles() {
 
       if (!results.name?.endsWith('.vmc')) {
         const validComponentName = camelize(componentName);
+        if (!results.name) {
+          addWarning(
+            file,
+            null,
+            'name',
+            `VMC component should be named: Add 'name: ${validComponentName},' to VMC file`
+          );
+        }
+
         if (results.name !== validComponentName) {
           addWarning(
             file,
