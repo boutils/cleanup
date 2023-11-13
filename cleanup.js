@@ -792,17 +792,17 @@ async function checkVMCFiles() {
 
       checkIfComponentsAreUsed(componentName, file);
 
-      if (!results.name?.endsWith('.vmc')) {
-        const validComponentName = camelize(componentName);
-        if (!results.name) {
-          addWarning(
-            file,
-            null,
-            'name',
-            `VMC component should be named: Add 'name: ${validComponentName},' to VMC file`
-          );
-        }
+      const validComponentName = camelize(componentName);
+      if (!results.name || results.name?.endsWith('.vmc')) {
+        addWarning(
+          file,
+          null,
+          'name',
+          `VMC component should be named: Add "name: '${validComponentName}'," to VMC file`
+        );
+      }
 
+      if (!results.name?.endsWith('.vmc')) {
         if (results.name !== validComponentName) {
           addWarning(
             file,
