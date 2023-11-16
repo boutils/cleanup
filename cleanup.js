@@ -872,7 +872,7 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
   return componentIds;
 }
 
-const IGNORED_PROPS = ['sd-sheet__transfers', 'sd-sheet__users'];
+const IGNORED_PROPS = ['sd-sheet__transfers', 'sd-sheet__users', 'stoic-journey-outline-transform__stoaKeyButton'];
 
 const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
@@ -1675,6 +1675,7 @@ function getAndCheckImportLines(filePath) {
           !line.includes('@') &&
           line.includes('/') &&
           !line.includes("from 'lib/") &&
+          !line.includes("from 'vuetify/") &&
           !line.includes('.')
         ) {
           addWarning(filePath, lineNumber, 'missing extension', `Add an extension to import "${line}"`);
