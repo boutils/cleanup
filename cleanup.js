@@ -33,6 +33,7 @@ const COLOR_FROM_TYPE = {
 const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr']);
 const SECTION_SEPARATOR = '// -------------------------------------------------------------------------';
 
+let isVue3 = false;
 const warnings = {};
 const info = {};
 function addWarning(file, lineNumber, type, message) {
@@ -58,7 +59,9 @@ async function checker() {
   await checkLibAndUtils();
   await checkUnusedComponents();
 
-  checkEmits();
+  if (isVue3) {
+    checkEmits();
+  }
 }
 
 function remove_duplicates(arr) {
@@ -700,24 +703,11 @@ async function checkJSFiles() {
         isDefaultExport = true;
       } else if (filePath.includes('vmc.mjs') && isDefaultExport) {
         if (isInsideEmits) {
+          isVue3 = true;
           if (line === '  ],') {
             isInsideEmits = false;
           } else {
             existingEmits.push(eval(line.replace(',', '').trim()));
-          }
-        }
-
-        if (line.includes('$emit(')) {
-          const str = line.substr(line.indexOf('$emit(') + 6);
-          if (str[0] === "'") {
-            const str2 = str.substr(1);
-            const action = str2.substr(0, str2.indexOf("'"));
-            const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
-            emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
-            emitsByComponent[componentId].found = emitsByComponent[componentId].found || [];
-            emitsByComponent[componentId].found.push(action);
-          } else {
-            addWarning(filePath, lineIndex + 1, 'EMIT', 'Use explicit $emit');
           }
         }
 
@@ -732,6 +722,7 @@ async function checkJSFiles() {
             );
 
             if (start === 'emits:') {
+              isVue3 = true;
               if (line.includes('],')) {
                 const str = line.substr(line.indexOf(start) + start.length);
 
@@ -741,6 +732,20 @@ async function checkJSFiles() {
                 isInsideEmits = true;
               }
             }
+          }
+        }
+
+        if (line.includes('$emit(')) {
+          const str = line.substr(line.indexOf('$emit(') + 6);
+          if (str[0] === "'") {
+            const str2 = str.substr(1);
+            const action = str2.substr(0, str2.indexOf("'"));
+            const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
+            emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
+            emitsByComponent[componentId].found = emitsByComponent[componentId].found || [];
+            emitsByComponent[componentId].found.push(action);
+          } else if (isVue3) {
+            addWarning(filePath, lineIndex + 1, 'EMIT', 'Use explicit $emit');
           }
         }
       }
