@@ -45,6 +45,8 @@ function addInfo(file, lineNumber, type, message) {
   info[file].push({ lineNumber, type, message });
 }
 
+const emitsByComponent = {};
+
 async function checker() {
   await checkVMCFiles();
   await checkVUEFiles();
@@ -55,6 +57,98 @@ async function checker() {
   await checkFunctions();
   await checkLibAndUtils();
   await checkUnusedComponents();
+
+  checkEmits();
+}
+
+function remove_duplicates(arr) {
+  let s = new Set(arr);
+  let it = s.values();
+  return Array.from(it);
+}
+
+function checkEmits() {
+  for (const componentId of Object.keys(emitsByComponent)) {
+    const res = emitsByComponent[componentId];
+    if (!res.found && !res.declared) {
+      continue;
+    }
+
+    const found = remove_duplicates(res.found || []).sort();
+    const declared = res.declared || [];
+
+    const diff = declared.filter((x) => !found.includes(x)).concat(found.filter((x) => !declared.includes(x)));
+    const foundStr = JSON.stringify(found);
+    if (diff.length > 0) {
+      const newEmitLine = found.length > 0 ? `  emits: ${foundStr},` : '';
+      const message = found.length > 0 ? `Emits should be updated to: '${foundStr}'` : 'Emits should be removed!';
+      addWarning(res.vmcPath, null, 'obsolete emits', message);
+
+      if (AUTOMATIC_FIX) {
+        const file = fs.readFileSync(res.vmcPath, { encoding: 'utf8', flag: 'r' });
+        const lines = [];
+        let isInsideEmits = false;
+        let emitStartLineIndex = -1;
+        let emitEndLineIndex = -1;
+        let dataLineIndex = -1;
+        let computedLineIndex = -1;
+        let createdLineIndex = -1;
+        for (const [lineIndex, line] of file.split('\n').entries()) {
+          if (isInsideEmits && line.endsWith('],')) {
+            isInsideEmits = false;
+            emitEndLineIndex = lineIndex;
+          }
+
+          if (line.startsWith('  data(')) {
+            dataLineIndex = lineIndex;
+          }
+
+          if (line.startsWith('  computed:')) {
+            computedLineIndex = lineIndex;
+          }
+
+          if (line.startsWith('  created()')) {
+            createdLineIndex = lineIndex;
+          }
+
+          if (line.startsWith('  emits: [')) {
+            isInsideEmits = true;
+            emitStartLineIndex = lineIndex;
+            if (line.endsWith('],')) {
+              emitEndLineIndex = lineIndex;
+            }
+          }
+
+          lines.push(line);
+        }
+
+        if (emitStartLineIndex > -1 && emitStartLineIndex === emitEndLineIndex) {
+          lines[emitStartLineIndex] = newEmitLine;
+        } else if (emitStartLineIndex > -1 && emitEndLineIndex > emitStartLineIndex) {
+          lines.splice(emitStartLineIndex, emitEndLineIndex - emitStartLineIndex + 1, newEmitLine);
+        } else if (dataLineIndex > -1) {
+          lines.splice(dataLineIndex, 0, '');
+          lines.splice(dataLineIndex, 0, newEmitLine);
+          lines.splice(dataLineIndex, 0, '');
+        } else if (computedLineIndex > -1) {
+          lines.splice(computedLineIndex, 0, '');
+          lines.splice(computedLineIndex, 0, newEmitLine);
+          lines.splice(computedLineIndex, 0, '');
+        } else if (createdLineIndex > -1) {
+          lines.splice(createdLineIndex, 0, '');
+          lines.splice(createdLineIndex, 0, newEmitLine);
+          lines.splice(createdLineIndex, 0, '');
+        }
+
+        fs.writeFileSync(res.vmcPath, lines.join('\n'));
+      }
+    } else {
+      const sortingErrors = getSortingError(declared);
+      if (sortingErrors) {
+        addWarning(res.vmcPath, null, 'sorting', `Emits should be correctly sorted: ${sortingErrors}`);
+      }
+    }
+  }
 }
 
 const IGNORE_UNUSED_COMPONENTS = ['stoicShowroom'];
@@ -545,6 +639,7 @@ const PROPS = [
   'components',
   'mixins',
   'props',
+  'emits',
   'data',
   'computed',
   'created',
@@ -568,7 +663,7 @@ async function checkJSFiles() {
   checkJsFileExtensions();
 
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.vmc.mjs')
     .concat(getFilesFromDirectory('./test/ui', '.mjs'))
     .filter((it) => !IGNORE_FILES.includes(it));
 
@@ -587,6 +682,8 @@ async function checkJSFiles() {
     let newLines = lines.slice();
     const orderedProps = [];
     let isDefaultExport = false;
+    const existingEmits = [];
+    let isInsideEmits = false;
 
     for (const [lineIndex, line] of lines.entries()) {
       const trimmedLine = line.trim();
@@ -602,6 +699,28 @@ async function checkJSFiles() {
       if (line.startsWith('export default {')) {
         isDefaultExport = true;
       } else if (filePath.includes('vmc.mjs') && isDefaultExport) {
+        if (isInsideEmits) {
+          if (line === '  ],') {
+            isInsideEmits = false;
+          } else {
+            existingEmits.push(eval(line.replace(',', '').trim()));
+          }
+        }
+
+        if (line.includes('$emit(')) {
+          const str = line.substr(line.indexOf('$emit(') + 6);
+          if (str[0] === "'") {
+            const str2 = str.substr(1);
+            const action = str2.substr(0, str2.indexOf("'"));
+            const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
+            emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
+            emitsByComponent[componentId].found = emitsByComponent[componentId].found || [];
+            emitsByComponent[componentId].found.push(action);
+          } else {
+            addWarning(filePath, lineIndex + 1, 'EMIT', 'Use explicit $emit');
+          }
+        }
+
         for (const prop of PROPS) {
           const isFunction = prop === 'data' || prop === 'created' || prop === 'mounted';
           const start = isFunction ? `${prop}()` : `${prop}:`;
@@ -611,6 +730,17 @@ async function checkJSFiles() {
                 ? trimmedLine.substr(0, trimmedLine.indexOf('('))
                 : trimmedLine.substr(0, trimmedLine.indexOf(':'))
             );
+
+            if (start === 'emits:') {
+              if (line.includes('],')) {
+                const str = line.substr(line.indexOf(start) + start.length);
+
+                const emitsInline = str.substr(0, str.indexOf('],') + 1).trim();
+                existingEmits.push(...eval(emitsInline));
+              } else {
+                isInsideEmits = true;
+              }
+            }
           }
         }
       }
@@ -675,6 +805,12 @@ async function checkJSFiles() {
       linesInfo.push(lineInfo);
       checkAndShortAnd(filePath, lineInfo.line, lineNumber);
       checkLineBackTicks(filePath, lineInfo, lineNumber);
+    }
+
+    if (existingEmits.length) {
+      const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
+      emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
+      emitsByComponent[componentId]['declared'] = existingEmits;
     }
 
     checkOrderedVMCProps(filePath, orderedProps);
@@ -1178,11 +1314,26 @@ async function checkVUEFiles() {
       }
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
-      /*
-      console.log('=>', line);
-      console.log(lineInfo);
-      console.log('---------');
-      */
+
+      // console.log('=>', line);
+      // console.log(lineInfo);
+      // console.log('---------');
+
+      if (lineInfo.hasEmit) {
+        const str = line.substr(line.indexOf("$emit('") + 7);
+        const action = str.substr(0, str.indexOf("'"));
+        const componentId = file.split('/').pop().replace('.vue', '');
+        const arr = file.split('/');
+        arr[arr.length - 1] = arr[arr.length - 1].replace('.vue', '.vmc.mjs');
+        arr.splice(arr.length - 1, 0, 'lib');
+        const vmcPath = arr.join('/');
+        emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath };
+        emitsByComponent[componentId].found = emitsByComponent[componentId].found || [];
+        emitsByComponent[componentId].found.push(action);
+      } else if (line.includes('$emit(')) {
+        addWarning(file, lineNumber, 'EMIT', 'Use explicit $emit');
+      }
+
       if (lineInfo.attributeValue && lineInfo.attributeValue.includes("'") && lineInfo.attributeValue.includes('+')) {
         const arr = lineInfo.attributeValue.split('+');
         const templateStrArr = arr.map((it) => {
@@ -1849,6 +2000,7 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineIn
   const hasDollar = hasHTMLLineDollar(line);
   const hasMustacheCode = hasHTMLLineMustacheCode(line);
   const hasPipe = hasHTMLLinePipe(line);
+  const hasEmit = line.includes("$emit('");
   const equalPosition = computeEqualPosition(line);
   const attributeNames = computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition);
   const attributeValue = computeHTMLLineAttributeValue(
@@ -1876,6 +2028,7 @@ function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineIn
     eventName,
     hasBackTick,
     hasDollar,
+    hasEmit,
     hasEndingTag,
     hasStartingTag,
     hasMustacheCode,
