@@ -649,6 +649,8 @@ const PROPS = [
   'mounted',
   'beforeDestroy',
   'destroyed',
+  'beforeUnmount',
+  'unmounted',
   'activated',
   'deactivated',
   'methods',
