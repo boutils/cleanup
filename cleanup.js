@@ -985,7 +985,6 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
     if (line.trim().startsWith('components:')) {
       if (line.includes('}')) {
         const componentsIdsStr = line.slice(line.indexOf('{') + 2, line.indexOf('}') - 1);
-
         componentIds.push(...componentsIdsStr.split(', ').filter((it) => !it.startsWith('...')));
       } else {
         let endOfComponentsIsFound = false;
@@ -1005,7 +1004,9 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
               componentId = componentId.slice(0, currentLine.indexOf(':'));
             }
 
-            componentIds.push(componentId);
+            if (!componentId.startsWith('import(') && !componentId.startsWith(')')) {
+              componentIds.push(componentId);
+            }
           }
         }
       }
@@ -1195,6 +1196,7 @@ const IGNORE_CLASSES = [
   'sd-menu-item-description',
   'sd-menu-item-right-text',
   'sd-quality-bar',
+  'sd-simple-table-draggable-icon',
   'sd-column-sparkchart',
   'sd-viewer-markdown',
   'sd-tooltip-slot-container',
