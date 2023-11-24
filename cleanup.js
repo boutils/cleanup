@@ -1004,7 +1004,7 @@ function getComponentIdsUsed(vmcFileContent, filePath) {
               componentId = componentId.slice(0, currentLine.indexOf(':'));
             }
 
-            if (!componentId.startsWith('import(') && !componentId.startsWith(')')) {
+            if (!componentId.startsWith('import(') && !componentId.startsWith(')') && !componentId.startsWith('()')) {
               componentIds.push(componentId);
             }
           }
