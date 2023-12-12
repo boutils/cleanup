@@ -1182,6 +1182,7 @@ const IGNORE_CLASSES = [
   'title',
   'caption',
   'overline',
+  'row-focused',
   'sd-column-selector',
   'sd-dropdown',
   'sd-expandable-list-item-action-sort-items',
