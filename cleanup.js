@@ -1810,7 +1810,9 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     !vmcText.includes(eventName) &&
     !specText.includes(eventName) &&
     !libText.includes(eventName) &&
-    !IGNORED_EVENTS.includes(_name)
+    !IGNORED_EVENTS.includes(_name) &&
+    !_name.endsWith('dialog__close') &&
+    !_name.endsWith('dialog__validate')
   ) {
     addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed (${_name})`);
   }
