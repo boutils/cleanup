@@ -1083,7 +1083,8 @@ function checkUnusedProperty(property, names, vmcFile) {
       !hasInVMC &&
       name !== 'prefixid' &&
       name !== 'isidentifier' &&
-      !_name.endsWith('dialog__validate')
+      !_name.endsWith('dialog__validate') &&
+      !_name.includes('dialog__arrow')
     ) {
       addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})`);
     }
@@ -1818,7 +1819,8 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     !libText.includes(eventName) &&
     !IGNORED_EVENTS.includes(_name) &&
     !_name.endsWith('dialog__close') &&
-    !_name.endsWith('dialog__validate')
+    !_name.endsWith('dialog__validate') &&
+    !_name.includes('dialog__arrow')
   ) {
     addWarning(filePath, lineNumber, 'unused event', `Event '${eventName}' should be removed (${_name})`);
   }
