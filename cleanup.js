@@ -70,6 +70,10 @@ function remove_duplicates(arr) {
   return Array.from(it);
 }
 
+const FORCED_EVENTS_BY_COMPONENT = {
+  'sd-sheet': ['blurParameter', 'focusParameter'],
+};
+
 function checkEmits() {
   for (const componentId of Object.keys(emitsByComponent)) {
     const res = emitsByComponent[componentId];
@@ -80,11 +84,14 @@ function checkEmits() {
     const found = remove_duplicates(res.found || []).sort();
     const declared = res.declared || [];
 
-    const diff = declared.filter((x) => !found.includes(x)).concat(found.filter((x) => !declared.includes(x)));
-    const foundStr = JSON.stringify(found);
+    const forceEvents = FORCED_EVENTS_BY_COMPONENT[componentId];
+    const all = forceEvents ? found.concat(forceEvents).sort() : found;
+    const diff = declared.filter((x) => !all.includes(x)).concat(all.filter((x) => !declared.includes(x)));
+
+    const foundStr = JSON.stringify(all);
     if (diff.length > 0) {
-      const newEmitLine = found.length > 0 ? `  emits: ${foundStr},` : '';
-      const message = found.length > 0 ? `Emits should be updated to: '${foundStr}'` : 'Emits should be removed!';
+      const newEmitLine = all.length > 0 ? `  emits: ${foundStr},` : '';
+      const message = all.length > 0 ? `Emits should be updated to: '${foundStr}'` : 'Emits should be removed!';
       addWarning(res.vmcPath, null, 'obsolete emits', message);
 
       if (AUTOMATIC_FIX) {
