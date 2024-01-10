@@ -1091,6 +1091,7 @@ function checkUnusedProperty(property, names, vmcFile) {
       name !== 'prefixid' &&
       name !== 'isidentifier' &&
       !_name.endsWith('dialog__validate') &&
+      !_name.endsWith('dialog__validateOnEnter') &&
       !_name.includes('dialog__arrow')
     ) {
       addWarning(vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})`);
