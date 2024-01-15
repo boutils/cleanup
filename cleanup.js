@@ -71,7 +71,7 @@ function remove_duplicates(arr) {
 }
 
 const FORCED_EVENTS_BY_COMPONENT = {
-  'sd-sheet': ['blurParameter', 'focusParameter'],
+  'sd-sheet': ['blurParameter', 'fetchFile', 'focusParameter'],
 };
 
 function checkEmits() {
