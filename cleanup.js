@@ -1028,6 +1028,8 @@ const IGNORED_PROPS = ['sd-sheet__transfers', 'sd-sheet__users', 'stoic-journey-
 const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectDown',
   'sd-code-autocomplete__selectUp',
+  'sd-pipeline__onContainerClick',
+  'sd-pipeline__onRightClick',
   'sd-sheet__onJourneyEditorRecordUpdate',
   'sd-perspective-content__getPerspective',
   'sd-perspective-content-table__onGroupByAggregationUpdate',
