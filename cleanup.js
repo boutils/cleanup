@@ -1870,8 +1870,14 @@ function getAndCheckImportLines(filePath) {
   let hasEmptyLineAfterImports = false;
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
-    if (lineIndex < 2 && (line.startsWith('//') || line === '')) {
-      continue; //copyrights
+    if (lineIndex === 0 && line !== COPYRIGHT) {
+      addWarning(filePath, null, 'no copyrights', 'Missing or invalid copyright');
+      break;
+    }
+
+    if (lineIndex === 1 && line !== '') {
+      addWarning(filePath, lineIndex, 'empty line', 'Add an empty line after copyright');
+      break;
     }
 
     const lineNumber = lineIndex + 1;
@@ -1900,6 +1906,7 @@ function getAndCheckImportLines(filePath) {
     } else if (line !== '' && !isCurrentImportOnMultipleLines) {
       if (!hasEmptyLineAfterImports && importLines.length > 0) {
         addWarning(filePath, importLines.length + 1, 'empty line', 'Add an empty line after imports');
+        throw new Error(filePath + '___' + importLines.length + 1);
       }
 
       break;
