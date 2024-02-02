@@ -674,13 +674,6 @@ function checkJsFileExtensions() {
 
 function checkCopyright(filePath, lines) {
   if (lines[0] !== COPYRIGHT) {
-    addWarning(filePath, null, 'no copyrights', 'Missing copyrights');
-
-    if (AUTOMATIC_FIX) {
-      const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
-      fs.writeFileSync(filePath, content);
-    }
-  }
 }
 
 async function checkJSFiles() {
@@ -697,8 +690,6 @@ async function checkJSFiles() {
     const file = filesContents[filePath];
     const lines = file.split('\n');
     const linesInfo = [];
-
-    checkCopyright(filePath, lines);
 
     let isInsideAsyncFn = false;
     let asyncFnLineIndex = -1;
@@ -1870,14 +1861,22 @@ function getAndCheckImportLines(filePath) {
   let hasEmptyLineAfterImports = false;
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
-    if (lineIndex === 0 && line !== COPYRIGHT) {
-      addWarning(filePath, null, 'no copyrights', 'Missing or invalid copyright');
-      break;
-    }
+    if (filePath.endsWith('.mjs') || filePath.endsWith('.mts')) {
+      if (lineIndex === 0 && line !== COPYRIGHT) {
+        if (AUTOMATIC_FIX) {
+          const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
+          fs.writeFileSync(filePath, content);
+        } else {
+          addWarning(filePath, null, 'invalid copyright', 'Missing or invalid copyright');
+        }
 
-    if (lineIndex === 1 && line !== '') {
-      addWarning(filePath, lineIndex, 'empty line', 'Add an empty line after copyright');
-      break;
+        break;
+      }
+
+      if (lineIndex === 1 && line !== '') {
+        addWarning(filePath, lineIndex, 'empty line', 'Add an empty line after copyright');
+        break;
+      }
     }
 
     const lineNumber = lineIndex + 1;
@@ -1903,10 +1902,9 @@ function getAndCheckImportLines(filePath) {
           addWarning(filePath, lineNumber, 'wrong repo', `Fermat's 'utils' should be imported from Principia`);
         }
       }
-    } else if (line !== '' && !isCurrentImportOnMultipleLines) {
+    } else if (line !== '' && line !== COPYRIGHT && !isCurrentImportOnMultipleLines) {
       if (!hasEmptyLineAfterImports && importLines.length > 0) {
         addWarning(filePath, importLines.length + 1, 'empty line', 'Add an empty line after imports');
-        throw new Error(filePath + '___' + importLines.length + 1);
       }
 
       break;
