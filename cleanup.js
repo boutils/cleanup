@@ -672,10 +672,6 @@ function checkJsFileExtensions() {
   }
 }
 
-function checkCopyright(filePath, lines) {
-  if (lines[0] !== COPYRIGHT) {
-}
-
 async function checkJSFiles() {
   checkJsFileExtensions();
 
@@ -1861,7 +1857,7 @@ function getAndCheckImportLines(filePath) {
   let hasEmptyLineAfterImports = false;
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
-    if (filePath.endsWith('.mjs') || filePath.endsWith('.mts')) {
+    if (lineIndex < 2 && (filePath.endsWith('.mjs') || filePath.endsWith('.mts'))) {
       if (lineIndex === 0 && line !== COPYRIGHT) {
         if (AUTOMATIC_FIX) {
           const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
@@ -1877,6 +1873,8 @@ function getAndCheckImportLines(filePath) {
         addWarning(filePath, lineIndex, 'empty line', 'Add an empty line after copyright');
         break;
       }
+
+      continue;
     }
 
     const lineNumber = lineIndex + 1;
