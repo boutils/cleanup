@@ -33,6 +33,7 @@ const COLOR_FROM_TYPE = {
 const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr']);
 const SECTION_SEPARATOR = '// -------------------------------------------------------------------------';
 
+const COPYRIGHT = `// Copyright © Sutoiku, Inc. ${new Date().getFullYear()}. All Rights Reserved.`;
 let isVue3 = false;
 const warnings = {};
 const info = {};
@@ -671,6 +672,17 @@ function checkJsFileExtensions() {
   }
 }
 
+function checkCopyright(filePath, lines) {
+  if (lines[0] !== COPYRIGHT) {
+    addWarning(filePath, null, 'no copyrights', 'Missing copyrights');
+
+    if (AUTOMATIC_FIX) {
+      const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
+      fs.writeFileSync(filePath, content);
+    }
+  }
+}
+
 async function checkJSFiles() {
   checkJsFileExtensions();
 
@@ -685,6 +697,8 @@ async function checkJSFiles() {
     const file = filesContents[filePath];
     const lines = file.split('\n');
     const linesInfo = [];
+
+    checkCopyright(filePath, lines);
 
     let isInsideAsyncFn = false;
     let asyncFnLineIndex = -1;
