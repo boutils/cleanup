@@ -1342,6 +1342,15 @@ async function checkVUEFiles() {
 
       const lineInfo = computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo);
 
+      if (
+        lineInfo.hasEndingTag &&
+        !lineInfo.hasStartingTag &&
+        !lineInfo.isCommentedLine &&
+        previousLineInfo.isEmptyLine
+      ) {
+        addWarning(file, lineNumber - 1, 'empty line', 'Remove this empty line');
+      }
+
       // console.log('=>', line);
       // console.log(lineInfo);
       // console.log('---------');
