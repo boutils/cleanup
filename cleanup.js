@@ -1870,6 +1870,10 @@ function getAndCheckImportLines(filePath) {
   let hasEmptyLineAfterImports = false;
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
+    if (lineIndex < 2 && (line.startsWith('//') || line === '')) {
+      continue; //copyrights
+    }
+
     const lineNumber = lineIndex + 1;
     if (line.startsWith('import')) {
       isCurrentImportOnMultipleLines = !line.includes(' from ');
