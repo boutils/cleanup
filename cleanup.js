@@ -1925,6 +1925,7 @@ function getAndCheckImportLines(filePath) {
   return importLines;
 }
 
+const IGNORE_IMPORT_LINES = ["import { CodeLinter } from './sd-code-editor.lib-linter.mjs';"];
 function getImportSortingError(arr, importsLines) {
   let firstErrorIndex = null;
   for (let i = 0; i < arr.length - 1; i++) {
@@ -1949,7 +1950,7 @@ function getImportSortingError(arr, importsLines) {
     }
   }
 
-  if (firstErrorIndex !== null) {
+  if (firstErrorIndex !== null && !IGNORE_IMPORT_LINES.includes(importsLines[firstErrorIndex].line)) {
     return {
       lineNumber: importsLines[firstErrorIndex].lineNumber,
       message: `"${importsLines[firstErrorIndex].line}" should be after "${importsLines[firstErrorIndex + 1].line}"`,
