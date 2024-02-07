@@ -1034,6 +1034,7 @@ const PUBLIC_METHODS = [
   'sd-sheet__onJourneyEditorRecordUpdate',
   'sd-perspective-content__getPerspective',
   'sd-perspective-content-table__onGroupByAggregationUpdate',
+  'sd-simple-table__focusLastLine',
   'sd-table-base__onGroupByAggregationUpdate',
   'sd-text-editable__setWriteMode',
   'stoic-journey-outline-recipe__onContainerClick',
