@@ -927,11 +927,15 @@ async function checkVMCFiles() {
 
   for (const file of files) {
     try {
+      const data = filesContents[file];
       const pathArray = file.split('/');
       const componentName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
-      const results = await Vuedoc.parse({ filename: file, loaders: [Vuedoc.Loader.extend('mjs', JavascriptLoader)] });
+      const results = await Vuedoc.parse({
+        filecontent: '<script lang="mjs">' + data.replaceAll(" assert { type: 'json' }", '') + '</script>',
+        loaders: [Vuedoc.Loader.extend('mjs', JavascriptLoader)],
+      });
       const properties = ['props', 'data', 'computed', 'methods'];
-      const data = filesContents[file];
+
       const components = getComponentIdsUsed(data, file);
       const sortingErrors = getSortingError(components);
       if (sortingErrors && !IGNORE_IMPORTS.includes(componentName)) {
