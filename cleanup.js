@@ -1,6 +1,5 @@
 /*
 TODOS:
-Extension is not 'js' but 'mjs';
 Optimize `checkVUEFiles`, it takes too long to execute
 npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
@@ -219,10 +218,10 @@ function checkUnusedComponents() {
 }
 
 function checkLibAndUtils() {
-  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.mjs')
-    .concat(getFilesFromDirectory(`${DIRECTORY}/lib`, '.mts'))
-    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.mjs'))
-    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.mts'));
+  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js')
+    .concat(getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts'))
+    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.js'))
+    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.ts'));
 
   const allImports = [];
   for (const filePath of libUtilsFilePaths) {
@@ -230,8 +229,8 @@ function checkLibAndUtils() {
     allImports.push(importStr);
   }
 
-  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(
-    getFilesFromDirectory(DIRECTORY, '.mts').concat(getFilesFromDirectory(DIRECTORY, '.vue'))
+  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.js').concat(
+    getFilesFromDirectory(DIRECTORY, '.ts').concat(getFilesFromDirectory(DIRECTORY, '.vue'))
   );
 
   let bigText = '';
@@ -298,7 +297,7 @@ function checkFunctionInFile(filePath, fn) {
 
 const allFunctions = {};
 async function checkFunctions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
   for (const filePath of jsFilePaths) {
     const fileContent = filesContents[filePath];
     const lines = fileContent.split('\n');
@@ -362,8 +361,8 @@ async function checkFunctions() {
       checkFunctionInFile(fn.filePath, fn);
 
       const pathArray = fn.filePath.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.lib.mjs', '');
-      pathArray[pathArray.length - 1] = componentName + '.vmc.mjs';
+      const componentName = pathArray[pathArray.length - 1].replace('.lib.js', '');
+      pathArray[pathArray.length - 1] = componentName + '.vmc.js';
       const vmcFilePath = pathArray.join('/');
       checkFunctionInFile(vmcFilePath, fn);
 
@@ -414,7 +413,7 @@ function replaceObjectArgs(string) {
 function parseFunction(filePath, lines, lineNumber) {
   const result = {
     filePath,
-    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.mjs'),
+    isComponentFunction: filePath.includes('components/') && filePath.endsWith('.lib.js'),
     line: lineNumber,
     name: null,
     args: [],
@@ -481,7 +480,7 @@ function parseFunction(filePath, lines, lineNumber) {
 const filesContents = {};
 const importsLines = {};
 function readAndIndexFiles() {
-  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.mjs'));
+  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
     if (file.includes('.ts')) {
       continue;
@@ -628,12 +627,12 @@ async function checkCSSFiles() {
 }
 
 const IGNORE_FILES = [
-  './test/lib/fermat/assemblyscript/binder.test.mjs',
-  './test/lib/fermat/data/periods-filter.test.mjs',
-  './test/lib/fermat/utils/runner.mjs',
-  './test/lib/fermat/utils/workbook-runner-3.mjs',
-  './ui/generated/stoapedia-demo-specs.mjs',
-  './ui/generated/stoapedia-specs.mjs',
+  './test/lib/fermat/assemblyscript/binder.test.js',
+  './test/lib/fermat/data/periods-filter.test.js',
+  './test/lib/fermat/utils/runner.js',
+  './test/lib/fermat/utils/workbook-runner-3.js',
+  './ui/generated/stoapedia-demo-specs.js',
+  './ui/generated/stoapedia-specs.js',
 ];
 
 const LINES_TO_REMOVE = [
@@ -666,18 +665,18 @@ const PROPS = [
 ];
 
 function checkJsFileExtensions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test/ui', '.js'));
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test/ui', '.mjs'));
   for (const filePath of jsFilePaths) {
-    addWarning(filePath, null, 'no JS file', 'Change extension to ".mjs" instead of ".js"');
+    addWarning(filePath, null, 'no JS file', 'Change extension to ".js" instead of ".mjs"');
   }
 }
 
 async function checkJSFiles() {
   checkJsFileExtensions();
 
-  //const filePaths = getFilesFromDirectory(DIRECTORY, '.mjs');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.vmc.mjs')
-    .concat(getFilesFromDirectory('./test/ui', '.mjs'))
+  //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.vmc.js')
+    .concat(getFilesFromDirectory('./test/ui', '.js'))
     .filter((it) => !IGNORE_FILES.includes(it));
 
   for (const filePath of filePaths) {
@@ -711,7 +710,7 @@ async function checkJSFiles() {
 
       if (line.startsWith('export default {')) {
         isDefaultExport = true;
-      } else if (filePath.includes('vmc.mjs') && isDefaultExport) {
+      } else if (filePath.includes('vmc.js') && isDefaultExport) {
         if (isInsideEmits) {
           isVue3 = true;
           if (line === '  ],') {
@@ -750,7 +749,7 @@ async function checkJSFiles() {
           if (str[0] === "'") {
             const str2 = str.substr(1);
             const action = str2.substr(0, str2.indexOf("'"));
-            const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
+            const componentId = filePath.split('/').pop().replace('.vmc.js', '');
             emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
             emitsByComponent[componentId].found = emitsByComponent[componentId].found || [];
             emitsByComponent[componentId].found.push(action);
@@ -823,7 +822,7 @@ async function checkJSFiles() {
     }
 
     if (existingEmits.length) {
-      const componentId = filePath.split('/').pop().replace('.vmc.mjs', '');
+      const componentId = filePath.split('/').pop().replace('.vmc.js', '');
       emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath: filePath };
       emitsByComponent[componentId]['declared'] = existingEmits;
     }
@@ -851,9 +850,9 @@ function checkOrderedVMCProps(filePath, orderedProps) {
 }
 
 async function checkExports() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
-  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs')
-    .concat(getFilesFromDirectory('./test', '.mjs'))
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
+    .concat(getFilesFromDirectory('./test', '.js'))
     .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
 
   const _exports = {};
@@ -889,7 +888,7 @@ function accumulateExports(_exports, filePath) {
     const trimmedLine = line.trim();
     if (
       (!trimmedLine.startsWith('export') && !trimmedLine.startsWith('import')) ||
-      filePath.includes('dom-helpers.mjs') ||
+      filePath.includes('dom-helpers.js') ||
       trimmedLine.startsWith('export {')
     ) {
       continue;
@@ -923,16 +922,16 @@ const IGNORE_IMPORTS = ['sd-form-control'];
 
 let vmcFiles = {};
 async function checkVMCFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vmc.mjs');
+  const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
 
   for (const file of files) {
     try {
       const data = filesContents[file];
       const pathArray = file.split('/');
-      const componentName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+      const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
       const results = await Vuedoc.parse({
-        filecontent: '<script lang="mjs">' + data.replaceAll(" assert { type: 'json' }", '') + '</script>',
-        loaders: [Vuedoc.Loader.extend('mjs', JavascriptLoader)],
+        filecontent: '<script lang="js">' + data.replaceAll(" assert { type: 'json' }", '') + '</script>',
+        loaders: [Vuedoc.Loader.extend('js', JavascriptLoader)],
       });
       const properties = ['props', 'data', 'computed', 'methods'];
 
@@ -970,7 +969,7 @@ async function checkVMCFiles() {
 
       for (const property of properties) {
         const names = results[property].map((it) => it.name.replace(/-/g, ''));
-        if (!file.includes('demo.vmc.mjs')) {
+        if (!file.includes('demo.vmc.js')) {
           checkUnusedProperty(property, names, file);
         }
 
@@ -1062,7 +1061,7 @@ const METHODS_USED_BY_MIXINS = [
 
 function getVueFilePathFromVmc(vmcFilePath) {
   const pathArray = vmcFilePath.split('/');
-  const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
   const offset = pathArray[pathArray.length - 2] === 'lib' ? 2 : 1;
   const vueFilePath = pathArray
     .slice(0, pathArray.length - offset)
@@ -1078,7 +1077,7 @@ function checkUnusedProperty(property, names, vmcFile) {
   }
 
   const pathArray = vmcFile.split('/');
-  const fileName = pathArray[pathArray.length - 1].replace('.vmc.mjs', '');
+  const fileName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
   const vueFile = getVueFilePathFromVmc(vmcFile);
   const vmcFileContent = filesContents[vmcFile];
   const vueFileContent = filesContents[vueFile];
@@ -1141,7 +1140,7 @@ function checkLineBackTicks(file, lineInfo, lineNumber) {
     if (
       !file.includes('test/lib/kyu') &&
       !file.includes('test/lib/fermat') &&
-      (!line.includes("'") || !file.endsWith('test.mjs')) &&
+      (!line.includes("'") || !file.endsWith('test.js')) &&
       (!line.includes('${') || (line.includes('`${') && line.includes('}`') && (line.match(/{/g) || []).length === 1))
     ) {
       addWarning(file, lineNumber, 'BackTick', 'BackTick should be removed"');
@@ -1367,7 +1366,7 @@ async function checkVUEFiles() {
         const action = str.substr(0, str.indexOf("'"));
         const componentId = file.split('/').pop().replace('.vue', '');
         const arr = file.split('/');
-        arr[arr.length - 1] = arr[arr.length - 1].replace('.vue', '.vmc.mjs');
+        arr[arr.length - 1] = arr[arr.length - 1].replace('.vue', '.vmc.js');
         arr.splice(arr.length - 1, 0, 'lib');
         const vmcPath = arr.join('/');
         emitsByComponent[componentId] = emitsByComponent[componentId] || { vmcPath };
@@ -1830,7 +1829,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
   const vueText = vueFiles[tagName]?._text || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
-  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.mjs')[0];
+  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
 
   const specText = specFile ? filesContents[specFile] : '';
   const libText = libFile ? filesContents[libFile] : '';
@@ -1863,7 +1862,7 @@ function getAndCheckImportLines(filePath) {
   let hasEmptyLineAfterImports = false;
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
-    if (lineIndex < 2 && (filePath.endsWith('.mjs') || filePath.endsWith('.mts'))) {
+    if (lineIndex < 2 && (filePath.endsWith('.js') || filePath.endsWith('.ts'))) {
       if (lineIndex === 0 && line !== COPYRIGHT) {
         if (AUTOMATIC_FIX) {
           const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
@@ -1931,7 +1930,7 @@ function getAndCheckImportLines(filePath) {
   return importLines;
 }
 
-const IGNORE_IMPORT_LINES = ["import { CodeLinter } from './sd-code-editor.lib-linter.mjs';"];
+const IGNORE_IMPORT_LINES = ["import { CodeLinter } from './sd-code-editor.lib-linter.js';"];
 function getImportSortingError(arr, importsLines) {
   let firstErrorIndex = null;
   for (let i = 0; i < arr.length - 1; i++) {
