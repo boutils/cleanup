@@ -1923,7 +1923,7 @@ function getAndCheckImportLines(filePath) {
     }
   }
 
-  if (emptyLinePosition) {
+  if (emptyLinePosition && !filePath.includes('./test/lib')) {
     addWarning(filePath, emptyLinePosition, 'empty line', 'Remove this empty line');
   }
 
