@@ -1906,7 +1906,7 @@ function getAndCheckImportLines(filePath) {
         }
       }
     } else if (line !== '' && line !== COPYRIGHT && !isCurrentImportOnMultipleLines) {
-      if (!hasEmptyLineAfterImports && importLines.length > 0) {
+      if (!hasEmptyLineAfterImports && importLines.length > 0 && !filePath.includes('./test/lib')) {
         addWarning(filePath, importLines.length + 1, 'empty line', 'Add an empty line after imports');
       }
 
