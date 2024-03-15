@@ -3,14 +3,10 @@ TODOS:
 Optimize `checkVUEFiles`, it takes too long to execute
 npm run dev-theme, dev-format, dev-lint,...
 Order `cases` in switch
-Sort `components` in VMC files
 vmc attribute validation and order (props, methods,...)
 wrong attribute name => `class` is valid but `classes` is not
 find empty class
-find not used components
-find not used sequences => expectAssetRichTooltipLayerName
 find stoa key not used
-Check arguments for every helper function
 */
 
 const fs = require('fs');
