@@ -16,8 +16,7 @@ Check arguments for every helper function
 const fs = require('fs');
 const Vuedoc = require('@vuedoc/parser');
 const JavascriptLoader = require('@vuedoc/parser/loader/javascript.js');
-const { exec } = require('child_process');
-const { parse, stringify } = require('scss-parser');
+const { parse } = require('scss-parser');
 
 const AUTOMATIC_FIX = false;
 const DIRECTORY = './ui';
@@ -2137,19 +2136,6 @@ function countInfoOrWarningsEntries(infoOrWarnings) {
   return count;
 }
 
-function execute(command) {
-  return new Promise(function (resolve, reject) {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(stdout.trim());
-    });
-  });
-}
-
 function extractTagName(line, hasStartingTag, previousTagName) {
   if (!hasStartingTag) {
     return previousTagName;
@@ -2340,89 +2326,6 @@ function printInfoAndWarnings(infoOrWarnings, type) {
       log(`\t${lineMsg}(${infoOrWarning.type}) ${infoOrWarning.message}`, 'warning');
     }
   }
-}
-
-function processSequence(filePath, type) {
-  let isFileUpdated = false;
-  const sequences = readJSONFile(filePath);
-  for (const sequence of sequences) {
-    const isSequenceSorted = sortParams(sequence.steps);
-    if (isSequenceSorted) {
-      isFileUpdated = true;
-    }
-  }
-
-  if (isFileUpdated) {
-    const data = JSON.stringify(sequences, null, 2);
-    fs.writeFileSync(filePath, data);
-  }
-
-  return isFileUpdated;
-}
-
-function processTest(filePath, type) {
-  let isFileUpdated = false;
-  const test = readJSONFile(filePath);
-  for (const sequence of test.sequences || []) {
-    const isTestSorted = sortParams(sequence.steps);
-    if (isTestSorted) {
-      isFileUpdated = true;
-    }
-  }
-
-  const isTestSorted = sortParams(test.steps);
-  if (isTestSorted) {
-    isFileUpdated = true;
-  }
-
-  if (isFileUpdated) {
-    const data = JSON.stringify(test, null, 2);
-    fs.writeFileSync(filePath, data);
-  }
-
-  return isFileUpdated;
-}
-
-function readJSONFile(filePath) {
-  return JSON.parse(filesContents[filePath]);
-}
-
-function sortParams(steps) {
-  if (!steps) {
-    return;
-  }
-
-  let isUpdated = false;
-  for (const step of steps) {
-    if (step.params && !Array.isArray(step.params)) {
-      const sorted = sortObject(step.params);
-      if (JSON.stringify(step.params) !== JSON.stringify(sorted)) {
-        step.params = sorted;
-        isUpdated = true;
-      }
-    }
-
-    if (step.repeatWith) {
-      for (const [i, instance] of Object.entries(step.repeatWith)) {
-        const sorted = sortObject(instance);
-        if (JSON.stringify(instance) !== JSON.stringify(sorted)) {
-          step.repeatWith[i] = sortObject(instance);
-          isUpdated = true;
-        }
-      }
-    }
-  }
-
-  return isUpdated;
-}
-
-function sortObject(object) {
-  return Object.keys(object)
-    .sort()
-    .reduce((obj, key) => {
-      obj[key] = object[key];
-      return obj;
-    }, {});
 }
 
 async function go() {
