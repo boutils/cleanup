@@ -706,6 +706,17 @@ async function checkTestFiles() {
         `Rename '${instructions[0].text}' test to: '${fileName}'`
       );
     }
+
+    const instructionTexts = {};
+    for (const instruction of instructions) {
+      const text = instruction.text.trim();
+      if (!instructionTexts[text]) {
+        instructionTexts[text] = 1;
+      } else {
+        instructionTexts[text] = instructionTexts[text] + 1;
+        addWarning(filePath, instruction.lineIndex + 1, 'doublon instruction', `Please rename: '${text}'`);
+      }
+    }
   }
 }
 
