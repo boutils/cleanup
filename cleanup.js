@@ -43,6 +43,7 @@ function addWarning(file, lineNumber, type, message) {
 const emitsByComponent = {};
 
 async function checker() {
+  await checkTestFiles();
   await checkVMCFiles();
   await checkVUEFiles();
   await checkCSSFiles();
@@ -670,6 +671,94 @@ function checkJsFileExtensions() {
   for (const filePath of jsFilePaths) {
     addWarning(filePath, null, 'no JS file', 'Change extension to ".js" instead of ".mjs"');
   }
+}
+
+const instructionIds = ['describeLinear', 'it', 'itRetry'];
+const describeLinearId = 'describeLinear';
+async function checkTestFiles() {
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.test.js');
+  for (const filePath of filePaths) {
+    const pathArray = filePath.split('/');
+    const fileName = pathArray[pathArray.length - 1];
+    const file = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+    if (!file.includes(describeLinearId)) {
+      continue;
+    }
+
+    const lines = file.split('\n');
+    const instructions = [];
+    for (const [lineIndex, line] of lines.entries()) {
+      if (isLineWithInstruction(line)) {
+        instructions.push(parseLineForInstruction(lines, lineIndex));
+      }
+    }
+
+    // console.log('-------------------');
+    // console.log(filePath);
+    // console.log('-------------------');
+    // console.log(instructions.map((it) => it.text));
+
+    if (fileName !== instructions[0].text) {
+      addWarning(
+        filePath,
+        instructions[0].lineIndex + 1,
+        'invalid test name',
+        `Rename '${instructions[0].text}' test to: '${fileName}'`
+      );
+    }
+  }
+}
+
+function isLineWithInstruction(line) {
+  for (const id of instructionIds) {
+    if (
+      line.trim().startsWith(`${id}(`) ||
+      line.trim().startsWith(`${id}.skip(`) ||
+      line.trim().startsWith(`${id}.only(`)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function parseLineForInstruction(lines, _lineIndex) {
+  let lineIndex = _lineIndex;
+  let text = lines[_lineIndex].trim();
+  for (const id of instructionIds) {
+    if (text.startsWith(`${id}.skip(`)) {
+      text = text.replace('.skip', '');
+    }
+
+    if (text.startsWith(`${id}.only(`)) {
+      text = text.replace('.only', '');
+    }
+
+    if (text.startsWith(`${id}(`)) {
+      text = text.substr(id.length + 1);
+    }
+  }
+
+  const endString = '() => {';
+  if (text.includes(endString)) {
+    text = text.substr(0, text.indexOf(endString));
+  } else {
+    lineIndex = _lineIndex + 1;
+    text = lines[lineIndex].trim();
+  }
+
+  const asynsStr = ', async ';
+  if (text.endsWith(asynsStr)) {
+    text = text.substr(0, text.indexOf(asynsStr));
+  } else {
+    text = text.substr(0, text.length - 2);
+  }
+
+  const charToRemove = text[0];
+  text = text.replaceAll(charToRemove, '');
+
+  return { lineIndex, text };
 }
 
 async function checkJSFiles() {
