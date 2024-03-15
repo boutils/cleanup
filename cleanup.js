@@ -217,6 +217,7 @@ function checkUnusedComponents() {
   }
 }
 
+const IGNORED_LIBS = ["from 'ui/lib/monaco-custom.js'"];
 function checkLibAndUtils() {
   const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js')
     .concat(getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts'))
@@ -239,8 +240,13 @@ function checkLibAndUtils() {
   }
 
   for (const _imp of allImports) {
-    if (!bigText.includes(_imp)) {
-      addWarning(_imp, null, 'unused file', 'This lib/utils file is not used. Please remove!');
+    if (!bigText.includes(_imp) && !IGNORED_LIBS.includes(_imp)) {
+      addWarning(
+        _imp.replace('from ', '').replaceAll("'", ''),
+        null,
+        'unused file',
+        'This lib/utils file is not used. Please remove!'
+      );
     }
   }
 
@@ -253,6 +259,8 @@ function checkLibAndUtils() {
     }
   }
 }
+
+const IGNORED_FNS = ['debounce'];
 
 function checkFunctionInFile(filePath, fn) {
   const fileContent = filesContents[filePath];
@@ -283,7 +291,7 @@ function checkFunctionInFile(filePath, fn) {
           'function call',
           `The function '${fn.name}' accepts only ${totalArgs} args but have ${args.length}`
         );
-      } else if (args.length < fn.requiredArgsCount) {
+      } else if (args.length < fn.requiredArgsCount && !IGNORED_FNS.includes(fn.name)) {
         addWarning(
           fn.filePath,
           fn.line,
