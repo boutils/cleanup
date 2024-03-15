@@ -40,11 +40,6 @@ function addWarning(file, lineNumber, type, message) {
   warnings[file].push({ lineNumber, type, message });
 }
 
-function addInfo(file, lineNumber, type, message) {
-  info[file] = info[file] || [];
-  info[file].push({ lineNumber, type, message });
-}
-
 const emitsByComponent = {};
 
 async function checker() {
@@ -308,7 +303,6 @@ async function checkFunctions() {
   for (const filePath of jsFilePaths) {
     const fileContent = filesContents[filePath];
     const lines = fileContent.split('\n');
-    let areExportFunctionsDeclaredFirst = true;
     let isExported = true;
     let errorReportedForCurrentFile = false;
 
@@ -606,7 +600,7 @@ async function checkCSSFiles() {
       const blocks = getSCSSBlocks(ast);
       const sortingErrors = findCSSBlockError(blocks);
       if (sortingErrors) {
-        for (sortingError of sortingErrors) {
+        for (const sortingError of sortingErrors) {
           addWarning(file, sortingError.lineNumber, 'sorting', sortingError.message);
         }
       }
@@ -628,7 +622,7 @@ async function checkCSSFiles() {
         }
       }
     } catch (e) {
-      console.error(e);
+      console.error(e); // eslint-disable-line no-console
     }
   }
 }
@@ -870,7 +864,6 @@ async function checkExports() {
   }
 
   for (const [keyword, _export] of Object.entries(_exports)) {
-    const isFound = false;
     for (const filePath of jsAndVueFilePaths) {
       const file = filesContents[filePath];
       if (file.includes(keyword) && filePath !== _export.file) {
@@ -990,12 +983,12 @@ async function checkVMCFiles() {
         }
       }
     } catch (e) {
-      console.error(e);
+      console.error(e); // eslint-disable-line no-console
     }
   }
 }
 
-function getComponentIdsUsed(vmcFileContent, filePath) {
+function getComponentIdsUsed(vmcFileContent) {
   const lines = vmcFileContent.split('\n');
 
   const componentIds = [];
@@ -1833,8 +1826,8 @@ const IGNORED_EVENTS = [
 
 function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const vmcText =
-    vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath);
-  const vueText = vueFiles[tagName]?._text || console.log('cannot read Vue file', tagName, Object.keys(vueFiles));
+    vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath); // eslint-disable-line no-console
+  const vueText = vueFiles[tagName]?._text || console.log('cannot read Vue file', tagName, Object.keys(vueFiles)); // eslint-disable-line no-console
   const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
   const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
 
@@ -1861,7 +1854,7 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
 function getAndCheckImportLines(filePath) {
   const file = filesContents[filePath];
   if (!file) {
-    console.error('NOT FOUND', filePath);
+    console.error('NOT FOUND', filePath); // eslint-disable-line no-console
   }
   const lines = file.split('\n');
   const importLines = [];
@@ -1972,8 +1965,8 @@ function getImportSortingError(arr, importsLines) {
   return null;
 }
 
-function hasSameExtension(filename1, filename1) {
-  return getFileExtension(filename1) === getFileExtension(filename1);
+function hasSameExtension(filename1, filename2) {
+  return getFileExtension(filename1) === getFileExtension(filename2);
 }
 
 function getFileExtension(filename) {
@@ -2023,7 +2016,7 @@ function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equal
   return [];
 }
 
-function computeHTMLLineAttributeValue(line, hasStartingTag, hasEndingTag, equalPosition, attributeNames) {
+function computeHTMLLineAttributeValue(line, hasStartingTag, hasEndingTag, equalPosition) {
   if (hasStartingTag && hasEndingTag) {
     const startingTagPosition = line.indexOf('<') || 0;
     line = line.substr(startingTagPosition, line.indexOf('>'));
@@ -2237,7 +2230,7 @@ function hasHTMLLinePipe(line) {
   return line.includes('|');
 }
 
-function hasHTMLLineStartingTag(line, indentationCount) {
+function hasHTMLLineStartingTag(line) {
   return !!line.match(/<[a-z]/i);
 }
 
@@ -2245,7 +2238,7 @@ function isHTMLAttributeOnlyEnded(line) {
   return line.endsWith('}"');
 }
 
-function isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth) {
+function isHTMLAttributeOnlyStarted(line) {
   return line.endsWith('= "{');
 }
 
@@ -2294,7 +2287,7 @@ function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
 }
 
 function log(message, type) {
-  console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message);
+  console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message); // eslint-disable-line no-console
 }
 
 function printInfoAndWarningsResume(infoOrWarnings, type) {
@@ -2317,7 +2310,7 @@ function printInfoAndWarnings(infoOrWarnings, type) {
   }
 
   for (const file of Object.keys(infoOrWarnings)) {
-    const fileName = file.replace(/^.*[\\\/]/, '');
+    const fileName = file.replace(/^.*[\\/]/, '');
     log('\n' + fileName, 'info');
     const link = infoOrWarnings[file][0]?.lineNumber ? `${file}:${infoOrWarnings[file][0].lineNumber}` : file;
     log(link, 'path');
@@ -2329,7 +2322,7 @@ function printInfoAndWarnings(infoOrWarnings, type) {
 }
 
 async function go() {
-  console.time('Executed in');
+  console.time('Executed in'); // eslint-disable-line no-console
   log('Read files content...', 'comment');
   await readAndIndexFiles();
 
@@ -2341,7 +2334,7 @@ async function go() {
 
   printInfoAndWarnings(info, 'info');
   printInfoAndWarnings(warnings, 'warning');
-  console.timeEnd('Executed in');
+  console.timeEnd('Executed in'); // eslint-disable-line no-console
 }
 
 go();
