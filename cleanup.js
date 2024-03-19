@@ -1878,7 +1878,7 @@ function checkAttributeInVueFile(filePath, lineNumber, prop, tagName) {
   }
 
   const props = vmcFiles[tagName].props.map((it) => it.name);
-  if (!props.includes(prop)) {
+  if (!props.includes(prop) && !prop.startsWith('data-')) {
     addWarning(filePath, lineNumber, 'unused prop', `Prop '${prop}' should be removed`);
   }
 }
