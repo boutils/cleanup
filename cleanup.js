@@ -152,7 +152,16 @@ function checkEmits() {
   }
 }
 
-const IGNORE_UNUSED_COMPONENTS = ['stoicShowroom'];
+const IGNORE_UNUSED_COMPONENTS = [
+  'stoicApp',
+  'stoicDownloadWorkbook',
+  'stoicHome',
+  'stoicNotebook',
+  'stoicPageCreator',
+  'stoicSheet',
+  'stoicShowroom',
+  'stoicWorkbook',
+];
 
 function checkUnusedComponents() {
   const allDeclaredComponentsIdsInVmc = new Set(IGNORE_UNUSED_COMPONENTS.map((it) => it.toLowerCase()));
