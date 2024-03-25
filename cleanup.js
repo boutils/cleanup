@@ -1130,6 +1130,8 @@ const PUBLIC_METHODS = [
   'sd-code-autocomplete__selectUp',
   'sd-pipeline__onContainerClick',
   'sd-pipeline__onRightClick',
+  'sd-pipeline-editor__onContainerClick',
+  'sd-pipeline-editor__onRightClick',
   'sd-sheet__onJourneyEditorRecordUpdate',
   'sd-perspective-content__getPerspective',
   'sd-perspective-content-table__onGroupByAggregationUpdate',
