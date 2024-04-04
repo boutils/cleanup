@@ -155,7 +155,9 @@ function checkEmits() {
 const IGNORE_UNUSED_COMPONENTS = [
   'stoicApp',
   'stoicDownloadWorkbook',
+  'stoicFlow',
   'stoicHome',
+  'stoicOldbook',
   'stoicNotebook',
   'stoicPageCreator',
   'stoicSheet',
