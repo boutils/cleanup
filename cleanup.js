@@ -1337,6 +1337,12 @@ const IGNORE_CLASSES = [
   'stoic-notebook-editor-block-gutter-buttons',
   'stoic-notebook-editor-block-gutter-close',
   'stoic-notebook-editor-block-gutter-close-pinned',
+  'stoic-oldbook-editor-block-gutter',
+  'stoic-oldbook-editor-block-gutter-active',
+  'stoic-oldbook-editor-block-gutter-actions',
+  'stoic-oldbook-editor-block-gutter-buttons',
+  'stoic-oldbook-editor-block-gutter-close',
+  'stoic-oldbook-editor-block-gutter-close-pinned',
   'syntax',
   'table',
 ];
