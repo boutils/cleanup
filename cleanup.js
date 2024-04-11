@@ -782,8 +782,7 @@ function parseLineForInstruction(lines, _lineIndex) {
 async function checkJSFiles() {
   checkJsFileExtensions();
 
-  //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.vmc.js')
+  const filePaths = getFilesFromDirectory(DIRECTORY, '.js')
     .concat(getFilesFromDirectory('./test', '.js'))
     .filter((it) => !IGNORE_FILES.includes(it));
 
@@ -904,7 +903,7 @@ async function checkJSFiles() {
         }
       }
 
-      if (line.includes('await ')) {
+      if (line.includes('await ') || line.includes('Promise')) {
         hasAwait = true;
       }
 
@@ -1877,7 +1876,6 @@ function checkImports(filePath) {
   for (const duplicate of findDuplicates(locations)) {
     addWarning(filePath, null, 'duplicate', `import "${duplicate}" is duplicated`);
   }
-
   const firstImportSortingError = getImportSortingError(locations, importsLines[filePath]);
   if (firstImportSortingError) {
     addWarning(filePath, firstImportSortingError.lineNumber, 'sorting', `import ${firstImportSortingError.message}`);
@@ -2037,7 +2035,7 @@ function getAndCheckImportLines(filePath) {
       } else if (lines[lineIndex + 1].startsWith('import')) {
         emptyLinePosition = importLines.length + 1;
       }
-    } else if (isCurrentImportOnMultipleLines && line.includes(' from ')) {
+    } else if (isCurrentImportOnMultipleLines && line.includes(' from ') && !line.trim().startsWith('//')) {
       importLines.push({ line, lineNumber });
     }
   }
@@ -2045,7 +2043,6 @@ function getAndCheckImportLines(filePath) {
   if (emptyLinePosition && !filePath.includes('./test/lib')) {
     addWarning(filePath, emptyLinePosition, 'empty line', 'Remove this empty line');
   }
-
   return importLines;
 }
 
