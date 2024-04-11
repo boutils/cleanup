@@ -15,7 +15,7 @@ const JavascriptLoader = require('@vuedoc/parser/loader/javascript.js');
 const { parse } = require('scss-parser');
 
 const AUTOMATIC_FIX = false;
-const DIRECTORY = './ui';
+const DIRECTORY = './src';
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
   comment: '\x1b[36m%s\x1b[0m',
@@ -31,6 +31,7 @@ const COPYRIGHT = `// Copyright © Sutoiku, Inc. ${new Date().getFullYear()}. Al
 let isVue3 = false;
 const warnings = {};
 const info = {};
+
 function addWarning(file, lineNumber, type, message) {
   warnings[file] = warnings[file] || [];
   warnings[file].push({ lineNumber, type, message });
@@ -173,7 +174,7 @@ function checkUnusedComponents() {
     }
 
     for (const cpId of vmcFiles[componentId].components) {
-      if (cpId.charAt(0) === cpId.charAt(0).toUpperCase()) {
+      if (cpId.charAt(0) === cpId.charAt(0).toUpperCase() && cpId !== 'JsonForms') {
         addWarning(
           vmcFiles[componentId]._path,
           null,
@@ -219,12 +220,11 @@ function checkUnusedComponents() {
   }
 }
 
-const IGNORED_LIBS = ["from 'ui/lib/monaco-custom.js'"];
+const IGNORED_LIBS = ["from 'src/lib/monaco-custom.js'"];
 function checkLibAndUtils() {
-  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js')
-    .concat(getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts'))
-    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.js'))
-    .concat(getFilesFromDirectory(`${DIRECTORY}/utils`, '.ts'));
+  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js').concat(
+    getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts')
+  );
 
   const allImports = [];
   for (const filePath of libUtilsFilePaths) {
@@ -253,7 +253,7 @@ function checkLibAndUtils() {
   }
 
   for (const fn of Object.values(allFunctions)) {
-    if (fn.exported && (fn.filePath.includes('./ui/lib/') || fn.filePath.includes('./ui/utils/'))) {
+    if (fn.exported && fn.filePath.includes('./src/lib/') && !isUtilsLibrary(fn.filePath)) {
       bigText = bigText.replace(`export function ${fn.name}(`);
       if (!bigText.includes(fn.name)) {
         addWarning(fn.filePath, fn.line, 'unused function', `This function ${fn.name} is not used. Please remove!`);
@@ -329,7 +329,7 @@ async function checkFunctions() {
       }
 
       if (fnInfo.exported) {
-        if (!isExported && !errorReportedForCurrentFile) {
+        if (!isExported && !errorReportedForCurrentFile && !isUtilsLibrary(filePath)) {
           errorReportedForCurrentFile = true;
           addWarning(
             filePath,
@@ -346,12 +346,12 @@ async function checkFunctions() {
 
   for (const filePath of jsFilePaths) {
     for (const importLine of importsLines[filePath]) {
-      if (!importLine.line.includes('ui/lib/')) {
+      if (!importLine.line.includes('src/lib/')) {
         continue;
       }
 
       const lookupPath = importLine.line
-        .replace(importLine.line.substring(0, importLine.line.indexOf('ui/lib/') + 'ui/lib/'.length), './ui/lib/')
+        .replace(importLine.line.substring(0, importLine.line.indexOf('src/lib/') + 'src/lib/'.length), './src/lib/')
         .replace("';", '');
 
       const hasStar = importLine.line.includes('*');
@@ -640,8 +640,8 @@ const IGNORE_FILES = [
   './test/lib/fermat/data/periods-filter.test.js',
   './test/lib/fermat/utils/runner.js',
   './test/lib/fermat/utils/workbook-runner-3.js',
-  './ui/generated/stoapedia-demo-specs.js',
-  './ui/generated/stoapedia-specs.js',
+  './src/generated/stoapedia-demo-specs.js',
+  './src/generated/stoapedia-specs.js',
 ];
 
 const LINES_TO_REMOVE = [
@@ -674,7 +674,7 @@ const PROPS = [
 ];
 
 function checkJsFileExtensions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test/ui', '.mjs'));
+  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
   for (const filePath of jsFilePaths) {
     addWarning(filePath, null, 'no JS file', 'Change extension to ".js" instead of ".mjs"');
   }
@@ -784,7 +784,7 @@ async function checkJSFiles() {
 
   //const filePaths = getFilesFromDirectory(DIRECTORY, '.js');
   const filePaths = getFilesFromDirectory(DIRECTORY, '.vmc.js')
-    .concat(getFilesFromDirectory('./test/ui', '.js'))
+    .concat(getFilesFromDirectory('./test', '.js'))
     .filter((it) => !IGNORE_FILES.includes(it));
 
   for (const filePath of filePaths) {
@@ -957,6 +957,10 @@ function checkOrderedVMCProps(filePath, orderedProps) {
   }
 }
 
+function isUtilsLibrary(filePath) {
+  return filePath === './src/lib/utils.js';
+}
+
 async function checkExports() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
@@ -981,7 +985,7 @@ async function checkExports() {
   }
 
   for (const [keyword, _export] of Object.entries(_exports)) {
-    if (!_export.used) {
+    if (!_export.used && !isUtilsLibrary(_export.file)) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
   }
@@ -1410,11 +1414,11 @@ const vueFiles = {};
 async function checkVUEFiles() {
   const files = getFilesFromDirectory(DIRECTORY, '.vue');
 
-  const themeAstCSS = filesContents['./ui/scss/theme.scss'] ? parse(filesContents['./ui/scss/theme.scss']) : null;
+  const themeAstCSS = filesContents['./src/scss/theme.scss'] ? parse(filesContents['./src/scss/theme.scss']) : null;
   const themeClasses = themeAstCSS ? getCSSClasses(themeAstCSS) : [];
-  const stoicAstCSS = filesContents['./ui/scss/stoic.scss'] ? parse(filesContents['./ui/scss/stoic.scss']) : null;
+  const stoicAstCSS = filesContents['./src/scss/stoic.scss'] ? parse(filesContents['./src/scss/stoic.scss']) : null;
   const stoicClasses = stoicAstCSS ? getCSSClasses(stoicAstCSS) : [];
-  const mixinsAstCSS = filesContents['./ui/scss/mixins.scss'] ? parse(filesContents['./ui/scss/mixins.scss']) : null;
+  const mixinsAstCSS = filesContents['./src/scss/mixins.scss'] ? parse(filesContents['./src/scss/mixins.scss']) : null;
   const mixinsClasses = mixinsAstCSS ? getCSSClasses(mixinsAstCSS) : [];
   const globalClasses = themeClasses.concat(stoicClasses).concat(mixinsClasses);
 
@@ -2005,7 +2009,7 @@ function getAndCheckImportLines(filePath) {
         if (
           !line.endsWith("'util';") &&
           !line.includes('fermat/test/utils') &&
-          !line.includes('ui/lib/column-charts') &&
+          !line.includes('src/lib/column-charts') &&
           !line.includes('kyu/lib/ui') &&
           !line.includes('@') &&
           line.includes('/') &&
