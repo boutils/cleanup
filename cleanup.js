@@ -161,6 +161,7 @@ const IGNORE_UNUSED_COMPONENTS = [
   'stoicOldbook',
   'stoicNotebook',
   'stoicPageCreator',
+  'stoicPanel',
   'stoicSheet',
   'stoicShowroom',
   'stoicWorkbook',
@@ -220,7 +221,8 @@ function checkUnusedComponents() {
   }
 }
 
-const IGNORED_LIBS = ["from 'src/lib/monaco-custom.js'"];
+const IGNORED_LIBS = ["from 'src/lib/mixins.js'", "from 'src/lib/monaco-custom.js'"];
+
 function checkLibAndUtils() {
   const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js').concat(
     getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts')
@@ -960,6 +962,10 @@ function isUtilsLibrary(filePath) {
   return filePath === './src/lib/utils.js';
 }
 
+function isFunctionsLibrary(filePath) {
+  return filePath === './src/functions/functions.js';
+}
+
 async function checkExports() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
@@ -984,7 +990,7 @@ async function checkExports() {
   }
 
   for (const [keyword, _export] of Object.entries(_exports)) {
-    if (!_export.used && !isUtilsLibrary(_export.file)) {
+    if (!_export.used && !isUtilsLibrary(_export.file) && !isFunctionsLibrary(_export.file)) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
   }
@@ -1156,6 +1162,7 @@ const PUBLIC_METHODS = [
   'stoic-journey-outline-recipe__onRightClick',
   'stoic-journey-outline-transform__optionsSpec',
   'stoic-palette__pushTextToSearchField',
+  'stoic-tables__startSync',
   'stoic-view-composer-add-item__showActionsMenu',
   'stoic-view-composer-toolbar__showActionsMenu',
 ];
@@ -1313,6 +1320,7 @@ const IGNORE_CLASSES = [
   'flex-column',
   'headline',
   'identifier',
+  'mdil',
   'title',
   'caption',
   'overline',
@@ -1348,6 +1356,7 @@ const IGNORE_CLASSES = [
   'stoic-oldbook-editor-block-gutter-buttons',
   'stoic-oldbook-editor-block-gutter-close',
   'stoic-oldbook-editor-block-gutter-close-pinned',
+  'stoic-placeholder',
   'syntax',
   'table',
 ];
@@ -1383,6 +1392,7 @@ function isIgnoredClass(class_, file, lineNumber) {
     class_.startsWith('d-') ||
     class_.startsWith('text-') ||
     class_.startsWith('mdi-') ||
+    class_.startsWith('mdil-') ||
     class_.startsWith('align-') ||
     class_.includes('__') ||
     (file.includes('sd-function-details.vue') && lineNumber === 12) ||
@@ -1454,7 +1464,7 @@ async function checkVUEFiles() {
         addWarning(file, lineNumber, 'invalid this', 'Remove "this."');
       }
 
-      if (line.includes('mdi-') && !line.includes('mdi-rotate')) {
+      if ((line.includes('mdi-') || line.includes('mdil-')) && !line.includes('mdi-rotate')) {
         addWarning(file, lineNumber, 'missing term', 'Remove hardcoded "mdi-"');
       }
 
@@ -1980,7 +1990,7 @@ function getAndCheckImportLines(filePath) {
   let isCurrentImportOnMultipleLines = false;
   for (const [lineIndex, line] of lines.entries()) {
     if (lineIndex < 2 && (filePath.endsWith('.js') || filePath.endsWith('.ts'))) {
-      if (lineIndex === 0 && line !== COPYRIGHT) {
+      if (lineIndex === 0 && String(line).trim() !== String(COPYRIGHT).trim()) {
         if (AUTOMATIC_FIX) {
           const content = `${COPYRIGHT}\n\n${lines.join('\n')}`;
           fs.writeFileSync(filePath, content);
