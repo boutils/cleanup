@@ -2289,6 +2289,11 @@ function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
 
 function getFilesFromDirectory(directory, filter) {
   const files = [];
+
+  if (!fs.existsSync(directory)) {
+    return [];
+  }
+
   const items = fs.readdirSync(directory);
   for (const item of items) {
     const itemPath = directory + '/' + item;
