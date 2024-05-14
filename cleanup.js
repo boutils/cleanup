@@ -966,6 +966,10 @@ function isFunctionsLibrary(filePath) {
   return filePath === './src/functions/functions.js';
 }
 
+function isThemeLibrary(filePath) {
+  return filePath === './src/lib/theme.js';
+}
+
 async function checkExports() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
@@ -990,7 +994,12 @@ async function checkExports() {
   }
 
   for (const [keyword, _export] of Object.entries(_exports)) {
-    if (!_export.used && !isUtilsLibrary(_export.file) && !isFunctionsLibrary(_export.file)) {
+    if (
+      !_export.used &&
+      !isUtilsLibrary(_export.file) &&
+      !isFunctionsLibrary(_export.file) &&
+      !isThemeLibrary(_export.file)
+    ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
   }
