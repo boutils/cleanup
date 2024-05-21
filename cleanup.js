@@ -1171,6 +1171,7 @@ const PUBLIC_METHODS = [
   'stoic-journey-outline-recipe__onRightClick',
   'stoic-journey-outline-transform__optionsSpec',
   'stoic-palette__pushTextToSearchField',
+  'stoic-tables__focusAddDataframeField',
   'stoic-tables__startSync',
   'stoic-view-composer-add-item__showActionsMenu',
   'stoic-view-composer-toolbar__showActionsMenu',
