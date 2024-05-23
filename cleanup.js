@@ -244,7 +244,7 @@ function checkLibAndUtils() {
   }
 
   for (const _imp of allImports) {
-    if (!bigText.includes(_imp) && !IGNORED_LIBS.includes(_imp)) {
+    if (!bigText.includes(_imp) && !IGNORED_LIBS.includes(_imp) && !_imp.endsWith(".ts'")) {
       addWarning(
         _imp.replace('from ', '').replaceAll("'", ''),
         null,
