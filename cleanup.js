@@ -221,7 +221,7 @@ function checkUnusedComponents() {
   }
 }
 
-const IGNORED_LIBS = ["from 'src/lib/mixins.js'", "from 'src/lib/monaco-custom.js'"];
+const IGNORED_LIBS = ["from 'src/lib/mixins.js'", "from 'src/lib/monaco-custom.js'", "from 'src/lib/locale.js'"];
 
 function checkLibAndUtils() {
   const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js').concat(
@@ -970,6 +970,10 @@ function isThemeLibrary(filePath) {
   return filePath === './src/lib/theme.js';
 }
 
+function isLocaleLibrary(filePath) {
+  return filePath === './src/lib/locale.js';
+}
+
 async function checkExports() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
@@ -998,7 +1002,8 @@ async function checkExports() {
       !_export.used &&
       !isUtilsLibrary(_export.file) &&
       !isFunctionsLibrary(_export.file) &&
-      !isThemeLibrary(_export.file)
+      !isThemeLibrary(_export.file) &&
+      !isLocaleLibrary(_export.file)
     ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
