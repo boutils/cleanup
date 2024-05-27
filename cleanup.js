@@ -255,7 +255,12 @@ function checkLibAndUtils() {
   }
 
   for (const fn of Object.values(allFunctions)) {
-    if (fn.exported && fn.filePath.includes('./src/lib/') && !isUtilsLibrary(fn.filePath)) {
+    if (
+      fn.exported &&
+      fn.filePath.includes('./src/lib/') &&
+      !isUtilsLibrary(fn.filePath) &&
+      !isLocaleLibrary(fn.filePath)
+    ) {
       bigText = bigText.replace(`export function ${fn.name}(`);
       if (!bigText.includes(fn.name)) {
         addWarning(fn.filePath, fn.line, 'unused function', `This function ${fn.name} is not used. Please remove!`);
