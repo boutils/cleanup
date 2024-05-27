@@ -873,7 +873,7 @@ async function checkJSFiles() {
         }
       }
 
-      if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn) {
+      if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn && fnIndex > -1) {
         addWarning(filePath, fnIndex + 1, 'ASYNC', `Add 'async' here`);
 
         if (AUTOMATIC_FIX) {
