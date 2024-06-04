@@ -1700,6 +1700,7 @@ async function checkVUEFiles() {
       if (
         lineInfo.eventName?.endsWith('ed') &&
         !lineInfo.eventName?.endsWith(':focused') &&
+        !lineInfo.eventName?.endsWith('populated') &&
         !lineInfo.eventName?.startsWith('node')
       ) {
         addWarning(file, lineNumber, 'past participle', `"${lineInfo.eventName}" should not end with 'ed'`);
