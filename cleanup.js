@@ -1064,8 +1064,14 @@ async function checkVMCFiles() {
       const data = filesContents[file];
       const pathArray = file.split('/');
       const componentName = pathArray[pathArray.length - 1].replace('.vmc.js', '');
+      let fileContent = data.replaceAll(" assert { type: 'json' }", '');
+
+      if (fileContent.includes('<script>')) {
+        fileContent = fileContent.replaceAll('<script>', '').replaceAll('</script>', '');
+      }
+
       const results = await Vuedoc.parse({
-        filecontent: '<script lang="js">' + data.replaceAll(" assert { type: 'json' }", '') + '</script>',
+        filecontent: '<script lang="js">' + fileContent + '</script>',
         loaders: [Vuedoc.Loader.extend('js', JavascriptLoader)],
       });
       const properties = ['props', 'data', 'computed', 'methods'];
