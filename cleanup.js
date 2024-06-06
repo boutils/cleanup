@@ -1371,6 +1371,7 @@ const IGNORE_CLASSES = [
   'sd-viewer-markdown',
   'sd-tooltip-slot-container',
   'sparkcell-url',
+  'stoic-error',
   'stoic-notebook-editor-block-gutter',
   'stoic-notebook-editor-block-gutter-active',
   'stoic-notebook-editor-block-gutter-actions',
