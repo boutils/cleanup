@@ -259,7 +259,8 @@ function checkLibAndUtils() {
       fn.exported &&
       fn.filePath.includes('./src/lib/') &&
       !isUtilsLibrary(fn.filePath) &&
-      !isLocaleLibrary(fn.filePath)
+      !isLocaleLibrary(fn.filePath) &&
+      !isLocalStorageLibrary(fn.filePath)
     ) {
       bigText = bigText.replace(`export function ${fn.name}(`);
       if (!bigText.includes(fn.name)) {
@@ -979,6 +980,10 @@ function isLocaleLibrary(filePath) {
   return filePath === './src/lib/locale.js';
 }
 
+function isLocalStorageLibrary(filePath) {
+  return filePath === './src/lib/localStorage.js';
+}
+
 async function checkExports() {
   const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
@@ -1008,7 +1013,8 @@ async function checkExports() {
       !isUtilsLibrary(_export.file) &&
       !isFunctionsLibrary(_export.file) &&
       !isThemeLibrary(_export.file) &&
-      !isLocaleLibrary(_export.file)
+      !isLocaleLibrary(_export.file) &&
+      !isLocalStorageLibrary(_export.file)
     ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
