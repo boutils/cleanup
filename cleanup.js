@@ -221,7 +221,12 @@ function checkUnusedComponents() {
   }
 }
 
-const IGNORED_LIBS = ["from 'src/lib/mixins.js'", "from 'src/lib/monaco-custom.js'", "from 'src/lib/locale.js'"];
+const IGNORED_LIBS = [
+  "from 'src/lib/mixins.js'",
+  "from 'src/lib/monaco-custom.js'",
+  "from 'src/lib/locale.js'",
+  "from 'src/lib/setup-vue.js'",
+];
 
 function checkLibAndUtils() {
   const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js').concat(
