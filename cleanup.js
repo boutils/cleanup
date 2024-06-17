@@ -265,6 +265,7 @@ function checkLibAndUtils() {
       fn.filePath.includes('./src/lib/') &&
       !isUtilsLibrary(fn.filePath) &&
       !isLocaleLibrary(fn.filePath) &&
+      !isVueSetupLibrary(fn.filePath) &&
       !isLocalStorageLibrary(fn.filePath)
     ) {
       bigText = bigText.replace(`export function ${fn.name}(`);
@@ -969,6 +970,10 @@ function checkOrderedVMCProps(filePath, orderedProps) {
   }
 }
 
+function isVueSetupLibrary(filePath) {
+  return filePath === './src/lib/setup-vue.js';
+}
+
 function isUtilsLibrary(filePath) {
   return filePath === './src/lib/utils.js';
 }
@@ -1019,6 +1024,7 @@ async function checkExports() {
       !isFunctionsLibrary(_export.file) &&
       !isThemeLibrary(_export.file) &&
       !isLocaleLibrary(_export.file) &&
+      !isVueSetupLibrary(_export.file) &&
       !isLocalStorageLibrary(_export.file)
     ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
