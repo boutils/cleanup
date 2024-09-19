@@ -15,7 +15,7 @@ const JavascriptLoader = require('@vuedoc/parser/loader/javascript.js');
 const { parse } = require('scss-parser');
 
 const AUTOMATIC_FIX = false;
-const DIRECTORY = './src';
+const DIRECTORIES = ['./apps/office/src', './libs/typescript/components'];
 const DEFAULT_COLOR = '\x1b[0m';
 const COLOR_FROM_TYPE = {
   comment: '\x1b[36m%s\x1b[0m',
@@ -153,19 +153,7 @@ function checkEmits() {
   }
 }
 
-const IGNORE_UNUSED_COMPONENTS = [
-  'stoicApp',
-  'stoicDownloadWorkbook',
-  'stoicFlow',
-  'stoicHome',
-  'stoicOldbook',
-  'stoicNotebook',
-  'stoicPageCreator',
-  'stoicPanel',
-  'stoicSheet',
-  'stoicShowroom',
-  'stoicWorkbook',
-];
+const IGNORE_UNUSED_COMPONENTS = ['stoicModal'];
 
 function checkUnusedComponents() {
   const allDeclaredComponentsIdsInVmc = new Set(IGNORE_UNUSED_COMPONENTS.map((it) => it.toLowerCase()));
@@ -229,8 +217,8 @@ const IGNORED_LIBS = [
 ];
 
 function checkLibAndUtils() {
-  const libUtilsFilePaths = getFilesFromDirectory(`${DIRECTORY}/lib`, '.js').concat(
-    getFilesFromDirectory(`${DIRECTORY}/lib`, '.ts')
+  const libUtilsFilePaths = getFilesFromDirectories(DIRECTORIES, '.js').concat(
+    getFilesFromDirectories(DIRECTORIES, '.ts')
   );
 
   const allImports = [];
@@ -239,10 +227,7 @@ function checkLibAndUtils() {
     allImports.push(importStr);
   }
 
-  const allJSPaths = getFilesFromDirectory(DIRECTORY, '.js').concat(
-    getFilesFromDirectory(DIRECTORY, '.ts').concat(getFilesFromDirectory(DIRECTORY, '.vue'))
-  );
-
+  const allJSPaths = libUtilsFilePaths.concat(getFilesFromDirectories(DIRECTORIES, '.vue'));
   let bigText = '';
   for (const filePath of allJSPaths) {
     bigText += fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
@@ -321,7 +306,7 @@ function checkFunctionInFile(filePath, fn) {
 
 const allFunctions = {};
 async function checkFunctions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js');
+  const jsFilePaths = getFilesFromDirectories(DIRECTORIES, '.js');
   for (const filePath of jsFilePaths) {
     const fileContent = filesContents[filePath];
     const lines = fileContent.split('\n');
@@ -503,7 +488,7 @@ function parseFunction(filePath, lines, lineNumber) {
 const filesContents = {};
 const importsLines = {};
 function readAndIndexFiles() {
-  const files = getFilesFromDirectory(DIRECTORY).concat(getFilesFromDirectory('./test', '.js'));
+  const files = getFilesFromDirectories(DIRECTORIES).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
     if (file.includes('.ts')) {
       continue;
@@ -610,7 +595,7 @@ function getSCSSBlocks(ast) {
 }
 
 async function checkCSSFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.scss');
+  const files = getFilesFromDirectories(DIRECTORIES, '.scss');
 
   for (const file of files) {
     try {
@@ -688,7 +673,7 @@ const PROPS = [
 ];
 
 function checkJsFileExtensions() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
+  const jsFilePaths = getFilesFromDirectories(DIRECTORIES, '.mjs').concat(getFilesFromDirectory('./test', '.mjs'));
   for (const filePath of jsFilePaths) {
     addWarning(filePath, null, 'no JS file', 'Change extension to ".js" instead of ".mjs"');
   }
@@ -697,7 +682,7 @@ function checkJsFileExtensions() {
 const instructionIds = ['describeLinear', 'it', 'itRetry'];
 const describeLinearId = 'describeLinear';
 async function checkTestFiles() {
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.test.js');
+  const filePaths = getFilesFromDirectories(DIRECTORIES, '.test.js');
   for (const filePath of filePaths) {
     const pathArray = filePath.split('/');
     const fileName = pathArray[pathArray.length - 1];
@@ -796,7 +781,7 @@ function parseLineForInstruction(lines, _lineIndex) {
 async function checkJSFiles() {
   checkJsFileExtensions();
 
-  const filePaths = getFilesFromDirectory(DIRECTORY, '.js')
+  const filePaths = getFilesFromDirectories(DIRECTORIES, '.js')
     .concat(getFilesFromDirectory('./test', '.js'))
     .filter((it) => !IGNORE_FILES.includes(it));
 
@@ -975,30 +960,30 @@ function isVueSetupLibrary(filePath) {
 }
 
 function isUtilsLibrary(filePath) {
-  return filePath === './src/lib/utils.js';
+  return filePath === './libs/typescript/components/shared/lib/utils.js';
 }
 
 function isFunctionsLibrary(filePath) {
-  return filePath === './src/functions/functions.js';
+  return filePath === './apps/office/src/functions/functions.js';
 }
 
 function isThemeLibrary(filePath) {
-  return filePath === './src/lib/theme.js';
+  return filePath === './libs/typescript/components/shared/theme/theme.js';
 }
 
 function isLocaleLibrary(filePath) {
-  return filePath === './src/lib/locale.js';
+  return filePath === './libs/typescript/components/shared/lib/locale.js';
 }
 
 function isLocalStorageLibrary(filePath) {
-  return filePath === './src/lib/localStorage.js';
+  return filePath === 'libs/typescript/components/shared/lib/observer.js';
 }
 
 async function checkExports() {
-  const jsFilePaths = getFilesFromDirectory(DIRECTORY, '.js').concat(getFilesFromDirectory('./test', '.js'));
-  let jsAndVueFilePaths = getFilesFromDirectory(DIRECTORY, '.js')
+  const jsFilePaths = getFilesFromDirectories(DIRECTORIES, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  let jsAndVueFilePaths = getFilesFromDirectories(DIRECTORIES, '.js')
     .concat(getFilesFromDirectory('./test', '.js'))
-    .concat(getFilesFromDirectory(DIRECTORY, '.vue'));
+    .concat(getFilesFromDirectories(DIRECTORIES, '.vue'));
 
   const _exports = {};
   for (const filePath of jsFilePaths) {
@@ -1025,7 +1010,8 @@ async function checkExports() {
       !isThemeLibrary(_export.file) &&
       !isLocaleLibrary(_export.file) &&
       !isVueSetupLibrary(_export.file) &&
-      !isLocalStorageLibrary(_export.file)
+      !isLocalStorageLibrary(_export.file) &&
+      !_export.file.includes('.stories.')
     ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
@@ -1074,7 +1060,7 @@ const IGNORE_IMPORTS = ['sd-form-control'];
 
 let vmcFiles = {};
 async function checkVMCFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vmc.js');
+  const files = getFilesFromDirectories(DIRECTORIES, '.vmc.js');
 
   for (const file of files) {
     try {
@@ -1466,7 +1452,7 @@ function kebabize(str) {
 
 const vueFiles = {};
 async function checkVUEFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.vue');
+  const files = getFilesFromDirectories(DIRECTORIES, '.vue');
 
   const themeAstCSS = filesContents['./src/scss/theme.scss'] ? parse(filesContents['./src/scss/theme.scss']) : null;
   const themeClasses = themeAstCSS ? getCSSClasses(themeAstCSS) : [];
@@ -1838,7 +1824,7 @@ function hasUpperCase(string) {
 }
 
 async function checkJSonFiles() {
-  const files = getFilesFromDirectory(DIRECTORY, '.spec.json');
+  const files = getFilesFromDirectories(DIRECTORIES, '.spec.json');
   for (const file of files) {
     const data = filesContents[file];
     const json = JSON.parse(data);
@@ -2001,8 +1987,8 @@ function checkEventInVueFile(filePath, lineNumber, eventName, tagName) {
   const vmcText =
     vmcFiles[tagName]?._text || console.log('cannot read Vmc file', tagName, eventName, lineNumber, filePath); // eslint-disable-line no-console
   const vueText = vueFiles[tagName]?._text || console.log('cannot read Vue file', tagName, Object.keys(vueFiles)); // eslint-disable-line no-console
-  const specFile = getFilesFromDirectory(DIRECTORY, tagName + '.spec.json')[0];
-  const libFile = getFilesFromDirectory(DIRECTORY, tagName + '.lib.js')[0];
+  const specFile = getFilesFromDirectories(DIRECTORIES, tagName + '.spec.json')[0];
+  const libFile = getFilesFromDirectories(DIRECTORIES, tagName + '.lib.js')[0];
 
   const specText = specFile ? filesContents[specFile] : '';
   const libText = libFile ? filesContents[libFile] : '';
@@ -2343,6 +2329,16 @@ function getEqualsErrors(cumulatedAttributesAndEventLinesInfo) {
   return errors;
 }
 
+function getFilesFromDirectories(directories, filter) {
+  const files = [];
+  for (const dir of directories) {
+    const subfiles = getFilesFromDirectory(dir, filter);
+    files.push(...subfiles);
+  }
+
+  return files;
+}
+
 function getFilesFromDirectory(directory, filter) {
   const files = [];
 
@@ -2359,7 +2355,7 @@ function getFilesFromDirectory(directory, filter) {
       if (isMatchingFilter(itemPath, filter)) {
         files.push(itemPath);
       }
-    } else if (stat.isDirectory()) {
+    } else if (stat.isDirectory() && !directory.endsWith('node_modules')) {
       const subfiles = getFilesFromDirectory(itemPath).filter((it) => isMatchingFilter(it, filter));
       files.push(...subfiles);
     }
