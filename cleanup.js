@@ -490,10 +490,6 @@ const importsLines = {};
 function readAndIndexFiles() {
   const files = getFilesFromDirectories(DIRECTORIES).concat(getFilesFromDirectory('./test', '.js'));
   for (const file of files) {
-    if (file.includes('.ts')) {
-      continue;
-    }
-
     filesContents[file] = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' });
     importsLines[file] = getAndCheckImportLines(file);
   }
@@ -980,7 +976,9 @@ function isLocalStorageLibrary(filePath) {
 }
 
 async function checkExports() {
-  const jsFilePaths = getFilesFromDirectories(DIRECTORIES, '.js').concat(getFilesFromDirectory('./test', '.js'));
+  const jsFilePaths = getFilesFromDirectories(DIRECTORIES, '.js')
+    .concat(getFilesFromDirectories(DIRECTORIES, '.ts'))
+    .concat(getFilesFromDirectory('./test', '.js'));
   let jsAndVueFilePaths = getFilesFromDirectories(DIRECTORIES, '.js')
     .concat(getFilesFromDirectory('./test', '.js'))
     .concat(getFilesFromDirectories(DIRECTORIES, '.vue'));
