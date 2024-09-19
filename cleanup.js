@@ -214,6 +214,8 @@ const IGNORED_LIBS = [
   "from 'src/lib/monaco-custom.js'",
   "from 'src/lib/locale.js'",
   "from 'src/lib/setup-vue.js'",
+  "from 'apps/office/src/commands/commands.js'",
+  "from 'apps/office/src/functions/functions.js'",
 ];
 
 function checkLibAndUtils() {
@@ -234,13 +236,17 @@ function checkLibAndUtils() {
   }
 
   for (const _imp of allImports) {
-    if (!bigText.includes(_imp) && !IGNORED_LIBS.includes(_imp) && !_imp.endsWith(".ts'")) {
-      addWarning(
-        _imp.replace('from ', '').replaceAll("'", ''),
-        null,
-        'unused file',
-        'This lib/utils file is not used. Please remove!'
-      );
+    const filepath = _imp.replace('from ', '').replaceAll("'", '');
+    const filename = filepath.split('/').at(-1);
+    if (
+      !bigText.includes(filename) &&
+      !bigText.includes(_imp) &&
+      !IGNORED_LIBS.includes(_imp) &&
+      !_imp.endsWith(".ts'")
+    ) {
+      if (!filename.includes('.stories.') && !filename.includes('.vmc.') && !filename.includes('.test.')) {
+        addWarning(filepath, null, 'unused file', 'This lib/utils file is not used. Please remove!');
+      }
     }
   }
 
@@ -951,8 +957,12 @@ function checkOrderedVMCProps(filePath, orderedProps) {
   }
 }
 
+function isOfficeMockLibrary(filePath) {
+  return filePath === './libs/typescript/components/.storybook/office-mock.js';
+}
+
 function isVueSetupLibrary(filePath) {
-  return filePath === './src/lib/setup-vue.js';
+  return filePath === './libs/typescript/components/shared/lib/setup-vue.js';
 }
 
 function isUtilsLibrary(filePath) {
@@ -1003,13 +1013,15 @@ async function checkExports() {
   for (const [keyword, _export] of Object.entries(_exports)) {
     if (
       !_export.used &&
+      !isOfficeMockLibrary(_export.file) &&
       !isUtilsLibrary(_export.file) &&
       !isFunctionsLibrary(_export.file) &&
       !isThemeLibrary(_export.file) &&
       !isLocaleLibrary(_export.file) &&
       !isVueSetupLibrary(_export.file) &&
       !isLocalStorageLibrary(_export.file) &&
-      !_export.file.includes('.stories.')
+      !_export.file.includes('.stories.') &&
+      !_export.file.endsWith('.ts')
     ) {
       addWarning(_export.file, _export.lineNumber, 'EXPORT', `'export' keyword should be removed before '${keyword}'`);
     }
@@ -1386,6 +1398,7 @@ const IGNORE_CLASSES = [
   'stoic-oldbook-editor-block-gutter-close',
   'stoic-oldbook-editor-block-gutter-close-pinned',
   'stoic-placeholder',
+  'stoic-section-title',
   'syntax',
   'table',
 ];
