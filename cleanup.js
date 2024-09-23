@@ -216,6 +216,9 @@ const IGNORED_LIBS = [
   "from 'src/lib/setup-vue.js'",
   "from 'apps/office/src/commands/commands.js'",
   "from 'apps/office/src/functions/functions.js'",
+  "from 'libs/typescript/components/scripts/generate-component.js'",
+  "from 'libs/typescript/components/vite.config.js'",
+  "from 'libs/typescript/components/vitest.config.js'",
 ];
 
 function checkLibAndUtils() {
@@ -812,7 +815,7 @@ async function checkJSFiles() {
         fnIndex = lineIndex;
       }
 
-      if (LINES_TO_REMOVE.includes(trimmedLine)) {
+      if (LINES_TO_REMOVE.includes(trimmedLine) && !filePath.includes('generate-component.js')) {
         addWarning(filePath, lineIndex + 1, 'not used', 'Remove this line (empty)');
       }
 
@@ -867,7 +870,13 @@ async function checkJSFiles() {
         }
       }
 
-      if (line.includes('await ') && !line.includes('await import') && !isInsideAsyncFn && fnIndex > -1) {
+      if (
+        line.includes('await ') &&
+        !line.includes('Promise.all') &&
+        !line.includes('await import') &&
+        !isInsideAsyncFn &&
+        fnIndex > -1
+      ) {
         addWarning(filePath, fnIndex + 1, 'ASYNC', `Add 'async' here`);
 
         if (AUTOMATIC_FIX) {
@@ -2066,7 +2075,8 @@ function getAndCheckImportLines(filePath) {
           line.includes('/') &&
           !line.includes("from 'lib/") &&
           !line.includes("from 'vuetify/") &&
-          !line.includes('.')
+          !line.includes('.') &&
+          !line.includes('vitest')
         ) {
           addWarning(filePath, lineNumber, 'missing extension', `Add an extension to import "${line}"`);
         }
