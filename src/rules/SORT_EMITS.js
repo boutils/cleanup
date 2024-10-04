@@ -13,7 +13,7 @@ export default {
         errors.push({
           filePath,
           line: emits.lineIndex + 1,
-          message: `EMIT ${sortingError}`,
+          message: `Emits should be correctly sorted: ${sortingError}`,
         });
       }
     }
