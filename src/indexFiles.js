@@ -84,6 +84,10 @@ async function indexFile(filePath, fileType) {
   const lines = content.split('\n');
   const result = { content, lines };
 
+  if (fileType === 'lib') {
+    result.imports = getImportLines(lines);
+  }
+
   if (fileType === 'vue' || fileType === 'template') {
     result.linesInfo = indexHTMLFile(lines);
   }
@@ -139,6 +143,33 @@ function findEmits(lines) {
   }
 
   return { lineIndex, values };
+}
+
+function getImportLines(lines) {
+  const importLines = [];
+  let isCurrentImportOnMultipleLines = false;
+  let accumulateImport = [];
+  for (const [lineIndex, line] of lines.entries()) {
+    const lineNumber = lineIndex + 1;
+    if (line.startsWith('import')) {
+      isCurrentImportOnMultipleLines = !line.includes(' from ');
+      if (!isCurrentImportOnMultipleLines) {
+        importLines.push({ line, lineNumber });
+      } else {
+        accumulateImport = [line];
+      }
+    } else if (lineNumber > 10 && !isCurrentImportOnMultipleLines) {
+      break;
+    } else if (isCurrentImportOnMultipleLines && line.includes(' from ') && !line.trim().startsWith('//')) {
+      accumulateImport = [...accumulateImport, line];
+      importLines.push({ line: accumulateImport.join(''), lineNumber });
+      accumulateImport = [];
+    } else if (isCurrentImportOnMultipleLines) {
+      accumulateImport.push(line);
+    }
+  }
+
+  return importLines;
 }
 
 function indexHTMLFile(lines) {

@@ -1,6 +1,6 @@
 import { indexFiles } from './src/indexFiles.js';
 import { getRules } from './src/listRules.js';
-import { printReport } from './src/printReport.js';
+import { log, printReport } from './src/printReport.js';
 
 const rules = await getRules();
 const index = await indexFiles();
@@ -86,6 +86,11 @@ addWarning( filePath, emptyLinePosition, "empty line", "Remove this empty line" 
 const errorsByPath = {};
 
 for (const rule of rules) {
+  if (!rule.validate) {
+    log(`Rule '${rule.id}' is invalid and ignored`, 'error');
+    continue;
+  }
+
   const result = rule.validate(index);
 
   for (const error of result.errors) {

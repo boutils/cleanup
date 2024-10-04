@@ -39,6 +39,6 @@ export function printReport(errorsByPath) {
   }
 }
 
-function log(message, type) {
+export function log(message, type) {
   console.log(COLOR_FROM_TYPE[type] || DEFAULT_COLOR, message); // eslint-disable-line no-console
 }
