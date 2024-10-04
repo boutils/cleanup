@@ -7,7 +7,7 @@ const index = await indexFiles();
 
 /*
 addWarning(res.vmcPath, null, "obsolete emits", message);
-addWarning( res.vmcPath, null, "sorting", `Emits should be correctly sorted: ${sortingErrors}` );
+#addWarning( res.vmcPath, null, "sorting", `Emits should be correctly sorted: ${sortingErrors}` );
 addWarning( vmcFiles[componentId]._path, null, "incorrect component ID", `Component '${cpId}' should not be upper cased, rename '${cpId}' to '${ cpId.toLowerCase()[0] + cpId.slice(1) }'!` );
 addWarning( vueFiles[componentId]._path, null, "unused component", `Component '${componentId}' is used anywhere, please remove it!` );
 addWarning( filepath, null, "unused file", "This lib/utils file is not used. Please remove!" );
