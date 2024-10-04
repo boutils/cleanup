@@ -16,8 +16,11 @@ module.exports = {
       },
     },
   ],
+  parser: 'babel-eslint',
   parserOptions: {
     ecmaVersion: 'latest',
+    sourceType: 'module',
+    allowImportExportEverywhere: true,
   },
   rules: {
     'no-console': 'error',
