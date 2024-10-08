@@ -28,8 +28,16 @@ export default {
     for (const filePath of filesPaths) {
       const { lines } = index.byPath[filePath];
 
+      let started = false;
       const orderedSections = [];
       for (const line of lines) {
+        if (line.includes('export default defineComponent({')) {
+          started = true;
+          continue;
+        } else if (!started) {
+          continue;
+        }
+
         for (const section of SECTIONS) {
           if (line.trim().startsWith(section)) {
             orderedSections.push(section);
