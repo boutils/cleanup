@@ -30,14 +30,11 @@ addWarning( file, lineNumber, "BackTick", `BackTick should be removed, there is 
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( vmcFilePath, null, "unnecessary import", `IMPORT of '${componentId}' is not used. Please remove it.` );
-addWarning( file, lineNumber - 1, "empty line", "Remove this empty line" );
 addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 addWarning( file, lineNumber, "inline css", "style should be in a dedicated stylesheet" );
 addWarning( file, lineNumber, "add space", `Add 'space' after '{'  and before '}' in dynamic class.` );
 addWarning( file, lineNumber, "remove space", `Remove 'space' before ':' in dynamic class.` );
 addWarning( file, lineNumber, "unused class", `Remove class '${class_}'. It is not used.` );
-addWarning(file, lineNumber, "empty line", "Remove this empty line");
-addWarning(file, lineNumber, "empty line", "Remove this empty line");
 addWarning(file, lineNumber, "unscoped CSS", "CSS is unscoped");
 addWarning(file, lineNumber, "empty line", "Add an empty line before");
 addWarning( file, lineNumber, "case", `'${attribute}' should be kebab case (no upper case)` );
