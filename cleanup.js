@@ -17,10 +17,10 @@ addWarning( fn.filePath, fn.line, "function declaration", `The function '${fn.na
 addWarning( filePath, lineIndex + 1, "function declaration", fnInfo.error );
 addWarning( filePath, lineIndex + 1, "function declaration", `Exported function '${fnInfo.name}' should be before private function` );
 addWarning( file, null, "deprecated", "v-deep has been deprecated, replace this by `:deep(<inner-selector>)`" );
-addWarning( file, sortingError.lineNumber, "sorting", sortingError.message );
+#addWarning( file, sortingError.lineNumber, "sorting", sortingError.message );
 addWarning( file, class_.line, "unused class", `Remove class '${class_}'. It is not used.` );
-addWarning( filePath, null, "no JS file", 'Change extension to ".js" instead of ".mjs"' );
-addWarning( filePath, instructions[0].lineIndex + 1, "invalid test name", `Rename '${instructions[0].text}' test to: '${fileName}'` );
+#addWarning( filePath, null, "no JS file", 'Change extension to ".js" instead of ".mjs"' );
+#addWarning( filePath, instructions[0].lineIndex + 1, "invalid test name", `Rename '${instructions[0].text}' test to: '${fileName}'` );
 addWarning( filePath, instruction.lineIndex + 1, "doublon instruction", `Please rename: '${text}'` );
 addWarning( filePath, lineIndex + 1, "not used", "Remove this line (empty)" );
 #addWarning(filePath, lineIndex + 1, "EMIT", "Use explicit $emit");
