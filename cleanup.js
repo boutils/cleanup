@@ -30,8 +30,6 @@ addWarning( file, lineNumber, "BackTick", `BackTick should be removed, there is 
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( vmcFilePath, null, "unnecessary import", `IMPORT of '${componentId}' is not used. Please remove it.` );
-addWarning(file, lineNumber, "invalid this", 'Remove "this."');
-addWarning(file, lineNumber, "missing term", 'Remove hardcoded "mdi-"');
 addWarning( file, lineNumber - 1, "empty line", "Remove this empty line" );
 addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 addWarning( file, lineNumber, "inline css", "style should be in a dedicated stylesheet" );
