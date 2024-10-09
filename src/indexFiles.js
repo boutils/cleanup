@@ -110,7 +110,7 @@ async function indexVmcFile(filePath, content, lines) {
   });
 
   result.emits = findEmits(lines);
-
+  result.watch = findWatch(lines);
   return result;
 }
 
@@ -143,6 +143,38 @@ function findEmits(lines) {
   }
 
   return { lineIndex, values };
+}
+
+function findWatch(lines) {
+  const watchs = [];
+  let isInsideWatch = false;
+
+  const delimiter = 'watch: {';
+  let indentation = -1;
+  for (const [lineIndex, line] of lines.entries()) {
+    if (line.trim() === delimiter) {
+      isInsideWatch = true;
+      indentation = line.length - line.trim().length;
+    } else if (isInsideWatch) {
+      const currentIndentation = line.length - line.trim().length;
+      if (currentIndentation === indentation + 2 && !line.trim().startsWith('//') && !line.trim().startsWith('},')) {
+        let watcherName = line.trim().replaceAll("'", '').replace('async ', '');
+        const indexOfColon = watcherName.indexOf(':');
+        const indexOfParenthesis = watcherName.indexOf('(');
+        if (indexOfColon > -1) {
+          watcherName = watcherName.substring(0, indexOfColon);
+        }
+
+        if (indexOfParenthesis > -1) {
+          watcherName = watcherName.substring(0, indexOfParenthesis);
+        }
+
+        watchs.push({ name: watcherName, lineIndex });
+      }
+    }
+  }
+
+  return watchs;
 }
 
 function getImportLines(lines) {

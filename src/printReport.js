@@ -12,7 +12,7 @@ export function printReport(errorsByPath) {
   const filesInErrorsCount = Object.keys(errorsByPath).length;
 
   let errorsCount = 0;
-  for (const errors in Object.values(errorsByPath)) {
+  for (const errors of Object.values(errorsByPath)) {
     errorsCount += errors.length;
   }
 
