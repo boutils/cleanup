@@ -9,9 +9,15 @@ export default {
 
     const errors = [];
     for (const filePath of filesPaths) {
-      const { vmc } = index.byPath[filePath];
+      const { vmc, content } = index.byPath[filePath];
 
+      const hasMark = content.includes('MARK: ');
       for (const propertyType of SORTED_PROPERTIES) {
+        if (propertyType === 'methods' && hasMark) {
+          // With sections (Marks): methods are not sorted
+          continue;
+        }
+
         const names = vmc[propertyType].map((it) => it.name.replace(/-/g, ''));
         const sortingErrors = getSortingError(names);
         if (sortingErrors) {
