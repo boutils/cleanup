@@ -111,7 +111,40 @@ async function indexVmcFile(filePath, content, lines) {
 
   result.emits = findEmits(lines);
   result.watch = findWatch(lines);
+  result.components = findComponents(lines);
+
   return result;
+}
+
+function findComponents(lines) {
+  const values = [];
+  let isInsideComponents = false;
+
+  const delimiter = 'components:';
+  let lineIndex = -1;
+  for (const [_lineIndex, line] of lines.entries()) {
+    if (line.trim().startsWith(delimiter)) {
+      lineIndex = _lineIndex;
+      isInsideComponents = true;
+
+      if (line.includes('},')) {
+        isInsideComponents = false;
+        const str = line.substr(line.indexOf(delimiter) + delimiter.length);
+
+        const emitsInline = str.substr(0, str.indexOf('},') + 1).trim();
+        values.push(...emitsInline.replace('{', '').replace('}', '').replaceAll(' ', '').split(','));
+        break;
+      }
+    } else if (isInsideComponents) {
+      if (line.includes('},')) {
+        break;
+      } else {
+        values.push(line.replace(',', '').trim().replaceAll("'", ''));
+      }
+    }
+  }
+
+  return { lineIndex, values };
 }
 
 function findEmits(lines) {

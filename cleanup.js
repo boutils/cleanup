@@ -6,11 +6,8 @@ const rules = await getRules();
 const index = await indexFiles();
 
 /*
-////// PROPS
-addWarning( filePath, lineNumber, "unused prop", `Prop '${prop}' should be removed` );
 
 ////// IMPORTS
-addWarning( file, null, "sorting", `IMPORT components: ${sortingErrors}` );
 addWarning( vmcFilePath, null, "unnecessary import", `IMPORT of '${componentId}' is not used. Please remove it.` );
 
 ////// EMPTY LINES
