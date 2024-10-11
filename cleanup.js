@@ -10,7 +10,6 @@ const index = await indexFiles();
 addWarning( filePath, lineNumber, "unused prop", `Prop '${prop}' should be removed` );
 
 ////// IMPORTS
-addWarning( filePath, null, "duplicate", `import "${duplicate}" is duplicated` );
 addWarning( file, null, "sorting", `IMPORT components: ${sortingErrors}` );
 addWarning( vmcFilePath, null, "unnecessary import", `IMPORT of '${componentId}' is not used. Please remove it.` );
 
