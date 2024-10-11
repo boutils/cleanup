@@ -1,5 +1,3 @@
-const IGNORE_IMPORT_LINES = [];
-
 export default {
   validate: (index) => {
     // Check VMC & VUE files

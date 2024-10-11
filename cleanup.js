@@ -6,10 +6,6 @@ const rules = await getRules();
 const index = await indexFiles();
 
 /*
-////// SCSS
-addWarning( file, sortingError.lineNumber, "sorting", sortingError.message );
-addWarning( file, lineNumber, "inline css", "style should be in a dedicated stylesheet" );
-
 ////// PROPS
 addWarning( filePath, lineNumber, "unused prop", `Prop '${prop}' should be removed` );
 
@@ -24,7 +20,6 @@ addWarning(file, lineNumber, "empty line", "Add an empty line before");
 addWarning( filePath, importLines.length + 1, "empty line", "Add an empty line after imports" );
 
 ////// VUE ATTRIBUTES & EVENTS
-addWarning( filePath, lineNumber, "unused event", `Event '${eventName}' should be removed (${_name})` );
 addWarning( file, lineIndex, "sorting", `'${previousLineInfo.eventName}' should be declared after attributes` );
 addWarning( file, lineNumber, "case", `'${attribute}' should be kebab case (no upper case)` );
 addWarning( file, lineNumber, "only-one-attribute", "Attribute should be on the previous line" );
@@ -39,7 +34,6 @@ addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
 addWarning( file, class_.line, "unused class", `Remove class '${class_}'. It is not used.` );
 addWarning( file, lineNumber, "add space", `Add 'space' after '{'  and before '}' in dynamic class.` );
-addWarning( file, lineNumber, "invalid attribute", `'${attribute}' is invalid for tag '${lineInfo.tagName}'` );
 addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 
 ////// VMC
