@@ -27,8 +27,6 @@ addWarning( file, sortingAttrError.lineNumber, "sorting", sortingAttrError.messa
 addWarning( file, sortingEventsError.lineNumber, "sorting", sortingEventsError.message );
 addWarning( file, lineNumber, "remove space", `Remove 'space' before ':' in dynamic class.` );
 addWarning( file, lineNumber, "unused class", `Remove class '${class_}'. It is not used.` );
-addWarning(file, lineNumber, "space", `Missing space after '{{'`);
-addWarning(file, lineNumber, "space", `Missing space before '}}'`);
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
 addWarning( file, class_.line, "unused class", `Remove class '${class_}'. It is not used.` );

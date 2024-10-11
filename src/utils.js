@@ -40,7 +40,7 @@ export function camelize(str) {
 export function computeVuePathFromVmcPath(vmcFilePath) {
   const splitPath = vmcFilePath.split('/');
 
-  const vueFileName = splitPath.at(-1).replace('.vmc.ts', '.vue');
+  const vueFileName = splitPath.at(-1).replace('.vmc.ts', '.vue').replace('.vmc.js', '.vue');
   const dirPath = splitPath.splice(0, splitPath.length - 2).join('/') + '/';
   const vueFilePath = dirPath + vueFileName;
 
