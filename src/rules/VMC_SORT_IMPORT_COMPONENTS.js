@@ -12,7 +12,7 @@ export default {
         errors.push({
           filePath,
           line: vmc.components.lineIndex + 1,
-          message: `Component imported sorting: ${sortingErrors}`,
+          message: `Components sorting error: ${sortingErrors}`,
         });
       }
     }
