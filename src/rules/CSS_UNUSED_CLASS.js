@@ -1,19 +1,5 @@
 import { parse } from 'scss-parser';
-import { computeVuePathFromVmcOrScssPath } from '../utils.js';
-
-const IGNORED_CLASSES = [
-  'active',
-  'disabled',
-  'fill-height',
-  'flex-column',
-  'headline',
-  'title',
-  'caption',
-  'overline',
-  'syntax',
-  'table',
-  'theme--dark',
-];
+import { computeVuePathFromVmcOrScssPath, getCSSClasses, isClassIgnored } from '../utils.js';
 
 export default {
   validate: (index) => {
@@ -29,12 +15,12 @@ export default {
 
       if (vueContent && !vueContent.includes(':class') && !vueContent.includes(':content-class')) {
         const classes = getCSSClasses(ast, true);
-        for (const class_ of classes) {
-          if (!vueContent.includes(class_) && !IGNORED_CLASSES.includes(class_)) {
+        for (const className of classes) {
+          if (!vueContent.includes(className) && !isClassIgnored(className)) {
             errors.push({
               filePath: filePath,
               line: null,
-              message: `Remove class '${class_}'. It is not used.`,
+              message: `Remove CSS class '${className}'. It is not used.`,
             });
           }
         }
@@ -44,29 +30,3 @@ export default {
     return { errors };
   },
 };
-
-function getCSSClasses(ast, ignoreDeep = false) {
-  let classes = [];
-
-  if (ast.type === 'class') {
-    classes = ast.value.map((it) => it.value);
-  }
-
-  if (Array.isArray(ast.value)) {
-    if (
-      ast.type === 'rule' &&
-      ignoreDeep &&
-      ast.value[0].type === 'selector' &&
-      ast.value[0].value[0].type === 'function' &&
-      ast.value[0].value[0].value[0].value[0].value === 'deep'
-    ) {
-      return [];
-    }
-
-    for (const subAst of ast.value) {
-      classes.push(...getCSSClasses(subAst, ignoreDeep));
-    }
-  }
-
-  return classes.filter((it) => !IGNORED_CLASSES.includes(it) && !it.startsWith('v-'));
-}
