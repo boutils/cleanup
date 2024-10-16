@@ -37,15 +37,18 @@ export function camelize(str) {
   });
 }
 
-export function computeVuePathFromVmcPath(vmcFilePath) {
+export function computeVuePathFromVmcOrScssPath(vmcFilePath, hideLog = false) {
   const splitPath = vmcFilePath.split('/');
 
-  const vueFileName = splitPath.at(-1).replace('.vmc.ts', '.vue').replace('.vmc.js', '.vue');
+  const vueFileName = splitPath.at(-1).replace('.vmc.ts', '.vue').replace('.vmc.js', '.vue').replace('.scss', '.vue');
   const dirPath = splitPath.splice(0, splitPath.length - 2).join('/') + '/';
   const vueFilePath = dirPath + vueFileName;
 
   if (!fs.existsSync(vueFilePath)) {
-    log(`Vue file not found: ${vueFilePath}`, 'error');
+    if (!hideLog) {
+      log(`Vue file not found: ${vueFilePath}`, 'error');
+    }
+
     return null;
   }
 
