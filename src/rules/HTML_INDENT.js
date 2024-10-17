@@ -22,7 +22,6 @@ export default {
         }
 
         if (expectedIndentation !== lineInfo.indentationCount && !lineInfo.allowMultipleTags) {
-          console.log('lineInfo', lineInfo);
           errors.push({
             filePath,
             line: lineInfo.lineNumber,

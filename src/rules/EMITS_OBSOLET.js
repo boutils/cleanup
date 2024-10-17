@@ -24,7 +24,7 @@ export default {
 
     // Collect errors
     const errors = [];
-    for (const [componentId, result] of Object.entries(emitsByComponent)) {
+    for (const [, result] of Object.entries(emitsByComponent)) {
       if (!result.found && !result.declared) {
         continue;
       }

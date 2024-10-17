@@ -1,5 +1,3 @@
-import { getSortingError } from '../utils.js';
-
 const IGNORED_DIRECTORIES = ['libs/python/jupyter-ext-minimal-ui/'];
 
 const IGNORED_FILES = [

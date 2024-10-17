@@ -1,22 +1,19 @@
 {
   "type": "module",
   "scripts": {
-    "lint": "eslint 'cleanup.js'"
+    "lint": "eslint"
   },
   "dependencies": {
     "@vuedoc/parser": "^3.4.0",
+    "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-vue": "^9.29.0",
+    "globals": "^15.11.0",
     "lodash": "^4.17.21",
     "prettier": "^3.3.3",
     "prettier-eslint": "^16.3.0",
-    "scss-parser": "^1.0.6"
-  },
-  "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1"
+    "scss-parser": "^1.0.6",
+    "typescript-eslint": "^8.9.0"
   }
 }

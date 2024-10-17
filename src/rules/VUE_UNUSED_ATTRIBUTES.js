@@ -1,4 +1,4 @@
-import { camelize, isValidHtmlAttribute } from '../utils.js';
+import { isValidHtmlAttribute } from '../utils.js';
 
 export default {
   validate: (index) => {
