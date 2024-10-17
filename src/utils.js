@@ -147,6 +147,10 @@ export function isValidHtmlTag(tag) {
   return VALID_HTML_TAGS.has(tag);
 }
 
+export function kebabize(str) {
+  return str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
+}
+
 function isMarginPaddingClass(className) {
   return className.length < 8 && (className.at(0) === 'p' || className.at(0) === 'm') && className.at(2) === '-';
 }
