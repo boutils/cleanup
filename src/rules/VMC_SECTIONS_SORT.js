@@ -22,7 +22,7 @@ const SECTIONS = [
 export default {
   validate: (index) => {
     // Check VMC files
-    const filesPaths = index.byType['lib'].filter((it) => it.includes('.vmc.'));
+    const filesPaths = index.byType['vmc'];
 
     const errors = [];
     for (const filePath of filesPaths) {

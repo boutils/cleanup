@@ -1,6 +1,6 @@
 export default {
   validate: (index) => {
-    const filePaths = index.byType['vue'].concat(index.byType['lib'].filter((it) => it.includes('.vmc.')));
+    const filePaths = index.byType['vue'].concat(index.byType['vmc']);
 
     const errors = [];
     for (const filePath of filePaths) {

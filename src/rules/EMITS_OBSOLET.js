@@ -5,7 +5,7 @@ export default {
     const emitsByComponent = {};
 
     // Browse VMC files to find $emit
-    const vmcfilesPaths = index.byType['lib'].filter((it) => it.includes('.vmc.'));
+    const vmcfilesPaths = index.byType['vmc'];
     for (const filePath of vmcfilesPaths) {
       const { declared, found, lineIndex } = extractEmitsFromVMCFile(filePath, index);
       const componentId = filePath.split('/').pop().replace('.vmc.ts', '');

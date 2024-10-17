@@ -39,6 +39,11 @@ export async function indexFiles() {
       index.byPath[filePath] = await indexFile(filePath, fileType);
       index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
       index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
+
+      if (filePath.includes('.vmc.')) {
+        index.byType.vmc ??= [];
+        index.byType.vmc.push(filePath);
+      }
     }
   }
 
