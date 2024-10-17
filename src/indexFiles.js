@@ -92,6 +92,9 @@ async function indexFile(filePath, fileType) {
 
   if (fileType === 'lib') {
     result.imports = getImportLines(lines);
+    // if (filePath.includes('panel.impo')) {
+    //   console.log(filePath, result.imports);
+    // }
   }
 
   if (fileType === 'vue' || fileType === 'template') {
@@ -229,10 +232,13 @@ function getImportLines(lines) {
   const importLines = [];
   let isCurrentImportOnMultipleLines = false;
   let accumulateImport = [];
+  let firstLineNumberOfImport = -1;
+  let lastLineNumberOfImport = -1;
   for (const [lineIndex, line] of lines.entries()) {
     const lineNumber = lineIndex + 1;
     if (line.startsWith('import')) {
-      isCurrentImportOnMultipleLines = !line.includes(' from ');
+      firstLineNumberOfImport = firstLineNumberOfImport === -1 ? lineNumber : firstLineNumberOfImport;
+      isCurrentImportOnMultipleLines = !line.includes(' from ') && !line.includes(';');
       if (!isCurrentImportOnMultipleLines) {
         importLines.push({ line, lineNumber });
       } else {
@@ -249,7 +255,11 @@ function getImportLines(lines) {
     }
   }
 
-  return importLines;
+  if (importLines.length > 0) {
+    lastLineNumberOfImport = importLines.at(-1).lineNumber;
+  }
+
+  return { values: importLines, info: { firstLineNumberOfImport, lastLineNumberOfImport } };
 }
 
 function indexHTMLFile(lines) {

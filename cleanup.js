@@ -8,7 +8,6 @@ const index = await indexFiles();
 /*
 
 ////// EMPTY LINES
-addWarning(filePath, lineNumber, "empty line", "Add an empty line");
 addWarning( filePath, importLines.length + 1, "empty line", "Add an empty line after imports" );
 
 ////// VUE ATTRIBUTES & EVENTS

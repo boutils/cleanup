@@ -8,8 +8,9 @@ export default {
     for (const filePath of filesPaths) {
       const { imports } = index.byPath[filePath];
 
-      const locations = imports.map((it) => {
-        const path = it.line.split(' from ')[1].replace(/'/g, '').replace(/;/g, '');
+      const locations = imports.values.map((it) => {
+        const substr = it.line.includes(' from ') ? ' from ' : 'import ';
+        const path = it.line.split(substr)[1].replace(/'/g, '').replace(/;/g, '');
         const hasType = it.line.includes('import type') ? 'type___' : '';
         return hasType + path;
       });
@@ -17,7 +18,7 @@ export default {
       for (const duplicate of findDuplicates(locations)) {
         errors.push({
           filePath,
-          line: imports.findLast((it) => it.line.includes(duplicate))?.lineNumber,
+          line: imports.values.findLast((it) => it.line.includes(duplicate))?.lineNumber,
           message: `Import "${duplicate}" is duplicated'`,
         });
       }

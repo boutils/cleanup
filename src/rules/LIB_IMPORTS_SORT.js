@@ -6,15 +6,15 @@ export default {
     const errors = [];
     for (const filePath of filesPaths) {
       const { imports } = index.byPath[filePath];
-      const res = computeOrderedImports(imports);
+      const res = computeOrderedImports(imports.values);
 
       for (const [i, r] of res.entries()) {
-        if (r.line !== imports[i].line) {
+        if (r.line !== imports.values[i].line) {
           const expectedPosition = res.findIndex((it) => it.line === r.line);
           errors.push({
             filePath,
-            line: imports[i].lineNumber,
-            message: `IMPORT '${imports[i].line}' should be after '${imports[expectedPosition + 1].line}'`,
+            line: imports.values[i].lineNumber,
+            message: `IMPORT '${imports.values[i].line}' should be after '${imports.values[expectedPosition + 1].line}'`,
           });
 
           break;
@@ -50,5 +50,9 @@ function computeOrderedImports(imports) {
 }
 
 function extractStringToSort(str) {
-  return str.line.substr(str.line.indexOf('from ') + 6).toLowerCase();
+  if (str.line.indexOf('from ') > -1) {
+    return str.line.substr(str.line.indexOf('from ') + 6).toLowerCase();
+  }
+
+  return str.line.substr(8).toLowerCase();
 }
