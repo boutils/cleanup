@@ -6,10 +6,6 @@ const rules = await getRules();
 const index = await indexFiles();
 
 /*
-
-////// EMPTY LINES
-addWarning( filePath, importLines.length + 1, "empty line", "Add an empty line after imports" );
-
 ////// VUE ATTRIBUTES & EVENTS
 addWarning( file, lineIndex, "sorting", `'${previousLineInfo.eventName}' should be declared after attributes` );
 addWarning( file, lineNumber, "case", `'${attribute}' should be kebab case (no upper case)` );
@@ -37,10 +33,6 @@ addWarning( filePath, instruction.lineIndex + 1, "doublon instruction", `Please 
 addWarning(filePath, fnIndex + 1, "ASYNC", `Add 'async' here`);
 addWarning( filePath, asyncFnLineIndex + 1, "ASYNC", `Remove 'async'` );
 addWarning(filePath, null, "empty file", "Remove this empty file");
-
-////// COPYRIGHT
-addWarning( filePath, null, "invalid copyright", "Missing or invalid copyright" );
-addWarning( filePath, lineIndex, "empty line", "Add an empty line after copyright" );
 */
 
 const errorsByPath = {};
