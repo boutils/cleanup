@@ -1,4 +1,5 @@
 import Vuedoc from '@vuedoc/parser';
+import { parse } from 'scss-parser';
 import JavascriptLoader from '@vuedoc/parser/loader/javascript.js';
 import TypescriptLoader from '@vuedoc/parser/loader/typescript.js';
 import fs from 'fs';
@@ -96,6 +97,10 @@ async function indexFile(filePath, fileType) {
     result.vmc = await indexVmcFile(filePath, content, lines);
   }
 
+  if (filePath.endsWith('.scss') || filePath.endsWith('.css')) {
+    result.scss = indexCssFile(content);
+  }
+
   return result;
 }
 
@@ -114,6 +119,11 @@ async function indexVmcFile(filePath, content, lines) {
   result.components = findComponents(lines);
 
   return result;
+}
+
+function indexCssFile(content) {
+  const scss = content.replaceAll('@use ', '@import ').replaceAll(' as theme;', ';').replaceAll('theme.$', '$');
+  return { ast: parse(scss) };
 }
 
 function findComponents(lines) {

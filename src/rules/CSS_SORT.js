@@ -1,4 +1,3 @@
-import { parse } from 'scss-parser';
 import { getSortingError } from '../utils.js';
 
 export default {
@@ -7,8 +6,8 @@ export default {
 
     const errors = [];
     for (const filePath of filesPaths) {
-      const { content } = index.byPath[filePath];
-      const ast = parse(content);
+      const { scss } = index.byPath[filePath];
+      const ast = scss.ast;
       const blocks = getSCSSBlocks(ast);
       const sortingErrors = findCSSBlockError(blocks);
       if (sortingErrors) {

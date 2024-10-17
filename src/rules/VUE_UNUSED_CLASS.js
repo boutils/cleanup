@@ -1,4 +1,3 @@
-import { parse } from 'scss-parser';
 import { computeCSSPathFromVuePath, getCSSClasses, isClassIgnored } from '../utils.js';
 
 const SEPARATOR = [' ', ','];
@@ -9,8 +8,8 @@ export default {
 
     const globalValidClasses = [];
     for (const stoicCSSFile of stoicCSSFiles) {
-      const { content } = index.byPath[stoicCSSFile];
-      const ast = parse(content);
+      const { scss } = index.byPath[stoicCSSFile];
+      const { ast } = scss;
       globalValidClasses.push(...getCSSClasses(ast));
     }
 
@@ -21,8 +20,8 @@ export default {
       const { linesInfo } = index.byPath[filePath];
 
       const scssFilePath = computeCSSPathFromVuePath(filePath, true);
-      const { content } = index.byPath[scssFilePath];
-      const ast = parse(content);
+      const { scss } = index.byPath[scssFilePath];
+      const { ast } = scss;
 
       const localClasses = getCSSClasses(ast);
       const validClasses = [...globalValidClasses, ...localClasses];
