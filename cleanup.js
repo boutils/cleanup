@@ -7,9 +7,6 @@ const index = await indexFiles();
 
 /*
 
-////// IMPORTS
-addWarning( vmcFilePath, null, "unnecessary import", `IMPORT of '${componentId}' is not used. Please remove it.` );
-
 ////// EMPTY LINES
 addWarning(filePath, lineNumber, "empty line", "Add an empty line");
 addWarning(file, lineNumber, "empty line", "Add an empty line before");
