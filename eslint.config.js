@@ -1,3 +1,4 @@
+import jsLint from '@eslint/js';
 import prettier from 'eslint-plugin-prettier/recommended';
 import vue from 'eslint-plugin-vue';
 import globals from 'globals';
@@ -9,6 +10,7 @@ import ts from 'typescript-eslint';
  */
 export default [
   // Rules sets
+  jsLint.configs.recommended,
   ...ts.configs.recommended,
   ...vue.configs['flat/essential'],
   prettier,
@@ -21,6 +23,8 @@ export default [
       globals: { ...globals.browser, ...globals.node },
     },
     rules: {
+      'no-var': 'error',
+      'no-restricted-globals': 'error',
       'no-console': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'off',
