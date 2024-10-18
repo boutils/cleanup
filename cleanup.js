@@ -10,9 +10,6 @@ await prettify(index);
 
 /*
 ////// VUE ATTRIBUTES & EVENTS
-addWarning( file, lineIndex, "sorting", `'${previousLineInfo.eventName}' should be declared after attributes` );
-addWarning( file, lineNumber, "case", `'${attribute}' should be kebab case (no upper case)` );
-addWarning( file, lineNumber, "only-one-attribute", "Attribute should be on the previous line" );
 addWarning( file, lineNumber, "quote", 'Use double quotes instead of single"' );
 addWarning( file, sortingAttrError.lineNumber, "sorting", sortingAttrError.message );
 addWarning( file, sortingEventsError.lineNumber, "sorting", sortingEventsError.message );
