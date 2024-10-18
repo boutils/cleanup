@@ -10,7 +10,6 @@ await prettify(index);
 
 /*
 ////// VUE ATTRIBUTES & EVENTS
-addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 `addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 
 ////// VMC
@@ -19,7 +18,6 @@ addWarning( file, null, "name", `VMC component should be named: Add "name: '${va
 addWarning( file, null, "name", `Wrong VMC component name: replace '${results.name}' by '${validComponentName}'` );
 
 ////// TS
-addWarning( file, lineNumber, "BackTick", `BackTick should be removed, there is no variable inside` );
 addWarning( _export.file, _export.lineNumber, "EXPORT", `'export' keyword should be removed before '${keyword}'` );
 addWarning( fn.filePath, fn.line, "unused function", `This function ${fn.name} is not used. Please remove!` );
 addWarning( filePath, lineIndex + 1, "function declaration", `Exported function '${fnInfo.name}' should be before private function` );
