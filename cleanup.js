@@ -11,8 +11,7 @@ await prettify(index);
 /*
 ////// VUE ATTRIBUTES & EVENTS
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
-addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
-addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
+`addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 
 ////// VMC
 addWarning( vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})` );
