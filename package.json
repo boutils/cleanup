@@ -11,6 +11,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-vue": "^9.29.0",
     "globals": "^15.11.0",
+    "ignore": "^6.0.2",
     "lodash": "^4.17.21",
     "prettier": "^3.3.3",
     "prettier-eslint": "^16.3.0",
