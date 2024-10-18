@@ -10,10 +10,8 @@ await prettify(index);
 
 /*
 ////// VUE ATTRIBUTES & EVENTS
-addWarning( file, lineNumber, "remove space", `Remove 'space' before ':' in dynamic class.` );
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
-addWarning( file, lineNumber, "add space", `Add 'space' after '{'  and before '}' in dynamic class.` );
 addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
 
 ////// VMC
