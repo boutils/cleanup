@@ -21,7 +21,7 @@ export function printReport(errorsByPath) {
     log(`  ❌ ${filesInErrorsCount} file(s) with ${errorsCount} error(s) found`, 'warning');
     log('**************************************************************************', 'comment');
   } else {
-    log('  ✅ All good', 'ok');
+    log('  ✅ Rules ok', 'ok');
   }
 
   for (const [filePath, errors] of Object.entries(errorsByPath)) {

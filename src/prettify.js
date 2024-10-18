@@ -7,8 +7,10 @@ const prettierOpts = JSON.parse(fs.readFileSync('.prettierrc', 'utf8'));
 const ignorePatterns = fs.readFileSync('.prettierignore', 'utf8').split('\n').filter(Boolean);
 const ig = ignore().add(ignorePatterns);
 
+const logs = [];
 export default async function prettify(index) {
   const filesPaths = Object.keys(index.byPath);
+
   for (const filePath of filesPaths) {
     if (ig.ignores(filePath)) {
       continue;
@@ -19,8 +21,17 @@ export default async function prettify(index) {
     const result = await prettier.format(content, prettierOptions);
 
     if (result !== content) {
-      log(`  File has been formatted: '${filePath}'`, 'error');
+      logs.push(`     - File has been formatted: '${filePath}'`);
       fs.writeFileSync(filePath, result, 'utf8');
     }
+  }
+
+  if (logs.length > 0) {
+    log('  ❌ Formatting errors:', 'error');
+    for (const _log of logs) {
+      log(_log, 'error');
+    }
+  } else {
+    log('  ✅ Formatting ok', 'ok');
   }
 }
