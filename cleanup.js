@@ -11,8 +11,6 @@ await prettify(index);
 /*
 ////// VMC
 addWarning( vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})` );
-addWarning( file, null, "name", `VMC component should be named: Add "name: '${validComponentName}'," to VMC file` );
-addWarning( file, null, "name", `Wrong VMC component name: replace '${results.name}' by '${validComponentName}'` );
 
 ////// TS
 addWarning( _export.file, _export.lineNumber, "EXPORT", `'export' keyword should be removed before '${keyword}'` );
