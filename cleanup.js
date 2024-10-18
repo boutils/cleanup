@@ -9,9 +9,6 @@ const index = await indexFiles();
 await prettify(index);
 
 /*
-////// VMC
-addWarning( vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})` );
-
 ////// TS
 addWarning( _export.file, _export.lineNumber, "EXPORT", `'export' keyword should be removed before '${keyword}'` );
 addWarning( fn.filePath, fn.line, "unused function", `This function ${fn.name} is not used. Please remove!` );
