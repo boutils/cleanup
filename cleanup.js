@@ -9,9 +9,6 @@ const index = await indexFiles();
 await prettify(index);
 
 /*
-////// VUE ATTRIBUTES & EVENTS
-`addWarning( file, lineNumber, "template string", "`" + templateStrArr.join("") + "`", `Replace '${lineInfo.attributeValue}' by '\`${templateStrArr.join( "" )}\`' (template string).`
-
 ////// VMC
 addWarning( vmcFile, null, `unused ${property}`, `'${name}' in ' ${property}' is not used (${_name})` );
 addWarning( file, null, "name", `VMC component should be named: Add "name: '${validComponentName}'," to VMC file` );
