@@ -10,7 +10,6 @@ await prettify(index);
 
 /*
 ////// VUE ATTRIBUTES & EVENTS
-addWarning( file, lineNumber, "quote", 'Use double quotes instead of single"' );
 addWarning( file, sortingAttrError.lineNumber, "sorting", sortingAttrError.message );
 addWarning( file, sortingEventsError.lineNumber, "sorting", sortingEventsError.message );
 addWarning( file, lineNumber, "remove space", `Remove 'space' before ':' in dynamic class.` );
