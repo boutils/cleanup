@@ -10,8 +10,6 @@ await prettify(index);
 
 /*
 ////// VUE ATTRIBUTES & EVENTS
-addWarning( file, sortingAttrError.lineNumber, "sorting", sortingAttrError.message );
-addWarning( file, sortingEventsError.lineNumber, "sorting", sortingEventsError.message );
 addWarning( file, lineNumber, "remove space", `Remove 'space' before ':' in dynamic class.` );
 addWarning(file, lineNumber, "BackTick", 'BackTick should be removed"');
 addWarning( file, lineNumber, "BackTick", `BackTick should be removed, this is not a vue binding` );
