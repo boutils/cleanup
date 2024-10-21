@@ -8,6 +8,7 @@ const IGNORED_FILES = [
   'libs/typescript/utilities/utils.js',
   'libs/typescript/web-components/build.js',
   'libs/typescript/web-components/generate.js',
+  'tools/ui/generate-component.js',
 ];
 
 export default {

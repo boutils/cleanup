@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
-const DIRECTORIES = ['apps', 'libs'];
+const DIRECTORIES = ['apps', 'libs', 'tools'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue']);
 const TYPE_FROM_EXTENSION = {
   '.css': 'style',

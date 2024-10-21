@@ -15,7 +15,7 @@ const EMPTY_SECTION_TO_REMOVE = [
 
 export default {
   validate: (index) => {
-    const filePaths = index.byType['lib'];
+    const filePaths = index.byType['vmc'];
 
     const errors = [];
     for (const filePath of filePaths) {
