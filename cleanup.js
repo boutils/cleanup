@@ -8,11 +8,6 @@ const index = await indexFiles();
 
 await prettify(index);
 
-/*
-addWarning(filePath, fnIndex + 1, "ASYNC", `Add 'async' here`);
-addWarning( filePath, asyncFnLineIndex + 1, "ASYNC", `Remove 'async'` );
-*/
-
 const errorsByPath = {};
 
 for (const rule of rules) {
