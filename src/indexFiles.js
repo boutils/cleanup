@@ -94,7 +94,7 @@ async function indexFile(filePath, fileType) {
 
   if (fileType === 'lib') {
     result.imports = getImportLines(lines);
-    result.functions = (await getFunctions(content)).map((it) => it.name);
+    result.functions = await getFunctions(content);
   }
 
   if (fileType === 'vue' || fileType === 'template') {
