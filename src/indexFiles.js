@@ -1,11 +1,13 @@
 import Vuedoc from '@vuedoc/parser';
-import { parse } from 'scss-parser';
 import JavascriptLoader from '@vuedoc/parser/loader/javascript.js';
 import TypescriptLoader from '@vuedoc/parser/loader/typescript.js';
 import fs from 'fs';
 import path from 'path';
+import { parse } from 'scss-parser';
+import { FunctionDeclaration, TypescriptParser } from 'typescript-parser';
 import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
+const parser = new TypescriptParser();
 const DIRECTORIES = ['apps', 'libs', 'tools'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue']);
 const TYPE_FROM_EXTENSION = {
@@ -92,9 +94,7 @@ async function indexFile(filePath, fileType) {
 
   if (fileType === 'lib') {
     result.imports = getImportLines(lines);
-    // if (filePath.includes('panel.impo')) {
-    //   console.log(filePath, result.imports);
-    // }
+    result.functions = (await getFunctions(content)).map((it) => it.name);
   }
 
   if (fileType === 'vue' || fileType === 'template') {
@@ -226,6 +226,11 @@ function findWatch(lines) {
   }
 
   return watchs;
+}
+
+async function getFunctions(content) {
+  const parsed = await parser.parseSource(content);
+  return parsed.declarations.filter((it) => it instanceof FunctionDeclaration);
 }
 
 function getImportLines(lines) {

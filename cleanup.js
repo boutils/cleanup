@@ -10,7 +10,6 @@ await prettify(index);
 
 /*
 ////// TS
-addWarning( fn.filePath, fn.line, "unused function", `This function ${fn.name} is not used. Please remove!` );
 addWarning( filePath, lineIndex + 1, "function declaration", `Exported function '${fnInfo.name}' should be before private function` );
 addWarning( filePath, instruction.lineIndex + 1, "doublon instruction", `Please rename: '${text}'` );
 addWarning(filePath, fnIndex + 1, "ASYNC", `Add 'async' here`);
