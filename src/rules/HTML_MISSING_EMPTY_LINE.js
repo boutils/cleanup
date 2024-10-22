@@ -13,7 +13,6 @@ export default {
           !lineInfo.isEmptyLine &&
           lineInfo.hasStartingTag &&
           !previousLineInfo.allowMultipleTags &&
-          !lineInfo.isClosingTag &&
           lineInfo.lineNumber - 1 > 0 &&
           previousLineInfo.hasEndingTag
         ) {
