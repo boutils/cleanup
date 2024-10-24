@@ -255,6 +255,7 @@ function getImportLines(lines) {
       accumulateImport = [...accumulateImport, line];
       importLines.push({ line: accumulateImport.join(''), lineNumber });
       accumulateImport = [];
+      isCurrentImportOnMultipleLines = false;
     } else if (isCurrentImportOnMultipleLines) {
       accumulateImport.push(line);
     }
