@@ -39,7 +39,7 @@ export default {
         }
 
         for (const section of SECTIONS) {
-          if (line.trim().startsWith(section)) {
+          if (line.startsWith(`  ${section}`)) {
             orderedSections.push(section);
           }
         }
