@@ -28,6 +28,7 @@ const VALID_HTML_ATTRIBUTES = new Set([
   'id',
   'key',
   'lang',
+  'no-spellcheck',
   'ref',
   'slot',
   'src',
@@ -140,7 +141,7 @@ export function isClassIgnored(className) {
 }
 
 export function isValidHtmlAttribute(attribute) {
-  return VALID_HTML_ATTRIBUTES.has(attribute);
+  return VALID_HTML_ATTRIBUTES.has(attribute) || attribute.startsWith('data-');
 }
 
 export function isValidHtmlTag(tag) {

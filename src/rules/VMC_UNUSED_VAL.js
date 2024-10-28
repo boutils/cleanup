@@ -1,7 +1,11 @@
 import { computeVuePathFromVmcOrScssPath } from '../utils.js';
 
 const SECTIONS = ['props', 'data', 'computed', 'methods'];
-const PUBLIC_METHODS = ['stoic-ask-dialog__processMessage', 'stoic-chart-header__getWidth'];
+const PUBLIC_METHODS = [
+  'stoic-ask-dialog__processMessage',
+  'stoic-chart-header__getWidth',
+  'stoic-edit-dialog__processMessage',
+];
 
 export default {
   validate: (index) => {
