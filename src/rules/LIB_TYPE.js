@@ -23,10 +23,11 @@ export default {
           const firstChar = line[index];
 
           if (!isUpperCase(firstChar)) {
+            const existingName = line.substring(index).split(' ')[0];
             errors.push({
               filePath,
               line: lineIndex + 1,
-              message: 'LIB_TYPE: remove export type ' + line[index],
+              message: `TS type should be camel-case. Replace "${existingName}" by "${existingName.charAt(0).toUpperCase() + existingName.slice(1)}"`,
             });
           }
         }
