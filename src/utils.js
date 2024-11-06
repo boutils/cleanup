@@ -32,6 +32,7 @@ const VALID_HTML_ATTRIBUTES = new Set([
   'ref',
   'slot',
   'src',
+  'spellcheck',
   'style',
   'tabindex',
   'target',
