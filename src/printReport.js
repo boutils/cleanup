@@ -32,7 +32,7 @@ export function printReport(errorsByPath) {
 
     log(link, 'path');
 
-    for (const error of errors) {
+    for (const error of errors.sort((a, b) => a.line - b.line)) {
       const lineMsg = error.line ? `[line ${error.line}] ` : '';
       log(`\t${lineMsg}(${error.type}) ${error.message}`, 'warning');
     }
