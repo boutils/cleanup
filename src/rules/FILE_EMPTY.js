@@ -6,7 +6,7 @@ export default {
     for (const filePath of filesPaths) {
       const { content, lines } = index.byPath[filePath];
 
-      if (!content || lines.length <= 2) {
+      if (!content || (lines.length <= 2 && lines[0].includes('//'))) {
         errors.push({
           filePath,
           line: null,
