@@ -9,6 +9,7 @@ const IGNORE_FILES = [
   'libs/typescript/stoic-workspace-kit-client/src/documents/services.gen.ts',
   'libs/typescript/stoic-workspace-kit-client/src/notebooks/services.gen.ts',
   'libs/typescript/stoic-workspace-kit-client/src/notebooks/schemas.gen.ts',
+  'libs/typescript/web-components/src/utils.ts',
 ];
 
 export default {
