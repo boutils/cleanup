@@ -1,4 +1,5 @@
 const IGNORE_FILES = [
+  'apps/office/src/actions/reference.ts',
   'apps/office/src/lib/sheetgen/styling.ts',
   'apps/office/src/lib/sheetgen/types.ts',
   'libs/typescript/components/stoic-chart-composer/plugins/helpers/assertions.ts',
