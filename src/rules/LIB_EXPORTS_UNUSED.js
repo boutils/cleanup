@@ -5,6 +5,7 @@ const IGNORE_FILES = [
   'libs/typescript/components/stoic-chart-composer/plugins/helpers/assertions.ts',
   'libs/typescript/components/stoic-chart-composer/plugins/helpers/dimensions/positions.ts',
   'libs/typescript/utilities/environment.ts',
+  'libs/typescript/utilities/system.ts',
   'libs/typescript/utilities/utils.js',
   'libs/typescript/utilities/uuid.ts',
   'libs/typescript/stoic-workspace-kit-client/src/contents/schemas.gen.ts',
