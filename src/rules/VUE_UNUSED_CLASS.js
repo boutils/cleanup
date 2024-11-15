@@ -1,5 +1,4 @@
 import { computeCSSPathFromVuePath, getCSSClasses, isClassIgnored } from '../utils.js';
-import { log } from '../printReport.js';
 
 const SEPARATOR = [' ', ','];
 
@@ -21,15 +20,15 @@ export default {
       const { linesInfo } = index.byPath[filePath];
 
       const scssFilePath = computeCSSPathFromVuePath(filePath, true);
-      if (!scssFilePath) {
-        log(`No SCSS file found for ${filePath}`, 'error');
-        continue;
+
+      let localClasses = [];
+
+      if (scssFilePath) {
+        const { scss } = index.byPath[scssFilePath];
+        const { ast } = scss;
+        localClasses = getCSSClasses(ast);
       }
 
-      const { scss } = index.byPath[scssFilePath];
-      const { ast } = scss;
-
-      const localClasses = getCSSClasses(ast);
       const validClasses = [...globalValidClasses, ...localClasses];
 
       for (const lineInfo of linesInfo) {
