@@ -19,7 +19,8 @@ export default {
           !nextLineInfo.trim().startsWith('}') &&
           !nextLineInfo.trim().startsWith('break;') &&
           !nextLineInfo.trim().startsWith('else') &&
-          !nextLineInfo.trim().startsWith(']')
+          !nextLineInfo.trim().startsWith(']') &&
+          !nextLineInfo.trim().startsWith(':')
         ) {
           errors.push({
             filePath,
