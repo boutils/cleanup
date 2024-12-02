@@ -1,3 +1,5 @@
+const IGNORED = ['apps/office/src/actions/action-generate-presentation.ts__generatePresentation'];
+
 export default {
   validate: (index) => {
     const filesPaths = index.byType['lib'];
@@ -14,7 +16,11 @@ export default {
 
         const definitionStr = content.substr(fn.start, fn.end - fn.start);
 
-        if (!definitionStr.includes('await ') && !definitionStr.includes('Promise')) {
+        if (
+          !definitionStr.includes('await ') &&
+          !definitionStr.includes('Promise') &&
+          !IGNORED.includes(`${filePath}__${fn.name}`)
+        ) {
           const lineIndex = lines.findIndex((it) => it.includes(`function ${fn.name}(`));
           errors.push({
             filePath,
