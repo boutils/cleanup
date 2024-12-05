@@ -91,5 +91,7 @@ function accumulateExports(_exports, filePath, content) {
 
 function computeExportKeyword(key, line, delimiter) {
   const startIndex = line.indexOf(key) + key.length + 1;
-  return line.substr(startIndex, line.indexOf(delimiter) - startIndex).replace(/ *<[^)]*> */g, '');
+  const keyword = line.substr(startIndex, line.indexOf(delimiter) - startIndex).replace(/ *<[^)]*> */g, '');
+
+  return keyword.includes(':') ? keyword.split(':')[0] : keyword;
 }
