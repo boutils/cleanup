@@ -20,7 +20,8 @@ export default {
           !nextLineInfo.trim().startsWith('break;') &&
           !nextLineInfo.trim().startsWith('else') &&
           !nextLineInfo.trim().startsWith(']') &&
-          !nextLineInfo.trim().startsWith(':')
+          !nextLineInfo.trim().startsWith(':') &&
+          !nextLineInfo.trim() === '`;'
         ) {
           errors.push({
             filePath,
