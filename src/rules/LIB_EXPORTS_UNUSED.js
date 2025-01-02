@@ -14,6 +14,7 @@ const IGNORE_FILES = [
   'libs/typescript/utilities/text.ts',
   'libs/typescript/utilities/utils.js',
   'libs/typescript/utilities/uuid.ts',
+  'libs/typescript/utilities/values.ts',
   'libs/typescript/stoic-workspace-kit-client/src/contents/schemas.gen.ts',
   'libs/typescript/stoic-workspace-kit-client/src/documents/services.gen.ts',
   'libs/typescript/stoic-workspace-kit-client/src/notebooks/services.gen.ts',
