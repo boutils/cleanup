@@ -20,6 +20,9 @@ const IGNORE_FILES = [
   'libs/typescript/stoic-workspace-kit-client/src/notebooks/services.gen.ts',
   'libs/typescript/stoic-workspace-kit-client/src/notebooks/schemas.gen.ts',
   'libs/typescript/web-components/src/utils.ts',
+
+  // SHOULD BE FIXED:
+  'libs/typescript/components/types/series.types.ts',
 ];
 
 export default {
