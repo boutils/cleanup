@@ -5,8 +5,9 @@ export default {
     const errors = [];
     for (const filePath of filesPaths) {
       const { content, lines } = index.byPath[filePath];
+      const isEmptySpec = content.replaceAll('\n', '').replaceAll(' ', '') === `{"hello":{"en":""}}`;
 
-      if (!content || (lines.length <= 2 && lines[0].includes('//'))) {
+      if (!content || isEmptySpec || (lines.length <= 2 && lines[0].includes('//'))) {
         errors.push({
           filePath,
           line: null,
