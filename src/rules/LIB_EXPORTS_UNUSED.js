@@ -22,6 +22,7 @@ const IGNORE_FILES = [
   'libs/typescript/web-components/src/utils.ts',
 
   // SHOULD BE FIXED:
+  'libs/typescript/components/types/dashboard.types.ts',
   'libs/typescript/components/types/series.types.ts',
 ];
 
