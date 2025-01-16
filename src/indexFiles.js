@@ -32,7 +32,7 @@ export async function indexFiles() {
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
 
-    if (!isIgnoredFile(extension)) {
+    if (!isIgnoredFile(filePath, extension)) {
       const fileType = TYPE_FROM_EXTENSION[extension];
       if (!fileType) {
         throw new Error(`Unknown type for extension '${extension}'`);
@@ -293,7 +293,11 @@ function indexHTMLFile(lines) {
   return linesInfo;
 }
 
-function isIgnoredFile(extension) {
+function isIgnoredFile(filePath, extension) {
+  if (filePath.includes('/dist/')) {
+    return true;
+  }
+
   if (!KEEP_ONLY_EXTENSIONS.has(extension)) {
     return true;
   }
