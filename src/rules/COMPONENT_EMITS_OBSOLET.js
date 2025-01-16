@@ -59,7 +59,6 @@ function extractEmitsFromVMCFile(filePath, index) {
   for (const [lineIndex, line] of lines.entries()) {
     if (line.trim().startsWith(EMIT_STR)) {
       extraction.lineIndex = lineIndex;
-
       if (line.includes('],')) {
         const str = line.substr(line.indexOf(EMIT_STR) + EMIT_STR.length);
 
@@ -67,6 +66,7 @@ function extractEmitsFromVMCFile(filePath, index) {
         existingEmits.push(...eval(emitsInline));
       } else {
         isInsideEmits = true;
+        continue;
       }
     }
 
