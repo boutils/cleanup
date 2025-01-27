@@ -10,7 +10,24 @@ export default {
 
       for (const [lineIndex, line] of lines.entries()) {
         const trimmedLine = line?.trim();
+        const trimmedPreviousLineInfo = lines[lineIndex - 1]?.trim();
         const nextLineInfo = lines[lineIndex + 1] || {};
+
+        if (
+          (trimmedLine.startsWith('function ') ||
+            trimmedLine.startsWith('async function ') ||
+            trimmedLine.startsWith('export function ') ||
+            trimmedLine.startsWith('export async function ')) &&
+          trimmedPreviousLineInfo !== '' &&
+          trimmedPreviousLineInfo !== '*/' &&
+          !trimmedPreviousLineInfo.startsWith('//')
+        ) {
+          errors.push({
+            filePath,
+            line: lineIndex + 1,
+            message: 'Add an empty line before.',
+          });
+        }
 
         if (
           line.length > 0 &&
