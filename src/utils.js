@@ -1,6 +1,21 @@
 import fs from 'fs';
 import { log } from './printReport.js';
 
+export const VMC_SECTIONS = [
+  { name: 'data', suffix: '():', emptySuffix: '():,' },
+  { name: 'components', suffix: ': {', emptySuffix: ': {},' },
+  { name: 'computed', suffix: ': {', emptySuffix: ': {},' },
+  { name: 'created', suffix: ': {', emptySuffix: '() {},' },
+  { name: 'emits', suffix: ': [', emptySuffix: ': [],' },
+  { name: 'mixins', suffix: ': [', emptySuffix: ': [],' },
+  { name: 'mounted', suffix: '() {', emptySuffix: '() {},' },
+  { name: 'methods', suffix: '', emptySuffix: ': {},' },
+  { name: 'name', suffix: ": '", emptySuffix: ": ''," },
+  { name: 'props', suffix: ': {', emptySuffix: ': {},' },
+  { name: 'unmounted', suffix: '() {', emptySuffix: '() {},' },
+  { name: 'watch', suffix: ': {', emptySuffix: ': {},' },
+];
+
 const IGNORED_CLASSES = [
   'active',
   'cursor-pointer',

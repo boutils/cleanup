@@ -1,6 +1,6 @@
 import { VMC_SECTIONS } from '../utils.js';
 
-const EMPTY_SECTION_TO_REMOVE = VMC_SECTIONS.map((it) => it.name + it.emptySuffix);
+const SECTIONS = VMC_SECTIONS.map((it) => it.name + it.suffix);
 
 export default {
   validate: (index) => {
@@ -13,11 +13,17 @@ export default {
       for (const [lineIndex, line] of lines.entries()) {
         const trimmedLine = line.trim();
 
-        if (EMPTY_SECTION_TO_REMOVE.includes(trimmedLine)) {
+        const trimmedPreviousLine = lines[lineIndex - 1]?.trim();
+        if (
+          SECTIONS.includes(trimmedLine) &&
+          lineIndex > 0 &&
+          trimmedPreviousLine !== '' &&
+          !trimmedPreviousLine.startsWith('//')
+        ) {
           errors.push({
             filePath,
-            line: lineIndex + 1,
-            message: 'Remove this section (line empty)',
+            line: lineIndex,
+            message: 'Add an empty line before this section',
           });
         }
       }
