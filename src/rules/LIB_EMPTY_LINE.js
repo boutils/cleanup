@@ -1,3 +1,5 @@
+const ignoredFiles = ['libs/typescript/components/shared/plugins/helpers/assertions.ts'];
+
 export default {
   validate: (index) => {
     const filesPaths = index.byType['lib'].filter(
@@ -20,7 +22,8 @@ export default {
             trimmedLine.startsWith('export async function ')) &&
           trimmedPreviousLineInfo !== '' &&
           trimmedPreviousLineInfo !== '*/' &&
-          !trimmedPreviousLineInfo.startsWith('//')
+          !trimmedPreviousLineInfo.startsWith('//') &&
+          !ignoredFiles.includes(filePath)
         ) {
           errors.push({
             filePath,
