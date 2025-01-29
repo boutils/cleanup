@@ -2,9 +2,9 @@ const ignoredFiles = ['libs/typescript/components/shared/plugins/helpers/asserti
 
 export default {
   validate: (index) => {
-    const filesPaths = index.byType['lib'].filter(
-      (it) => !it.includes('jupyter-ext-minimal-ui/') && !it.endsWith('.js')
-    );
+    const filesPaths = index.byType['lib']
+      .concat(index.byType['vmc'])
+      .filter((it) => !it.includes('jupyter-ext-minimal-ui/') && !it.endsWith('.js'));
 
     const errors = [];
     for (const filePath of filesPaths) {
@@ -24,6 +24,20 @@ export default {
           trimmedPreviousLineInfo !== '*/' &&
           !trimmedPreviousLineInfo.startsWith('//') &&
           !ignoredFiles.includes(filePath)
+        ) {
+          errors.push({
+            filePath,
+            line: lineIndex + 1,
+            message: 'Add an empty line before.',
+          });
+        }
+
+        if (
+          line.length > 0 &&
+          (trimmedLine.startsWith('case ') || trimmedLine === 'default:') &&
+          trimmedPreviousLineInfo !== '' &&
+          !trimmedPreviousLineInfo.endsWith('{') &&
+          !trimmedPreviousLineInfo.includes('case ')
         ) {
           errors.push({
             filePath,
