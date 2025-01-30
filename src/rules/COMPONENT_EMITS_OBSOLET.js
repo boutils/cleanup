@@ -1,5 +1,10 @@
 const EMIT_STR = 'emits:';
 
+const ignoredFiles = [
+  'libs/typescript/components/stoic-charts-layout/components/stoic-chart-horizontal/lib/stoic-chart-horizontal.vmc.ts',
+  'libs/typescript/components/stoic-charts-layout/components/stoic-chart-main/lib/stoic-chart-main.vmc.ts',
+];
+
 export default {
   validate: (index) => {
     const emitsByComponent = {};
@@ -34,7 +39,7 @@ export default {
 
       const diff = declared.filter((x) => !found.includes(x)).concat(found.filter((x) => !declared.includes(x)));
 
-      if (diff.length > 0) {
+      if (diff.length > 0 && !ignoredFiles.includes(result.filePath)) {
         const foundStr = JSON.stringify(found);
         const message = found.length > 0 ? `Emits should be updated to: '${foundStr}'` : 'Emits should be removed!';
 

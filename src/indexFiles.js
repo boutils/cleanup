@@ -103,6 +103,10 @@ async function indexFile(filePath, fileType) {
 
   if (filePath.includes('.vmc.')) {
     result.vmc = await indexVmcFile(filePath, content, lines);
+
+    if (result.vmc.mixins.values.length > 1) {
+      console.log('>>> Add Mixin to vmc...');
+    }
   }
 
   if (filePath.endsWith('.scss') || filePath.endsWith('.css')) {
