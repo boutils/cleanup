@@ -125,6 +125,7 @@ async function indexVmcFile(filePath, content, lines) {
   result.emits = findEmits(lines);
   result.watch = findWatch(lines);
   result.components = findComponents(lines);
+  result.mixins = findMixins(lines);
 
   return result;
 }
@@ -307,4 +308,36 @@ function isIgnoredFile(filePath, extension) {
 
 function isMatchingFilter(fileName, filter) {
   return !filter || fileName.endsWith(filter);
+}
+
+function findMixins(lines) {
+  const mixins = [];
+  let isInsideMixins = false;
+
+  const delimiter = 'mixins:';
+  let lineIndex = -1;
+  for (const [_lineIndex, line] of lines.entries()) {
+    if (line.trim().startsWith(delimiter)) {
+      lineIndex = _lineIndex;
+      isInsideMixins = true;
+
+      if (line.includes('],')) {
+        isInsideMixins = false;
+        const str = line.substr(line.indexOf(delimiter) + delimiter.length);
+
+        const emitsInline = str.substr(0, str.indexOf('],') + 1).trim();
+        const str2 = emitsInline.substr(1, emitsInline.length - 2).replaceAll(' ', '');
+        mixins.push(...str2.split(','));
+        break;
+      }
+    } else if (isInsideMixins) {
+      if (line.includes('],')) {
+        break;
+      } else {
+        mixins.push(line.replace(',', '').trim().replaceAll("'", ''));
+      }
+    }
+  }
+
+  return { lineIndex, values: mixins };
 }
