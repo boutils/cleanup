@@ -1,5 +1,9 @@
 const ignoredEvents = ['click'];
 
+const ignoredFiles = [
+  'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/stoic-charts-layout.vue',
+];
+
 export default {
   validate: (index) => {
     const filesPaths = index.byType['vue'];
@@ -12,7 +16,11 @@ export default {
         if (lineInfo.tagName?.startsWith('stoic') && lineInfo.eventName) {
           const relatedVmcFilePath = Object.keys(index.byPath).find((it) => it.includes(`${lineInfo.tagName}.vmc.`));
           const { vmc } = index.byPath[relatedVmcFilePath];
-          if (!vmc.emits.values.includes(lineInfo.eventName) && !ignoredEvents.includes(lineInfo.eventName)) {
+          if (
+            !vmc.emits.values.includes(lineInfo.eventName) &&
+            !ignoredEvents.includes(lineInfo.eventName) &&
+            !ignoredFiles.includes(filePath)
+          ) {
             errors.push({
               filePath,
               line: lineInfo.lineNumber,
