@@ -9,7 +9,7 @@ export default {
       let isInside = false;
       const lines = content.split('\n');
       for (const [i, line] of lines.entries()) {
-        const previousLine = lines[i + 1];
+        const previousLine = lines[i - 1];
         const nextLine = lines[i + 1];
         if (
           line.trim() === '' &&
