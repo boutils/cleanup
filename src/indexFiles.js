@@ -105,7 +105,7 @@ async function indexFile(filePath, fileType) {
     result.vmc = await indexVmcFile(filePath, content, lines);
 
     if (result.vmc.mixins.values.length > 1) {
-      console.log('>>> Add Mixin to vmc...');
+      console.log('>>> Add Mixin to vmc...'); // eslint-disable-line no-console
     }
   }
 
@@ -113,8 +113,8 @@ async function indexFile(filePath, fileType) {
     try {
       result.scss = indexCssFile(content);
     } catch (e) {
-      console.error('Error in SCSS file:', filePath);
-      console.error(e);
+      console.error('Error in SCSS file:', filePath); // eslint-disable-line no-console
+      console.error(e); // eslint-disable-line no-console
     }
   }
 
