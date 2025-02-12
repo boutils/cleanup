@@ -110,7 +110,12 @@ async function indexFile(filePath, fileType) {
   }
 
   if (filePath.endsWith('.scss') || filePath.endsWith('.css')) {
-    result.scss = indexCssFile(content);
+    try {
+      result.scss = indexCssFile(content);
+    } catch (e) {
+      console.error('Error in SCSS file:', filePath);
+      console.error(e);
+    }
   }
 
   return result;
@@ -135,7 +140,12 @@ async function indexVmcFile(filePath, content, lines) {
 }
 
 function indexCssFile(content) {
-  const scss = content.replaceAll('@use ', '@import ').replaceAll(' as theme;', ';').replaceAll('theme.$', '$');
+  const scss = content
+    .replaceAll('@use ', '@import ')
+    .replaceAll(' as theme;', ';')
+    .replaceAll(' as variables;', ';')
+    .replaceAll('theme.$', '$')
+    .replaceAll('variables.$', '$');
   return { ast: parse(scss) };
 }
 
