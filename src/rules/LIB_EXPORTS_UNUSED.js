@@ -1,5 +1,6 @@
 const IGNORE_FILES = [
   'apps/office/src/actions/reference.ts',
+  'apps/office/src/actions/rich/chart.ts',
   'apps/office/src/lib/excel.ts',
   'apps/office/src/lib/sheetgen/styling.ts',
   'apps/office/src/lib/sheetgen/types.ts',
