@@ -33,7 +33,7 @@ export default {
           isIgnored = false;
         }
 
-        if (trimmedLine.startsWith('type ')) {
+        if (trimmedLine.startsWith('type ') && !trimmedLine.includes('};')) {
           isInsideType = true;
           relativeLineNumber[typeIndex] = lineIndex + 1;
         } else if (isInsideType && trimmedLine.includes('{') && !trimmedLine.includes('}')) {
