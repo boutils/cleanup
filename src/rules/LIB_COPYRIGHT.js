@@ -1,4 +1,6 @@
-const COPYRIGHT = `// Copyright © Sutoiku, Inc. ${new Date().getFullYear()}. All Rights Reserved.`;
+import { getCopyright } from '../utils.js';
+
+const COPYRIGHT = getCopyright();
 
 export default {
   validate: (index) => {

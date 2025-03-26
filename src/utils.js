@@ -110,6 +110,10 @@ export function findDuplicates(arr) {
   return arr.filter((item, index) => arr.indexOf(item) != index);
 }
 
+export function getCopyright() {
+  return `// Copyright © Sutoiku, Inc. ${new Date().getFullYear()}. All Rights Reserved.`;
+}
+
 export function getCSSClasses(ast, ignoreDeep = false) {
   let classes = [];
 
