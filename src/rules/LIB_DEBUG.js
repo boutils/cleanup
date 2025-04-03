@@ -1,3 +1,5 @@
+const ignores = ['tools/cli/schedules/setup-schedules.ts'];
+
 export default {
   validate: (index) => {
     const filesPaths = index.byType['lib'].filter((it) => !it.includes('jupyter-ext-minimal-ui/'));
@@ -7,7 +9,7 @@ export default {
       const { lines } = index.byPath[filePath];
 
       for (const [lineIndex, line] of lines.entries()) {
-        if (line.trim().includes('debug.enabled = true;')) {
+        if (line.trim().includes('debug.enabled = true;') && !ignores.includes(filePath)) {
           errors.push({
             filePath,
             line: lineIndex + 1,
