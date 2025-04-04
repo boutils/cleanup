@@ -1,4 +1,4 @@
-import { computeVuePathFromVmcOrScssPath, getCSSClasses, isClassIgnored } from '../utils.js';
+import { computeRelatedVuePath, getCSSClasses, isClassIgnored } from '../utils.js';
 
 export default {
   validate: (index) => {
@@ -9,7 +9,7 @@ export default {
       const { scss } = index.byPath[filePath];
       const { ast } = scss;
 
-      const vueFilePath = computeVuePathFromVmcOrScssPath(filePath, true);
+      const vueFilePath = computeRelatedVuePath(filePath, true);
       const vueContent = index.byPath[vueFilePath]?.content;
 
       if (vueContent && !vueContent.includes(':class') && !vueContent.includes(':content-class')) {

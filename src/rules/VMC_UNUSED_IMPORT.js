@@ -1,4 +1,4 @@
-import { computeVuePathFromVmcOrScssPath, kebabize } from '../utils.js';
+import { computeRelatedVuePath, kebabize } from '../utils.js';
 
 export default {
   validate: (index) => {
@@ -7,7 +7,7 @@ export default {
     const errors = [];
     for (const filePath of filesPaths) {
       const { vmc } = index.byPath[filePath];
-      const vuePath = computeVuePathFromVmcOrScssPath(filePath);
+      const vuePath = computeRelatedVuePath(filePath);
       const vueContent = index.byPath[vuePath]?.content;
 
       if (vueContent.includes('<component')) {

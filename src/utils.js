@@ -88,10 +88,51 @@ export function computeCSSPathFromVuePath(vueFilePath, hideLog = false) {
   return scssFilePath;
 }
 
-export function computeVuePathFromVmcOrScssPath(vmcFilePath, hideLog = false) {
-  const splitPath = vmcFilePath.split('/');
+export function computeRelatedLibPath(fromFilePath, hideLog = false) {
+  const splitPath = fromFilePath.split('/');
 
-  const vueFileName = splitPath.at(-1).replace('.vmc.ts', '.vue').replace('.vmc.js', '.vue').replace('.scss', '.vue');
+  const libFileName = splitPath.at(-1).replace('.scss', '.vmc.ts').replace('.i18n.json', '.lib.ts');
+  const dirPath = splitPath.splice(0, splitPath.length - 1).join('/') + '/';
+  const libFilePath = dirPath + libFileName;
+
+  if (!fs.existsSync(libFilePath)) {
+    if (!hideLog) {
+      log(`Lib file not found: ${libFilePath}`, 'error');
+    }
+
+    return null;
+  }
+
+  return libFilePath;
+}
+
+export function computeRelatedVmcPath(fromFilePath, hideLog = false) {
+  const splitPath = fromFilePath.split('/');
+
+  const vmcFileName = splitPath.at(-1).replace('.scss', '.vmc.ts').replace('.i18n.json', '.vmc.ts');
+  const dirPath = splitPath.splice(0, splitPath.length - 1).join('/') + '/';
+  const vmcFilePath = dirPath + vmcFileName;
+
+  if (!fs.existsSync(vmcFilePath)) {
+    if (!hideLog) {
+      log(`Vmc file not found: ${vmcFilePath}`, 'error');
+    }
+
+    return null;
+  }
+
+  return vmcFilePath;
+}
+
+export function computeRelatedVuePath(fromFilePath, hideLog = false) {
+  const splitPath = fromFilePath.split('/');
+
+  const vueFileName = splitPath
+    .at(-1)
+    .replace('.vmc.ts', '.vue')
+    .replace('.vmc.js', '.vue')
+    .replace('.scss', '.vue')
+    .replace('.i18n.json', '.vue');
   const dirPath = splitPath.splice(0, splitPath.length - 2).join('/') + '/';
   const vueFilePath = dirPath + vueFileName;
 

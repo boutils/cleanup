@@ -9,7 +9,7 @@ export default {
       if (content.includes('"en":') && !filePath.endsWith('.i18n.json')) {
         errors.push({
           filePath,
-          message: 'File contains i18n but is not named *.i18n.json',
+          message: 'File contains i18n translations but is not named *.i18n.json',
         });
       }
     }

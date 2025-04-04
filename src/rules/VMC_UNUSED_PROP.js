@@ -1,4 +1,4 @@
-import { camelize, computeVuePathFromVmcOrScssPath } from '../utils.js';
+import { camelize, computeRelatedVuePath } from '../utils.js';
 
 export default {
   validate: (index) => {
@@ -15,7 +15,7 @@ export default {
           // It is not used in the VMC file as a watcher
           if (!vmc.watch.find((it) => it.name === propName)) {
             // It is not used in the VUE file
-            const vueFilePath = computeVuePathFromVmcOrScssPath(filePath);
+            const vueFilePath = computeRelatedVuePath(filePath);
             const vueContent = index.byPath[vueFilePath]?.content;
 
             if (!vueContent.includes(propName)) {

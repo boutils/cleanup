@@ -1,4 +1,4 @@
-import { computeVuePathFromVmcOrScssPath } from '../utils.js';
+import { computeRelatedVuePath } from '../utils.js';
 
 const SECTIONS = ['props', 'data', 'computed', 'methods'];
 const PUBLIC_METHODS = [
@@ -17,7 +17,7 @@ export default {
 
       const fileName = filePath.split('/').at(-1).split('.').at(0);
 
-      const vuePath = computeVuePathFromVmcOrScssPath(filePath);
+      const vuePath = computeRelatedVuePath(filePath);
       const vueContent = index.byPath[vuePath]?.content;
 
       for (const section of SECTIONS) {
