@@ -1,9 +1,15 @@
+const ignores = ['libs/typescript/components/.storybook/preview-head.html'];
+
 export default {
   validate: (index) => {
     const filesPaths = index.byType['template'].concat(index.byType['vue']);
 
     const errors = [];
     for (const filePath of filesPaths) {
+      if (ignores.includes(filePath)) {
+        continue;
+      }
+
       const { linesInfo } = index.byPath[filePath];
       let isInsideAttribute = false;
       for (const lineInfo of linesInfo) {
