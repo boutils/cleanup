@@ -1,4 +1,4 @@
-const ignoredEvents = ['click'];
+const ignoredEvents = ['click', 'mouseenter', 'mouseleave'];
 
 const ignoredFiles = [
   'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/stoic-charts-layout.vue',
