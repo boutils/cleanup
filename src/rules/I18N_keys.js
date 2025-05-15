@@ -19,7 +19,6 @@ export default {
       const { content: vueContent } = index.byPath[vuePath] || {};
       const { content: vmcContent } = index.byPath[vmcPath] || {};
       const { content: libContent } = index.byPath[libPath] || {};
-
       const keys = extractKeyNames(json);
 
       for (const key of keys) {
@@ -30,8 +29,8 @@ export default {
           !vueContent.match(/i18n.*\[/) &&
           !vmcContent.match(/i18n.*\[/) &&
           !vmcContent.includes('makeTranslator') &&
-          !libContent.match(/i18n.*\[/) &&
-          !libContent.includes('makeTranslator')
+          !libContent?.match(/i18n.*\[/) &&
+          !libContent?.includes('makeTranslator')
         ) {
           errors.push({
             filePath: filePath,
