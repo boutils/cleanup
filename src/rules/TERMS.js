@@ -1,9 +1,13 @@
+import { getSortingError } from '../utils.js';
+
 const TERMS_PATH = 'libs/typescript/components/shared/theme/terms.ts';
+
 export default {
   validate: (index) => {
     const termFile = index.byPath[TERMS_PATH];
 
     const terms = {};
+    const termIds = [];
 
     if (termFile) {
       for (const line of termFile.lines) {
@@ -13,6 +17,7 @@ export default {
           const icon = split[split.length - 1].replaceAll("'", '').replaceAll(',', '').replaceAll('}', '').trim();
           terms[icon] ??= [];
           terms[icon].push(term);
+          termIds.push(term);
         }
       }
     }
@@ -25,7 +30,16 @@ export default {
         line: null,
         message: 'Terms file is empty or does not contain any terms with icons.',
       });
+
       return { errors };
+    }
+
+    const sortingError = getSortingError(termIds);
+    if (sortingError) {
+      errors.push({
+        filePath: TERMS_PATH,
+        message: `Sorting: ${sortingError}`,
+      });
     }
 
     for (const [icon, term] of Object.entries(terms)) {
