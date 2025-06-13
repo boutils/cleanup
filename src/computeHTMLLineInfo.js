@@ -98,6 +98,7 @@ function computeHTMLLineAttributeValue(line, hasStartingTag, hasEndingTag, equal
       .split(' ')
       .filter((it) => it[0] !== '<');
   } else if (equalPosition > -1 && !line.trim().startsWith('@')) {
+    line = line.includes('>') ? line.substr(0, line.indexOf('>')) : line;
     const res = line
       .substr(equalPosition + 1)
       .trim()

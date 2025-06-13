@@ -109,9 +109,14 @@ export function computeRelatedLibPath(fromFilePath, hideLog = false) {
 export function computeRelatedVmcPath(fromFilePath, hideLog = false) {
   const splitPath = fromFilePath.split('/');
 
-  const vmcFileName = splitPath.at(-1).replace('.scss', '.vmc.ts').replace('.i18n.json', '.vmc.ts');
+  const vmcFileName = splitPath
+    .at(-1)
+    .replace('.scss', '.vmc.ts')
+    .replace('.vue', '.vmc.ts')
+    .replace('.i18n.json', '.vmc.ts');
   const dirPath = splitPath.splice(0, splitPath.length - 1).join('/') + '/';
-  const vmcFilePath = dirPath + vmcFileName;
+  const lib = fromFilePath.endsWith('.vue') ? 'lib/' : '';
+  const vmcFilePath = dirPath + lib + vmcFileName;
 
   if (!fs.existsSync(vmcFilePath)) {
     if (!hideLog) {

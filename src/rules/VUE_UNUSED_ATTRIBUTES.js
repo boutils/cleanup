@@ -1,8 +1,6 @@
 import { isValidHtmlAttribute } from '../utils.js';
 
-const ignoredFiles = [
-  'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/stoic-charts-layout.vue',
-];
+const ignoredFiles = [];
 
 export default {
   validate: (index) => {

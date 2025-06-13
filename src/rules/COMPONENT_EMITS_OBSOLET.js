@@ -1,9 +1,6 @@
 const EMIT_STR = 'emits:';
 
-const ignoredFiles = [
-  'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/components/stoic-chart-horizontal/lib/stoic-chart-horizontal.vmc.ts',
-  'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/components/stoic-chart-main/lib/stoic-chart-main.vmc.ts',
-];
+const ignoredFiles = [];
 
 export default {
   validate: (index) => {

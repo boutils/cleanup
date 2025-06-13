@@ -1,8 +1,6 @@
 const ignoredEvents = ['click', 'blur', 'focus', 'mouseenter', 'mouseleave'];
 
-const ignoredFiles = [
-  'libs/typescript/components/stoic-chart-composer/components/stoic-charts-layout/stoic-charts-layout.vue',
-];
+const ignoredFiles = [];
 
 export default {
   validate: (index) => {
