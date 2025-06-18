@@ -1,6 +1,7 @@
 const IGNORED = [
   'apps/office/src/actions/action-generate-presentation.ts__generatePresentation',
   'apps/office/src/actions/live/live-signal.ts__fetchSeriesData',
+  'apps/office/src/lib/signals-store.ts__getOrFetchSignals',
 ];
 
 export default {
