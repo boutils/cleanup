@@ -16,7 +16,11 @@ export default {
           continue;
         }
 
-        if (!lineInfo.attributeNames.includes('ref')) {
+        if (
+          !lineInfo.attributeNames.includes('ref') ||
+          index.allContent.includes(`$refs.${lineInfo.attributeValue}`) ||
+          index.allContent.includes(`$refs?.${lineInfo.attributeValue}`)
+        ) {
           continue;
         }
 

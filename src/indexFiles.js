@@ -27,7 +27,7 @@ const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
 export async function indexFiles() {
   const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
-  const index = { byPath: {}, byType: {} };
+  const index = { allContent: '', byPath: {}, byType: {} };
 
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
@@ -39,6 +39,7 @@ export async function indexFiles() {
       }
 
       index.byPath[filePath] = await indexFile(filePath, fileType);
+      index.allContent += index.byPath[filePath].content + '\n';
       index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
       index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
 
