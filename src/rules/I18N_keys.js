@@ -29,7 +29,7 @@ export default {
           !vueContent.match(/i18n.*\[/) &&
           !vmcContent.match(/i18n.*\[/) &&
           !vmcContent.includes('makeTranslator') &&
-          !libContent?.match(/i18n.*\[/) &&
+          !libContent?.includes('i18n.') &&
           !libContent?.includes('makeTranslator')
         ) {
           errors.push({
