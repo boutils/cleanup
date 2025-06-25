@@ -4,6 +4,7 @@ const IGNORED = [
   'apps/office/src/lib/signals-store.ts__getOrFetchSignals',
   'libs/typescript/stoic-officegen/regimes/index.ts__fetchRegimesSchema',
   'libs/typescript/stoic-officegen/strategies/index.ts__fetchStrategiesMetadata',
+  'apps/office/src/lib/regimes-store.ts__getOrFetchRegimes',
 ];
 
 export default {
