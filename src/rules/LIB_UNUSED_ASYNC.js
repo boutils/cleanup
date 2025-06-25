@@ -2,6 +2,8 @@ const IGNORED = [
   'apps/office/src/actions/action-generate-presentation.ts__generatePresentation',
   'apps/office/src/actions/live/live-signal.ts__fetchSeriesData',
   'apps/office/src/lib/signals-store.ts__getOrFetchSignals',
+  'libs/typescript/stoic-officegen/regimes/index.ts__fetchRegimesSchema',
+  'libs/typescript/stoic-officegen/strategies/index.ts__fetchStrategiesMetadata',
 ];
 
 export default {
@@ -29,7 +31,7 @@ export default {
           errors.push({
             filePath,
             line: lineIndex > -1 ? lineIndex + 1 : null,
-            message: `'${fn.name}': remove async`,
+            message: `'${fn.name}': remove async ${filePath}__${fn.name}`,
           });
         }
       }
