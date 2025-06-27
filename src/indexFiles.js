@@ -27,7 +27,7 @@ const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
 export async function indexFiles() {
   const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
-  const index = { allContent: '', byPath: {}, byType: {} };
+  const index = { allContent: '', byPath: {}, byType: {}, theme: {} };
 
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
@@ -46,6 +46,10 @@ export async function indexFiles() {
       if (filePath.includes('.vmc.')) {
         index.byType.vmc ??= [];
         index.byType.vmc.push(filePath);
+      }
+
+      if (filePath.endsWith('theme.json')) {
+        index.theme = indexThemeFile(index.byPath[filePath].content, filePath);
       }
     }
   }
@@ -309,6 +313,10 @@ function indexHTMLFile(lines) {
   return linesInfo;
 }
 
+function indexThemeFile(content, filePath) {
+  return { vars: generateThemeVars(JSON.parse(content)), path: filePath };
+}
+
 function isIgnoredFile(filePath, extension) {
   if (filePath.includes('/dist/')) {
     return true;
@@ -355,4 +363,38 @@ function findMixins(lines) {
   }
 
   return { lineIndex, values: mixins };
+}
+
+function generateThemeVars(value, themeId = 'light', key = '', path = []) {
+  const theme = [];
+
+  if (isObject(value)) {
+    if (typeof value.light === 'string' && typeof value.dark === 'string') {
+      theme.push({ key: `$${key}`, value: value[themeId], path: path.filter((p) => p !== '').join('-') });
+      return theme;
+    }
+
+    for (const [subItemKey, subItemValue] of Object.entries(value)) {
+      const subKey = `${subItemKey}${capitalize(key)}`;
+      theme.push(...generateThemeVars(subItemValue, themeId, subKey, [...path, key]));
+    }
+  } else {
+    theme.push({ key: `$${key}`, value, path: path.filter((p) => p !== '').join('-') });
+  }
+
+  return theme;
+}
+
+export function capitalize(str) {
+  if (str.length === 0) {
+    return str;
+  } else if (str.length === 1) {
+    return str.toUpperCase();
+  } else {
+    return str[0].toUpperCase() + str.slice(1);
+  }
+}
+
+export function isObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
