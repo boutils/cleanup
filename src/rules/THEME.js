@@ -1,3 +1,5 @@
+const IGNORED = ['--v-theme-background', '--v-theme-primary'];
+
 export default {
   validate: (index) => {
     const { vars, path } = index.theme;
@@ -31,7 +33,7 @@ export default {
     const themeVarsInCss = getThemeVarsInCss(index.allContent);
 
     for (const themeVar of themeVarsInCss) {
-      if (!indexExistingVars[themeVar]) {
+      if (!indexExistingVars[themeVar] && !IGNORED.includes(`--v-theme-${themeVar}`)) {
         errors.push({
           filePath: `unknown (search for '--v-theme-${themeVar}' in files)`,
           message: `Remove '--v-theme-${themeVar}' at '${themeVar}'. It is not used.`,
