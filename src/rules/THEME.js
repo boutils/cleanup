@@ -1,4 +1,5 @@
 const IGNORED = ['--v-theme-background', '--v-theme-primary'];
+const IGNORED_VARS = ['falseBooleanColor'];
 
 export default {
   validate: (index) => {
@@ -16,7 +17,11 @@ export default {
 
     for (const themeVar of vars) {
       const varName = themeVar.key.replaceAll('$', '');
-      if (!index.allContent.includes(varName) && !dynamicVars.find((it) => varName.includes(it))) {
+      if (
+        !index.allContent.includes(varName) &&
+        !dynamicVars.find((it) => varName.includes(it)) &&
+        !IGNORED_VARS.includes(varName)
+      ) {
         const varPath = varName
           .split(/(?=[A-Z])/)
           .map((it) => it[0].toLowerCase() + it.slice(1))
