@@ -1,10 +1,13 @@
 const IGNORED = [
   'apps/office/src/actions/action-generate-presentation.ts__generatePresentation',
   'apps/office/src/actions/live/live-signal.ts__fetchSeriesData',
+  'apps/office/src/lib/regimes-store.ts__getOrFetchRegimes',
   'apps/office/src/lib/signals-store.ts__getOrFetchSignals',
   'libs/typescript/stoic-officegen/regimes/index.ts__fetchRegimesSchema',
   'libs/typescript/stoic-officegen/strategies/index.ts__fetchStrategiesMetadata',
-  'apps/office/src/lib/regimes-store.ts__getOrFetchRegimes',
+  'libs/typescript/stoic-officegen/tactics/index.ts__fetchTacticCombinations',
+  'libs/typescript/stoic-officegen/tactics/index.ts__fetchTacticPeriods',
+  'libs/typescript/stoic-officegen/tactics/index.ts__fetchTactics',
 ];
 
 export default {
