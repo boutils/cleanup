@@ -20,6 +20,7 @@ export default {
             trimmedLine.startsWith('async function ') ||
             trimmedLine.startsWith('export function ') ||
             trimmedLine.startsWith('export async function ')) &&
+          trimmedPreviousLineInfo &&
           trimmedPreviousLineInfo !== '' &&
           trimmedPreviousLineInfo !== '*/' &&
           !trimmedPreviousLineInfo.startsWith('//') &&
