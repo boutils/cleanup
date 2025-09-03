@@ -20,6 +20,7 @@ const IGNORED_CLASSES = [
   'active',
   'cursor-pointer',
   'disabled',
+  'elevation-3',
   'fill-height',
   'flex-column',
   'headline',
