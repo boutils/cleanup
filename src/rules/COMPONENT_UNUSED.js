@@ -14,7 +14,6 @@ export default {
           line: 1,
           message: `This component '${componentName}' is not used in the project.`,
         });
-        continue;
       }
     }
 
