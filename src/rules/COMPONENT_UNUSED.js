@@ -1,4 +1,4 @@
-const IGNORED_COMPONENTS = ['stoic-excel-dialog', 'stoic-panel'];
+const IGNORED_COMPONENTS = ['stoic-app'];
 
 export default {
   validate: (index) => {

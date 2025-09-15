@@ -8,7 +8,7 @@ import { FunctionDeclaration, TypescriptParser } from 'typescript-parser';
 import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
 const parser = new TypescriptParser();
-const DIRECTORIES = ['apps', 'libs', 'tools'];
+const DIRECTORIES = ['.storybook', 'src', 'scripts'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue']);
 const TYPE_FROM_EXTENSION = {
   '.css': 'style',

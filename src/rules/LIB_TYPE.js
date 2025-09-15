@@ -1,7 +1,4 @@
-const IGNORE_FILES = [
-  'libs/typescript/stoic-workspace-kit-client/src/contents/types.gen.ts',
-  'libs/typescript/stoic-workspace-kit-client/src/notebooks/types.gen.ts',
-];
+const IGNORE_FILES = [];
 
 export default {
   validate: (index) => {

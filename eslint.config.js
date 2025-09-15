@@ -33,12 +33,6 @@ export default [
 
   // Ignored files and directories
   {
-    ignores: [
-      '**/.*/',
-      '**/dist/',
-      'libs/python/jupyter-ext-minimal-ui/jupyter_ext_minimal_ui/labextension/',
-      'libs/python/jupyter-ext-minimal-ui/lib/',
-      'libs/typescript/stoic-workspace-kit-client',
-    ],
+    ignores: ['**/.*/', '**/dist/'],
   },
 ];

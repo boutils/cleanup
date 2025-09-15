@@ -1,4 +1,4 @@
-const ignoredFiles = ['libs/typescript/components/shared/plugins/helpers/assertions.ts'];
+const ignoredFiles = [];
 
 export default {
   validate: (index) => {

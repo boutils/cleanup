@@ -1,6 +1,6 @@
 import { getSortingError } from '../utils.js';
 
-const TERMS_PATH = 'libs/typescript/components/shared/theme/terms.ts';
+const TERMS_PATH = 'src/metadata/terms.ts';
 
 export default {
   validate: (index) => {

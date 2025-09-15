@@ -1,15 +1,12 @@
 import { indexFiles } from './src/indexFiles.js';
 import { getRules } from './src/listRules.js';
 import prettify from './src/prettify.js';
-import generateImports from './src/imports.js';
 import { log, printReport } from './src/printReport.js';
 
 const rules = await getRules();
 const index = await indexFiles();
 
 await prettify(index);
-
-await generateImports(index);
 
 const errorsByPath = {};
 

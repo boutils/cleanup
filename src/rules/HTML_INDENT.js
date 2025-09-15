@@ -1,4 +1,4 @@
-const ignores = ['libs/typescript/components/.storybook/preview-head.html'];
+const ignores = ['.storybook/preview-head.html'];
 
 export default {
   validate: (index) => {

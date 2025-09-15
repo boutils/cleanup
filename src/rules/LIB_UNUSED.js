@@ -1,9 +1,9 @@
-const IGNORED_PATHS = ['apps/', '/jupyter-ext-minimal-ui/', '/.storybook/', 'tools/'];
+const IGNORED_PATHS = ['/.storybook/'];
 const IGNORED_LIBS_PATHS = [
-  'libs/typescript/components/tests/local-storage-mock.ts',
-  'libs/typescript/stoic-mill-client/test/test-mill.ts',
-  'libs/typescript/stoic-workspace-kit-client/src/index.ts',
-  'libs/typescript/utilities/functional.ts',
+  'tests/local-storage-mock.ts',
+  'src/lib/mill-client/test/test-mill.ts',
+  'src/utilities/functional.ts',
+  '.storybook/vitest.setup.ts',
 ];
 
 export default {

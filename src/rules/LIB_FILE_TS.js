@@ -1,15 +1,6 @@
 const IGNORED_DIRECTORIES = ['libs/python/jupyter-ext-minimal-ui/'];
 
-const IGNORED_FILES = [
-  'apps/office/src/functions/functions.js',
-  'apps/office/vite.config.js',
-  'libs/typescript/components/vite.config.js',
-  'libs/typescript/components/vitest.config.js',
-  'libs/typescript/utilities/utils.js',
-  'libs/typescript/web-components/build.js',
-  'libs/typescript/web-components/generate.js',
-  'tools/ui/generate-component.js',
-];
+const IGNORED_FILES = ['vite.config.js', 'vitest.config.js', 'src/utilities/utils.js', 'sxripts/generate-component.js'];
 
 export default {
   validate: (index) => {

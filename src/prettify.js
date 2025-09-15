@@ -3,7 +3,7 @@ import * as prettier from 'prettier';
 import { log } from './printReport.js';
 import ignore from 'ignore';
 
-const prettierOpts = JSON.parse(fs.readFileSync('.prettierrc.json', 'utf8'));
+const prettierOpts = JSON.parse(fs.readFileSync('.prettierrc', 'utf8'));
 const ignorePatterns = fs.readFileSync('.prettierignore', 'utf8').split('\n').filter(Boolean);
 const ig = ignore().add(ignorePatterns);
 
