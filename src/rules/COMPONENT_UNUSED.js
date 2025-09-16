@@ -1,4 +1,4 @@
-const IGNORED_COMPONENTS = ['stoic-app'];
+const IGNORED_COMPONENTS = ['stoic-middleware'];
 
 export default {
   validate: (index) => {

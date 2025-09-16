@@ -1,9 +1,9 @@
-const IGNORED_PATHS = ['/.storybook/'];
+const IGNORED_PATHS = ['.storybook/', 'scripts/'];
 const IGNORED_LIBS_PATHS = [
-  'tests/local-storage-mock.ts',
-  'src/lib/mill-client/test/test-mill.ts',
+  'src/global.d.ts',
+  'src/libs/mill-client/test/test-mill.ts',
+  'src/main.ts',
   'src/utilities/functional.ts',
-  '.storybook/vitest.setup.ts',
 ];
 
 export default {
@@ -32,7 +32,8 @@ export default {
         !IGNORED_PATHS.some((ignoredPath) => filePath.includes(ignoredPath)) &&
         !IGNORED_LIBS_PATHS.includes(filePath) &&
         !libName.includes('.stories') &&
-        !filePath.endsWith('.test.ts')
+        !filePath.endsWith('.test.ts') &&
+        !filePath.includes('.vmc')
       ) {
         errors.push({
           filePath: filePath,
