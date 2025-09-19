@@ -2,6 +2,7 @@ const IGNORE_FILES = [
   'src/components/shared/plugins/helpers/dimensions/positions.ts',
   'src/utilities/collections.ts',
   'src/utilities/columnars.ts',
+  'src/utilities/dom.ts',
   'src/utilities/functional.ts',
   'src/utilities/environment.ts',
   'src/utilities/search.ts',
