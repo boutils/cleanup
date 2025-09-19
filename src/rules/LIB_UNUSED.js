@@ -4,6 +4,7 @@ const IGNORED_LIBS_PATHS = [
   'src/libs/mill-client/test/test-mill.ts',
   'src/main.ts',
   'src/utilities/functional.ts',
+  'src/libs/worker/worker.ts',
 ];
 
 export default {
