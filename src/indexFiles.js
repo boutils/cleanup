@@ -39,7 +39,10 @@ export async function indexFiles() {
       }
 
       index.byPath[filePath] = await indexFile(filePath, fileType);
-      index.allContent += index.byPath[filePath].content + '\n';
+      if (!filePath.endsWith('metadata/terms.json')) {
+        index.allContent += index.byPath[filePath].content + '\n';
+      }
+
       index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
       index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
 
@@ -50,6 +53,10 @@ export async function indexFiles() {
 
       if (filePath.endsWith('theme.json')) {
         index.theme = indexThemeFile(index.byPath[filePath].content, filePath);
+      }
+
+      if (filePath.endsWith('metadata/terms.json')) {
+        index.terms = { items: JSON.parse(index.byPath[filePath].content), path: filePath };
       }
     }
   }

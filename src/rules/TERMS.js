@@ -1,32 +1,48 @@
 import { getSortingError } from '../utils.js';
 
-const TERMS_PATH = 'src/metadata/terms.ts';
-
 export default {
   validate: (index) => {
-    const termFile = index.byPath[TERMS_PATH];
+    const errors = [];
 
-    const terms = {};
-    const termIds = [];
+    if (!index.terms) {
+      errors.push({
+        filePath: 'Terms',
+        line: null,
+        message: `No terms found in index.`,
+      });
 
-    if (termFile) {
-      for (const line of termFile.lines) {
-        if (line.includes('{ icon: ')) {
-          const split = line.split(':');
-          const term = split[0].replaceAll("'", '').trim();
-          const icon = split[split.length - 1].replaceAll("'", '').replaceAll(',', '').replaceAll('}', '').trim();
-          terms[icon] ??= [];
-          terms[icon].push(term);
-          termIds.push(term);
-        }
+      return { errors };
+    }
+
+    const terms = index.terms.items;
+    const termsIds = Object.keys(terms);
+    const termsList = {};
+
+    for (const [term, value] of Object.entries(index.terms.items)) {
+      const split = value.split(' ');
+      const icon = split[split.length - 1];
+      termsList[icon] ??= [];
+      termsList[icon].push(term);
+
+      if (
+        !index.allContent.includes(`$icon('${term}')`) &&
+        !index.allContent.includes(`: "${term}"`) &&
+        !index.allContent.includes(`: '${term}'`) &&
+        !index.allContent.includes(`? '${term}'`)
+      ) {
+        errors.push({
+          filePath: index.terms.path,
+          line: null,
+          message: `Terms '${term}' is not used. Please remove it.`,
+        });
       }
     }
 
-    const errors = [];
+    //console.log(termsList);
 
-    if (Object.keys(terms).length === 0) {
+    if (termsIds.length === 0) {
       errors.push({
-        filePath: TERMS_PATH,
+        filePath: index.terms.path,
         line: null,
         message: 'Terms file is empty or does not contain any terms with icons.',
       });
@@ -34,20 +50,20 @@ export default {
       return { errors };
     }
 
-    const sortingError = getSortingError(termIds);
+    const sortingError = getSortingError(termsIds);
     if (sortingError) {
       errors.push({
-        filePath: TERMS_PATH,
+        filePath: index.terms.path,
         message: `Sorting: ${sortingError}`,
       });
     }
 
-    for (const [icon, term] of Object.entries(terms)) {
-      if (term.length > 1) {
+    for (const [icon, terms] of Object.entries(termsList)) {
+      if (terms.length > 1) {
         errors.push({
-          filePath: TERMS_PATH,
+          filePath: index.terms.path,
           line: null,
-          message: `Icon '${icon}'is used several times in terms: [${term}]`,
+          message: `Icon '${icon}'is used several times in terms: [${terms}]`,
         });
       }
     }

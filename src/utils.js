@@ -138,7 +138,9 @@ export function computeRelatedVuePath(fromFilePath, hideLog = false) {
     .replace('.vmc.ts', '.vue')
     .replace('.vmc.js', '.vue')
     .replace('.scss', '.vue')
-    .replace('.i18n.json', '.vue');
+    .replace('.i18n.json', '.vue')
+    .replace('.unscoped', '');
+
   const dirPath = splitPath.splice(0, splitPath.length - 2).join('/') + '/';
   const vueFilePath = dirPath + vueFileName;
 
