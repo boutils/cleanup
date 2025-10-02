@@ -3,6 +3,7 @@ const IGNORED = [
   'src/libs/worker/libs/instruments.worker.ts__searchInstruments',
   'src/libs/worker/libs/signals.worker.ts__getOrFetchSignals',
   'src/libs/worker/libs/intraday-data.worker.ts__fetchIntradayData',
+  'src/libs/worker/libs/quanta-metadata.worker.ts__fetchQuantaMetadataModels',
   'src/libs/worker/libs/regimes-events-schema.worker.ts__fetchRegimesSchema',
   'src/libs/worker/libs/ticker-relations.worker.ts__computeTickerRelations',
 ];
