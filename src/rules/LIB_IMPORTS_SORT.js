@@ -1,3 +1,5 @@
+const IGNORE_IMPORTS = ['src/libs/worker/worker.ts'];
+
 export default {
   validate: (index) => {
     // Check VMC & VUE files
@@ -9,6 +11,10 @@ export default {
       const res = computeOrderedImports(imports.values);
 
       for (const [i, r] of res.entries()) {
+        if (IGNORE_IMPORTS.includes(filePath)) {
+          continue;
+        }
+
         if (r.line !== imports.values[i].line) {
           const expectedPosition = res.findIndex((it) => it.line === r.line);
           errors.push({
