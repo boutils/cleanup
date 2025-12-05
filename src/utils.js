@@ -18,6 +18,7 @@ export const VMC_SECTIONS = [
 
 const IGNORED_CLASSES = [
   'active',
+  'clickable',
   'cursor-pointer',
   'disabled',
   'elevation-3',

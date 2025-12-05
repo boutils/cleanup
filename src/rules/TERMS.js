@@ -26,6 +26,7 @@ export default {
 
       if (
         !index.allContent.includes(`$icon('${term}')`) &&
+        !index.allContent.includes(`getIcon('${term}')`) &&
         !index.allContent.includes(`: "${term}"`) &&
         !index.allContent.includes(`: '${term}'`) &&
         !index.allContent.includes(`? '${term}'`)
