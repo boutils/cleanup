@@ -29,7 +29,8 @@ export default {
         !index.allContent.includes(`getIcon('${term}')`) &&
         !index.allContent.includes(`: "${term}"`) &&
         !index.allContent.includes(`: '${term}'`) &&
-        !index.allContent.includes(`? '${term}'`)
+        !index.allContent.includes(`? '${term}'`) &&
+        !index.allContent.includes(`return '${term}'`)
       ) {
         errors.push({
           filePath: index.terms.path,
