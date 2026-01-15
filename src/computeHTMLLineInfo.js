@@ -28,6 +28,10 @@ export function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previou
   const isAttributeOnlyStarted = isHTMLAttributeOnlyStarted(line, tagName, isClosingTag, depth);
   const isAttributeOnlyEnded = isHTMLAttributeOnlyEnded(line, tagName, isClosingTag, depth);
   const isShortClosingTag = isHTLMShortClosingTag(line);
+  const vForDepth = line.includes('v-for') ? depth : previousLineInfo.vForDepth;
+  const isInsideVFor =
+    line.includes('v-for') || (!!previousLineInfo.isInsideVFor && depth >= previousLineInfo.vForDepth);
+
   return {
     allowMultipleTags,
     attributeNames,
@@ -48,11 +52,13 @@ export function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previou
     isClosingTag,
     isCommentedLine,
     isEmptyLine,
+    isInsideVFor,
     isShortClosingTag,
     isVueBinding,
     line,
     lineNumber,
     tagName,
+    vForDepth,
   };
 }
 

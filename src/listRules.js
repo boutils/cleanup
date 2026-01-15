@@ -7,6 +7,9 @@ export async function getRules() {
 
   const rules = [];
   for (const rulePath of rulesPaths) {
+    // if (!rulePath.includes('V_FOR')) {
+    //   continue;
+    // }
     const _import = await import(`./${rulePath}`);
     const id = rulePath.split('/').pop().split('.').shift();
     rules.push({ ..._import.default, id });
