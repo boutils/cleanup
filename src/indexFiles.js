@@ -9,6 +9,7 @@ import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
 const parser = new TypescriptParser();
 const DIRECTORIES = ['.storybook', 'src', 'scripts'];
+const IGNORED_PATHS = ['src/python'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue']);
 const TYPE_FROM_EXTENSION = {
   '.css': 'style',
@@ -68,7 +69,11 @@ function getFilesPathsFromDirectories(directories, filter) {
   const files = [];
   for (const dir of directories) {
     const subfiles = getFilesPathsFromDirectory(dir, filter);
-    files.push(...subfiles);
+    for (const subfile of subfiles) {
+      if (IGNORED_PATHS.every((ignoredPath) => !subfile.startsWith(ignoredPath))) {
+        files.push(subfile);
+      }
+    }
   }
 
   return files;
