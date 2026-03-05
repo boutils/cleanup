@@ -5,6 +5,7 @@ const PUBLIC_METHODS = [
   'stoic-ask-dialog__processMessage',
   'stoic-chart-header__getWidth',
   'stoic-edit-dialog__processMessage',
+  'stoic-historical-chart__updateCrosshairActivation',
 ];
 
 export default {
