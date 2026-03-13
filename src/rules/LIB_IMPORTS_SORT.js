@@ -1,4 +1,4 @@
-const IGNORE_IMPORTS = ['src/libs/worker/worker.ts'];
+const IGNORE_IMPORTS = ['src/libs/worker/worker.ts', 'src/main.ts'];
 
 export default {
   validate: (index) => {
