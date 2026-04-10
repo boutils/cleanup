@@ -28,7 +28,7 @@ const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
 export async function indexFiles() {
   const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
-  const index = { allContent: '', byPath: {}, byType: {}, theme: {} };
+  const index = { allContent: '', allFiles: [], byPath: {}, byType: {}, theme: {} };
 
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
@@ -47,6 +47,7 @@ export async function indexFiles() {
       index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
       index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
 
+      index.allFiles.push(filePath);
       if (filePath.includes('.vmc.')) {
         index.byType.vmc ??= [];
         index.byType.vmc.push(filePath);

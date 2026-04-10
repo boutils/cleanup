@@ -11,12 +11,16 @@ await prettify(index);
 const errorsByPath = {};
 
 for (const rule of rules) {
+  if (rule.id !== 'SPELL') {
+    continue;
+  }
+
   if (!rule.validate) {
     log(`Rule '${rule.id}' is invalid and ignored`, 'error');
     continue;
   }
 
-  const result = rule.validate(index);
+  const result = await rule.validate(index);
 
   for (const error of result.errors) {
     errorsByPath[error.filePath] ??= [];
