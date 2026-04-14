@@ -20,11 +20,6 @@ export default {
     };
 
     await lint(filePaths, { config }, reporter);
-    // const s = [...new Set(dico)].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-    // for (const d of s) {
-    //   console.log(d);
-    // }
-
     return { errors };
   },
 };

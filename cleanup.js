@@ -11,10 +11,6 @@ await prettify(index);
 const errorsByPath = {};
 
 for (const rule of rules) {
-  if (rule.id !== 'SPELL') {
-    continue;
-  }
-
   if (!rule.validate) {
     log(`Rule '${rule.id}' is invalid and ignored`, 'error');
     continue;
