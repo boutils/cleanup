@@ -131,6 +131,11 @@ EIACOSC
 EIAGSC
 Elon
 EODR
+EMCWD
+EMGEXFLIP
+EMPWD
+EMRANGE
+EMRET
 etfs
 Eurozone
 evalengine
@@ -159,6 +164,7 @@ GAMSS
 gantt
 GEHC
 Geman
+GEXFLIP
 globalmarkets
 GRCF
 Greif
@@ -197,6 +203,7 @@ ISMMPMI
 ISMSE
 ISMSPMI
 issuebot
+IVATM
 IVMR
 Katex
 katex
@@ -222,6 +229,7 @@ LOSLP
 LPCWS
 lprb
 LRAC
+LRET
 lric
 LRNG
 lseg
@@ -269,6 +277,7 @@ NBBOR
 nbclient
 NBER
 NFIB
+NGEX
 notif
 Noto
 Novavax
@@ -337,6 +346,7 @@ riskappetiteandvolatility
 RLITE
 RMADIF
 Robinhood
+RVOL
 sbdocs
 SBEA
 scattergl
