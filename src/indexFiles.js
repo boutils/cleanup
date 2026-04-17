@@ -28,7 +28,14 @@ const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
 export async function indexFiles() {
   const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
-  const index = { allContent: '', allFiles: [], byPath: {}, byType: {}, theme: {} };
+  const index = {
+    allContent: '',
+    allFiles: [],
+    byPath: {},
+    byType: {},
+    theme: {},
+    stacks: { spec: {}, list: [] },
+  };
 
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
@@ -59,6 +66,14 @@ export async function indexFiles() {
 
       if (filePath.endsWith('metadata/terms.json')) {
         index.terms = { items: JSON.parse(index.byPath[filePath].content), path: filePath };
+      }
+
+      if (filePath.endsWith('/macro-strategy=demo/stacks.json')) {
+        index.stacks.spec = { json: JSON.parse(index.byPath[filePath].content), path: filePath };
+      }
+
+      if (filePath.includes('/macro-strategy=demo/stack_') && filePath.endsWith('.json')) {
+        index.stacks.list.push({ json: JSON.parse(index.byPath[filePath].content), path: filePath });
       }
     }
   }
