@@ -62,7 +62,7 @@ export default {
         errors.push({
           filePath: stacksFilePath,
           line: undefined,
-          message: `Color '${colorName}' is referenced in stacks.json but not defined in theme.colors, please add it.`,
+          message: `Color '${colorName}' is referenced in stacks.json but not defined in theme.colors (stacks.json), please add it.`,
         });
       }
     }
