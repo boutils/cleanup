@@ -328,6 +328,7 @@ Printset
 PROCUST
 procust
 PROCUSTOMER
+PROCUSTOMERS
 procustomer
 pthread
 pytest
