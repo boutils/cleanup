@@ -3,6 +3,16 @@ export default {
     const errors = [];
 
     for (const { path: filePath, json } of index.stacks.list) {
+      for (const key of ['center', 'top', 'bottom', 'left', 'right', 'footer']) {
+        if (json.cards && json.cards[key] && json.cards[key].length === 0) {
+          errors.push({
+            filePath,
+            line: undefined,
+            message: `Stack has an empty cards '${key}' array, please remove it.`,
+          });
+        }
+      }
+
       if (json.annotations) {
         if (Object.keys(json.annotations).length === 0) {
           errors.push({
