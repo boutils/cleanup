@@ -122,6 +122,7 @@ dragmode
 DTGF
 dtick
 DTMID
+drawdowns
 dtype
 duckdb
 dxva
