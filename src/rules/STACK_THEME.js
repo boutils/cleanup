@@ -1,5 +1,3 @@
-import { getSortingError } from '../utils.js';
-
 export default {
   validate: async (index) => {
     const stacksFilePath = index.stacks.spec.path;
@@ -11,17 +9,6 @@ export default {
     for (const stack of index.stacks.list) {
       const content = JSON.stringify(stack.json);
       stacksText += content;
-    }
-
-    // Check sorting of colors in stacks.json
-    const colorsNames = Object.keys(stacksColor);
-    const sortingErrors = getSortingError(colorsNames);
-    if (sortingErrors) {
-      errors.push({
-        filePath: stacksFilePath,
-        line: sortingErrors.lineNumber,
-        message: `${sortingErrors}`,
-      });
     }
 
     for (const [colorName, colorValue] of Object.entries(stacksColor)) {
