@@ -70,7 +70,7 @@ function tryToFindDoublons(stacks) {
       for (const [cardIndex, card] of Object.entries(cardFace) || []) {
         for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
           if (layer.id && stacks.spec.json.layers?.[layer.id]) {
-            continue; // skip layers that reference shared layers
+            continue; // skip layers that already reference an existing shared layer
           }
 
           const hash = computeLayerHash(layer);
@@ -91,9 +91,6 @@ function tryToFindDoublons(stacks) {
               },
               current: { filePath, cardKey, cardIndex, layerIndex },
             });
-            // console.log(
-            //   `Layer ${getLayerRefText(cardKey, cardIndex, layerIndex)} is identical to layer ${getLayerRefText(existingCardKey, existingCardIndex, existingLayerIndex)} in the same file. Consider using shared layers.`
-            // );
           }
           layersHashsByFile.set(hash, { filePath, cardKey, cardIndex, layerIndex });
         }
@@ -102,7 +99,6 @@ function tryToFindDoublons(stacks) {
   }
 
   return doublons;
-  //console.log('layersHashsByFile', layersHashsByFile);
 }
 
 function computeLayerHash(layer) {
