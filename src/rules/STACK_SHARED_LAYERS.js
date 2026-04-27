@@ -38,10 +38,17 @@ export default {
 
     if (doublons.length > 0) {
       errors.push(
-        ...doublons.map(({ existing, current }) => ({
-          filePath: current.filePath,
-          message: `[${getLayerRefText(current.cardKey, current.cardIndex, current.layerIndex)}] has a doublon in [${existing.filePath.split('/').pop()} ${getLayerRefText(existing.cardKey, existing.cardIndex, existing.layerIndex)}]. Use a shared layer.`,
-        }))
+        ...doublons.map(({ existing, current }) => {
+          const fileName = existing.filePath.split('/').pop();
+
+          return {
+            filePath: current.filePath,
+            message:
+              fileName === 'stacks.json'
+                ? `[${getLayerRefText(current.cardKey, current.cardIndex, current.layerIndex)}] Use existing shared layer "${existing.cardKey}".`
+                : `[${getLayerRefText(current.cardKey, current.cardIndex, current.layerIndex)}] has a doublon in [${fileName} ${getLayerRefText(existing.cardKey, existing.cardIndex, existing.layerIndex)}]. Use a shared layer.`,
+          };
+        })
       );
     }
     return { errors };
@@ -51,13 +58,22 @@ export default {
 function tryToFindDoublons(stacks) {
   const doublons = [];
   const layersHashsByFile = new Map();
+
+  for (const [sharedLayerId, layer] of Object.entries(stacks.spec.json.layers || {})) {
+    const hash = computeLayerHash(layer);
+    layersHashsByFile.set(hash, { filePath: stacks.spec.path, cardKey: sharedLayerId, cardIndex: '', layerIndex: '' });
+  }
+
   for (const { path: filePath, json } of stacks.list) {
     for (const cardKey of Object.keys(json.cards) || []) {
       const cardFace = json.cards[cardKey];
       for (const [cardIndex, card] of Object.entries(cardFace) || []) {
         for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-          const string = layer.ticker + layer.visual?.id + JSON.stringify(layer.metrics) + JSON.stringify(layer.series);
-          const hash = simpleHash(string.replace(/\s/g, ''));
+          if (layer.id && stacks.spec.json.layers?.[layer.id]) {
+            continue; // skip layers that reference shared layers
+          }
+
+          const hash = computeLayerHash(layer);
 
           if (layersHashsByFile.has(hash)) {
             const {
@@ -87,6 +103,18 @@ function tryToFindDoublons(stacks) {
 
   return doublons;
   //console.log('layersHashsByFile', layersHashsByFile);
+}
+
+function computeLayerHash(layer) {
+  const string =
+    '' +
+    layer.ticker +
+    JSON.stringify(layer.visual) +
+    JSON.stringify(layer.metrics) +
+    JSON.stringify(layer.series) +
+    JSON.stringify(layer.mapping);
+
+  return simpleHash(string.replace(/\s/g, ''));
 }
 
 function simpleHash(str) {
