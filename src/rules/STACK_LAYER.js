@@ -85,6 +85,15 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
     }
   }
 
+  // Check empty visual options
+  if (layer.visual?.options && Object.keys(layer.visual.options).length === 0) {
+    errors.push({
+      filePath,
+      line: layer.visual.options.line,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Remove empty "visual.options" property.`,
+    });
+  }
+
   return errors;
 }
 
