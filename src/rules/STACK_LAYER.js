@@ -9,7 +9,17 @@ export default {
         const cardFace = json.cards[cardKey];
         for (const [cardIndex, card] of Object.entries(cardFace) || []) {
           for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-            const layerErrors = checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, card.layers.length);
+            if (layer.id && !index.stacks.spec.json.layers?.[layer.id]) {
+              errors.push({
+                filePath,
+                line: layer.title?.line,
+                message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${layer.id}" not found in shared layers.`,
+              });
+              break;
+            }
+
+            const layerSpec = { ...layer, ...index.stacks.spec.json.layers?.[layer.id] };
+            const layerErrors = checkLayer(filePath, cardKey, cardIndex, layerIndex, layerSpec, card.layers.length);
             if (layerErrors) {
               errors.push(...layerErrors);
             }
