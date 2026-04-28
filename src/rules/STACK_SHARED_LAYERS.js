@@ -22,7 +22,7 @@ export default {
       }
 
       for (const layerId of keys) {
-        if (allJsonString.includes(`"id":"${layerId}"`)) {
+        if (allJsonString.includes(`"referenceId":"${layerId}"`)) {
           continue;
         }
 
@@ -69,7 +69,7 @@ function tryToFindDoublons(stacks) {
       const cardFace = json.cards[cardKey];
       for (const [cardIndex, card] of Object.entries(cardFace) || []) {
         for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-          if (layer.id && stacks.spec.json.layers?.[layer.id]) {
+          if (layer.referenceId && stacks.spec.json.layers?.[layer.referenceId]) {
             continue; // skip layers that already reference an existing shared layer
           }
 

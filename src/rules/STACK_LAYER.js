@@ -4,21 +4,32 @@ export default {
   validate: async (index) => {
     const errors = [];
 
+    if (index.stacks.spec.json.layers) {
+      const keys = Object.keys(index.stacks.spec.json.layers);
+      for (const layerId of keys) {
+        const sharedLayer = index.stacks.spec.json.layers[layerId];
+        const layerErrors = checkLayer(index.stacks.spec.path, layerId, '', '', sharedLayer, 2);
+        if (layerErrors) {
+          errors.push(...layerErrors);
+        }
+      }
+    }
+
     for (const { path: filePath, json } of index.stacks.list) {
       for (const cardKey of Object.keys(json.cards) || []) {
         const cardFace = json.cards[cardKey];
         for (const [cardIndex, card] of Object.entries(cardFace) || []) {
           for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-            if (layer.id && !index.stacks.spec.json.layers?.[layer.id]) {
+            if (layer.referenceId && !index.stacks.spec.json.layers?.[layer.referenceId]) {
               errors.push({
                 filePath,
                 line: layer.title?.line,
-                message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${layer.id}" not found in shared layers.`,
+                message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${layer.referenceId}" not found in shared layers.`,
               });
               break;
             }
 
-            const layerSpec = { ...layer, ...index.stacks.spec.json.layers?.[layer.id] };
+            const layerSpec = { ...layer, ...index.stacks.spec.json.layers?.[layer.referenceId] };
             const layerErrors = checkLayer(filePath, cardKey, cardIndex, layerIndex, layerSpec, card.layers.length);
             if (layerErrors) {
               errors.push(...layerErrors);
@@ -40,7 +51,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
     errors.push({
       filePath,
       line: layer.title?.line,
-      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: "title" property is required when there are multiple layers.`,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: "title" property is required when there are multiple layers or for a shared layer.`,
     });
   }
 
