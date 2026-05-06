@@ -177,6 +177,8 @@ Hassett
 hawkes
 Hawkes
 HCSG
+Herfindahl
+Hirschman
 HISLP
 HMRTN
 horz
