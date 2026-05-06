@@ -24,13 +24,15 @@ export default {
       termsList[icon] ??= [];
       termsList[icon].push(term);
 
+      const firstPart = term.split('-')[0];
       if (
         !index.allContent.includes(`$icon('${term}')`) &&
         !index.allContent.includes(`getIcon('${term}')`) &&
         !index.allContent.includes(`: "${term}"`) &&
         !index.allContent.includes(`: '${term}'`) &&
         !index.allContent.includes(`? '${term}'`) &&
-        !index.allContent.includes(`return '${term}'`)
+        !index.allContent.includes(`return '${term}'`) &&
+        !index.allContent.includes(`icon: \`${firstPart}-$`)
       ) {
         errors.push({
           filePath: index.terms.path,
