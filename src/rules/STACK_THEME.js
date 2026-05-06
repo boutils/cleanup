@@ -4,6 +4,13 @@ export default {
     const stacksColor = index.stacks.spec.json.theme.colors || {};
     const errors = [];
 
+    const indexExistingVars = index.theme.vars
+      .map((it) => it.key.replaceAll('$', ''))
+      .reduce((acc, it) => {
+        acc[it] = true;
+        return acc;
+      }, {});
+
     // Compute a text with all stacks JSON
     let stacksText = JSON.stringify(index.stacks.spec.json);
     for (const stack of index.stacks.list) {
@@ -45,7 +52,7 @@ export default {
     const colorReferences = stacksText.match(colorReferencesRegex) || [];
     for (const colorReference of colorReferences) {
       const colorName = colorReference.replace('theme.colors.', '');
-      if (!stacksColor[colorName]) {
+      if (!stacksColor[colorName] && !indexExistingVars[colorName]) {
         errors.push({
           filePath: stacksFilePath,
           line: undefined,
