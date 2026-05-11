@@ -58,12 +58,18 @@ function checkDecimals(type, errors, filePath, cardKey, cardIndex, layerIndex, l
     const decimals = metric.format?.decimals?.count;
     const mode = metric.format?.mode || 'value';
 
-    if (refDecimals[mode] === undefined && !isNaN(decimals)) {
+    if (
+      refDecimals[mode] === undefined &&
+      !isNaN(decimals) &&
+      metric.label !== 'Count' &&
+      metric.label !== '#' &&
+      metric.name !== 'Rank'
+    ) {
       refDecimals[mode] = decimals;
       continue;
     }
 
-    if (decimals !== undefined && decimals !== refDecimals[mode]) {
+    if (decimals !== undefined && refDecimals[mode] !== undefined && decimals !== refDecimals[mode]) {
       errors.push({
         filePath,
         message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: Inconsistent decimals count across ${type}. Expected ${refDecimals[mode]} but got ${JSON.stringify(decimals)}.`,
