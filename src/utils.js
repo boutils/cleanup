@@ -48,6 +48,7 @@ const VALID_HTML_ATTRIBUTES = new Set([
   'lang',
   'no-spellcheck',
   'ref',
+  'rel',
   'slot',
   'src',
   'spellcheck',
