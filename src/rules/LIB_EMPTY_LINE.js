@@ -56,7 +56,8 @@ export default {
           !nextLineInfo.trim().startsWith('else') &&
           !nextLineInfo.trim().startsWith(']') &&
           !nextLineInfo.trim().startsWith(':') &&
-          !nextLineInfo.trim() === '`;'
+          !nextLineInfo.trim().startsWith('>') &&
+          nextLineInfo.trim() !== '`;'
         ) {
           errors.push({
             filePath,
