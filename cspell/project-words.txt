@@ -316,6 +316,7 @@ pacf
 PACF
 Palo
 papermill
+parallelizable
 PCPAR
 Pelosi's
 PHTC
