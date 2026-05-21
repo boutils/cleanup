@@ -4,7 +4,7 @@ const keywords = ['return', 'continue', 'break', 'throw', 'yield'];
 
 export default {
   validate: (index) => {
-    const filesPaths = index.byType['lib'].concat(index.byType['vmc']);
+    const filesPaths = index.byType['lib'];
 
     const errors = [];
     for (const filePath of filesPaths) {

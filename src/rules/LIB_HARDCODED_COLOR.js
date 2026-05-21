@@ -2,7 +2,7 @@ const ignoredFiles = ['src/theme/colors.ts'];
 
 export default {
   validate: (index) => {
-    const filesPaths = index.byType['lib'].concat(index.byType['vmc']);
+    const filesPaths = index.byType['lib'];
 
     const errors = [];
     for (const filePath of filesPaths) {
