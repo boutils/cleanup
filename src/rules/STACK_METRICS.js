@@ -55,6 +55,20 @@ function checkDecimals(type, errors, filePath, cardKey, cardIndex, layerIndex, l
       continue;
     }
 
+    if (metric.format?.prefix === '$' && metric.format.decimals?.mode === 'fixed') {
+      if (metric.format.mode === 'volume' && metric.format.decimals?.count !== 1) {
+        errors.push({
+          filePath,
+          message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: For currency "$" metrics with "volume" mode, "decimals.count" should be 1. Found ${JSON.stringify(metric.format.decimals?.count)}.`,
+        });
+      } else if (metric.format.mode !== 'volume' && metric.format.decimals?.count !== 0) {
+        errors.push({
+          filePath,
+          message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: For currency "$" metrics with "fixed" mode, "decimals.count" should be 0. Found ${JSON.stringify(metric.format.decimals?.count)}.`,
+        });
+      }
+    }
+
     const isFixed = metric.format?.decimals?.mode === 'fixed' || !metric.format || metric.format.mode === 'volume';
     if (!isFixed) {
       errors.push({
