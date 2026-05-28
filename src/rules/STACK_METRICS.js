@@ -94,7 +94,7 @@ function checkDecimals(type, errors, filePath, cardKey, cardIndex, layerIndex, l
       continue;
     }
 
-    if (decimals !== undefined && refDecimals[mode] && decimals !== refDecimals[mode]) {
+    if (decimals && refDecimals[mode] && decimals !== refDecimals[mode]) {
       errors.push({
         filePath,
         message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: Inconsistent decimals count across ${type}. Expected ${refDecimals[mode]} but got ${JSON.stringify(decimals)}.`,
