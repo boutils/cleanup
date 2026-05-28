@@ -1,9 +1,11 @@
 const MAX_METRICS_ALLOWED = {
   bottom: 5,
+  bottomInner: 5,
   center: 8,
   left: 5,
   right: 8,
   top: 8,
+  topInner: 8,
 };
 
 export default {
@@ -106,6 +108,7 @@ function checkMetricsCount(type, errors, filePath, cardKey, cardIndex, layers, i
   for (const resolutionType of ['intraday', 'historical']) {
     let metrics = [];
     const firstLayer = getLayer(layers[0], index);
+    const columnCount = firstLayer?.mapping?.columns?.[type] || 1;
     for (const layerJson of layers) {
       const layer = getLayer(layerJson, index);
 
@@ -117,16 +120,29 @@ function checkMetricsCount(type, errors, filePath, cardKey, cardIndex, layers, i
       for (const layerMetric of layerMetrics) {
         metrics.push(layerMetric.label || layerMetric.name);
       }
+
+      // For center card, it is by layer in the right panel
+      if (cardKey === 'center') {
+        const metricsLength = metrics.length / columnCount;
+        if (metricsLength > maxMetrics) {
+          errors.push({
+            filePath,
+            message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
+          });
+        }
+
+        metrics = [];
+      }
     }
 
-    const columnCount = firstLayer?.metrics?.columns || 1;
-    const metricsLength = metrics.length / columnCount;
-
-    if (metricsLength > maxMetrics) {
-      errors.push({
-        filePath,
-        message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
-      });
+    if (cardKey !== 'center') {
+      const metricsLength = metrics.length / columnCount;
+      if (metricsLength > maxMetrics) {
+        errors.push({
+          filePath,
+          message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
+        });
+      }
     }
   }
 }
