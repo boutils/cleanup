@@ -4,6 +4,7 @@ AGPA
 AIMR
 AIPA
 AKIA
+AKIAIOSFODNN
 AKIAUP
 ampm
 annualize
@@ -142,6 +143,7 @@ Eurozone
 evalengine
 Evergrande
 EVTS
+EXAMPL
 EXVAL
 Fauci
 FOMC
@@ -211,6 +213,7 @@ IVATM
 IVMR
 Katex
 katex
+KIAIOSFODNN
 KIAUP
 Kindleberger
 koumoul
