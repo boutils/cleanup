@@ -13,8 +13,21 @@ export default {
       }
 
       for (const [lineIndex, line] of lines.entries()) {
+        const zodTypes = [...line.matchAll(/z\.infer<\s*typeof\s+([a-z]\w*)/g)].map((m) => m[1]);
+
+        if (zodTypes.length > 0) {
+          for (const zodType of zodTypes) {
+            errors.push({
+              filePath,
+              line: lineIndex + 1,
+              message: `Zod type should be camel-case. Replace "${zodType}" by "${zodType.charAt(0).toUpperCase() + zodType.slice(1)}"`,
+            });
+          }
+        }
+
         const hasExportedType = line.startsWith('export type ');
         const hasType = line.startsWith('type ');
+
         if (hasExportedType || hasType) {
           const index = hasExportedType ? 12 : 5;
           const firstChar = line[index];
