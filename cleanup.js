@@ -3,6 +3,8 @@ import { getRules } from './src/listRules.js';
 import prettify from './src/prettify.js';
 import { log, printReport } from './src/printReport.js';
 
+const startTime = Date.now();
+
 const rules = await getRules();
 const index = await indexFiles();
 
@@ -25,3 +27,6 @@ for (const rule of rules) {
 }
 
 printReport(errorsByPath);
+
+const elapsedSec = Math.ceil((Date.now() - startTime) / 1000);
+log(`  🕓 Executed in ${elapsedSec} seconds`, 'comment');
