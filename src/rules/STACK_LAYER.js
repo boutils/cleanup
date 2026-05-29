@@ -65,11 +65,20 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
   }
 
   // Check metrics property
-  if (layer.metrics?.columns && layer.metrics?.columns === 1) {
+  if (layer.mapping?.columns?.metrics && layer.mapping?.columns?.metrics === 1) {
     errors.push({
       filePath,
-      line: layer.metrics.columns.line,
-      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Remove "metrics.columns" property, it is not required with 1 column.`,
+      line: layer.mapping.columns.metrics.line,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Remove "mapping.columns.metrics" property, it is not required with 1 column.`,
+    });
+  }
+
+  // Check summaries property
+  if (layer.mapping?.columns?.summaries && layer.mapping?.columns?.summaries === 1) {
+    errors.push({
+      filePath,
+      line: layer.mapping.columns.summaries.line,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Remove "mapping.columns.summaries" property, it is not required with 1 column.`,
     });
   }
 
@@ -81,6 +90,26 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
       message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: At least one metric in mapping/metrics should have "overview": true.`,
     });
   }
+
+  // Check mapping metrics/summaries length
+  for (const prop of ['metrics', 'summaries']) {
+    if (layer.mapping?.[prop] && layer.mapping[prop].length === 0) {
+      errors.push({
+        filePath,
+        line: layer.mapping[prop].line,
+        message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: "mapping.${prop}" is empty, please remove.`,
+      });
+    }
+  }
+
+  // // Check mapping summaries overview
+  // if (layer.mapping?.summaries && !layer.mapping.summaries.some((m) => m.overview === true)) {
+  //   errors.push({
+  //     filePath,
+  //     line: undefined,
+  //     message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: At least one summary in mapping/summaries should have "overview": true.`,
+  //   });
+  // }
 
   // Check notebook parameters sort
   if (layer.series?.parameters) {
