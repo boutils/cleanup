@@ -103,13 +103,13 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
   }
 
   // // Check mapping summaries overview
-  // if (layer.mapping?.summaries && !layer.mapping.summaries.some((m) => m.overview === true)) {
-  //   errors.push({
-  //     filePath,
-  //     line: undefined,
-  //     message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: At least one summary in mapping/summaries should have "overview": true.`,
-  //   });
-  // }
+  if (layer.mapping?.summaries && !layer.mapping.summaries.some((m) => m.overview === true)) {
+    errors.push({
+      filePath,
+      line: undefined,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: At least one summary in mapping/summaries should have "overview": true.`,
+    });
+  }
 
   // Check notebook parameters sort
   if (layer.series?.parameters) {
