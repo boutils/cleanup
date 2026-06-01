@@ -1,4 +1,5 @@
-import { getSortingError } from '../utils.js';
+import { deepMergeTwoObjects, getSortingError, pickExcept } from '../utils.js';
+import { computeMergedLayer } from '../utils.js';
 
 export default {
   validate: async (index) => {
@@ -7,8 +8,30 @@ export default {
     if (index.stacks.spec.json.layers) {
       const keys = Object.keys(index.stacks.spec.json.layers);
       for (const layerId of keys) {
-        const sharedLayer = index.stacks.spec.json.layers[layerId];
-        const layerErrors = checkLayer(index.stacks.spec.path, layerId, '', '', sharedLayer, 2);
+        let sharedLayer = index.stacks.spec.json.layers[layerId];
+
+        while (sharedLayer.referenceId) {
+          const referencedLayer = index.stacks.spec.json.layers?.[sharedLayer.referenceId];
+          if (!referencedLayer) {
+            errors.push({
+              filePath: index.stacks.spec.path,
+              line: sharedLayer.title?.line,
+              message: `[${getLayerRefText(layerId, '', '')}]: Shared layer id "${sharedLayer.referenceId}" not found in shared layers.`,
+            });
+            break;
+          }
+          sharedLayer = deepMergeTwoObjects(referencedLayer, pickExcept(sharedLayer, 'referenceId'));
+        }
+
+        const layerErrors = checkLayer(
+          index.stacks.spec.path,
+          layerId,
+          '',
+          '',
+          sharedLayer,
+          index.stacks.spec.json.layers[layerId],
+          2
+        );
         if (layerErrors) {
           errors.push(...layerErrors);
         }
@@ -19,18 +42,26 @@ export default {
       for (const cardKey of Object.keys(json.cards) || []) {
         const cardFace = json.cards[cardKey];
         for (const [cardIndex, card] of Object.entries(cardFace) || []) {
-          for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-            if (layer.referenceId && !index.stacks.spec.json.layers?.[layer.referenceId]) {
+          for (const [layerIndex, originalLayerSpec] of Object.entries(card.layers) || []) {
+            if (originalLayerSpec.referenceId && !index.stacks.spec.json.layers?.[originalLayerSpec.referenceId]) {
               errors.push({
                 filePath,
-                line: layer.title?.line,
-                message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${layer.referenceId}" not found in shared layers.`,
+                line: originalLayerSpec.title?.line,
+                message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${originalLayerSpec.referenceId}" not found in shared layers.`,
               });
               break;
             }
 
-            const layerSpec = { ...layer, ...index.stacks.spec.json.layers?.[layer.referenceId] };
-            const layerErrors = checkLayer(filePath, cardKey, cardIndex, layerIndex, layerSpec, card.layers.length);
+            const layer = computeMergedLayer(originalLayerSpec, index);
+            const layerErrors = checkLayer(
+              filePath,
+              cardKey,
+              cardIndex,
+              layerIndex,
+              layer,
+              originalLayerSpec,
+              card.layers.length
+            );
             if (layerErrors) {
               errors.push(...layerErrors);
             }
@@ -43,7 +74,7 @@ export default {
   },
 };
 
-function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount) {
+function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, originalLayerSpec, layersCount) {
   const errors = [];
 
   // Check layer title
@@ -65,7 +96,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
   }
 
   // Check metrics property
-  if (layer.mapping?.columns?.metrics && layer.mapping?.columns?.metrics === 1) {
+  if (layer.mapping?.columns?.metrics && layer.mapping?.columns?.metrics === 1 && !originalLayerSpec.referenceId) {
     errors.push({
       filePath,
       line: layer.mapping.columns.metrics.line,
@@ -74,7 +105,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
   }
 
   // Check summaries property
-  if (layer.mapping?.columns?.summaries && layer.mapping?.columns?.summaries === 1) {
+  if (layer.mapping?.columns?.summaries && layer.mapping?.columns?.summaries === 1 && !originalLayerSpec.referenceId) {
     errors.push({
       filePath,
       line: layer.mapping.columns.summaries.line,
@@ -112,8 +143,8 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, layersCount
   }
 
   // Check notebook parameters sort
-  if (layer.series?.parameters) {
-    const parametersNotebookNames = Object.keys(layer.series?.parameters);
+  if (originalLayerSpec.series?.parameters) {
+    const parametersNotebookNames = Object.keys(originalLayerSpec.series?.parameters);
     const sortingErrors = getSortingError(parametersNotebookNames);
 
     if (sortingErrors) {

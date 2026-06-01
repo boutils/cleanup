@@ -1,8 +1,10 @@
+import { computeMergedLayer } from '../utils.js';
+
 const MAX_METRICS_ALLOWED = {
-  bottom: 5,
-  bottomInner: 5,
+  bottom: 7,
+  bottomInner: 6,
   center: 8,
-  left: 5,
+  left: 6,
   right: 8,
   top: 8,
   topInner: 8,
@@ -20,7 +22,7 @@ export default {
           checkMetricsCount('summaries', errors, filePath, cardKey, cardIndex, card.layers, index);
 
           for (const [layerIndex, layer] of Object.entries(card.layers) || []) {
-            const layerSpec = getLayer(layer, index);
+            const layerSpec = computeMergedLayer(layer, index);
 
             const layerErrors = checkLayer(filePath, cardKey, cardIndex, layerIndex, layerSpec);
             if (layerErrors) {
@@ -44,6 +46,13 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer) {
 
   if (layer.mapping.summaries) {
     checkDecimals('summaries', errors, filePath, cardKey, cardIndex, layerIndex, layer);
+  }
+
+  if (layer.mapping.metrics && (!layer.mapping.summaries || layer.mapping.summaries.length === 0)) {
+    errors.push({
+      filePath,
+      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer has "metrics" but no "summaries". Each layer with "metrics" should have at least one "summary".`,
+    });
   }
 
   return errors;
@@ -107,10 +116,10 @@ function checkMetricsCount(type, errors, filePath, cardKey, cardIndex, layers, i
   const maxMetrics = MAX_METRICS_ALLOWED[cardKey];
   for (const resolutionType of ['intraday', 'historical']) {
     let metrics = [];
-    const firstLayer = getLayer(layers[0], index);
+    const firstLayer = computeMergedLayer(layers[0], index);
     const columnCount = firstLayer?.mapping?.columns?.[type] || 1;
     for (const layerJson of layers) {
-      const layer = getLayer(layerJson, index);
+      const layer = computeMergedLayer(layerJson, index);
 
       if (layer.views && !layer.views.includes(resolutionType)) {
         continue;
@@ -157,8 +166,4 @@ function getLayerRefText(cardKey, cardIndex, layerIndex) {
 
 function getCardRefText(cardKey, cardIndex) {
   return `${cardKey}-${Number(cardIndex) + 1}`;
-}
-
-function getLayer(spec, index) {
-  return { ...index.stacks.spec.json.layers?.[spec.referenceId], ...spec };
 }

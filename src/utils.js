@@ -91,6 +91,16 @@ export function computeCSSPathFromVuePath(vueFilePath, hideLog = false) {
   return scssFilePath;
 }
 
+export function computeMergedLayer(spec, index) {
+  let layer = spec;
+
+  while (layer.referenceId) {
+    layer = deepMergeTwoObjects(index.stacks.spec.json.layers?.[layer.referenceId], pickExcept(layer, 'referenceId'));
+  }
+
+  return layer;
+}
+
 export function computeRelatedLibPath(fromFilePath, hideLog = false) {
   const splitPath = fromFilePath.split('/');
 
@@ -155,6 +165,38 @@ export function computeRelatedVuePath(fromFilePath, hideLog = false) {
   }
 
   return vueFilePath;
+}
+
+export function deepMergeTwoObjects(target, source, replaceArray = false, deleteOnUndefined = false) {
+  const targetType = getType(target);
+  const sourceType = getType(source);
+
+  if ((targetType !== 'object' && (targetType !== 'array' || replaceArray)) || targetType !== sourceType) {
+    return source !== undefined && source !== null ? source : target;
+  }
+
+  const res = targetType === 'array' ? [] : {};
+
+  Object.assign(res, target);
+
+  for (const key of Object.keys(source)) {
+    const targetVal = target[key];
+    const sourceVal = source[key];
+
+    if (!(key in source)) {
+      if (deleteOnUndefined) {
+        delete res[key];
+      } else {
+        continue;
+      }
+    } else if (!targetVal || sourceVal === null || typeof sourceVal !== 'object') {
+      res[key] = sourceVal;
+    } else {
+      res[key] = deepMergeTwoObjects(targetVal, sourceVal, replaceArray, deleteOnUndefined);
+    }
+  }
+
+  return res;
 }
 
 export function findDuplicates(arr) {
@@ -222,6 +264,34 @@ export function isValidHtmlTag(tag) {
 
 export function kebabize(str) {
   return str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
+}
+
+export function pickExcept(obj, ...keys) {
+  const newObj = {};
+
+  if (!obj || typeof obj !== 'object') {
+    return newObj;
+  }
+
+  const keySet = new Set(keys);
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (!keySet.has(key)) {
+      newObj[key] = value;
+    }
+  }
+
+  return newObj;
+}
+
+function getType(value, lookInPrototypeChain) {
+  const baseType = {}.toString.call(value).slice(8, -1).toLowerCase();
+  if (!lookInPrototypeChain || baseType !== 'object') {
+    return baseType;
+  }
+
+  const fullType = value.constructor ? value.constructor.name : 'object';
+  return fullType === 'Object' ? 'object' : fullType;
 }
 
 function isMarginPaddingClass(className) {
