@@ -85,6 +85,7 @@ BRKB
 Brushable
 brushable
 Bullard
+Calmar
 CALND
 capex
 CBCCI
@@ -356,6 +357,7 @@ RLITE
 RMADIF
 Robinhood
 RVOL
+SAMP
 sbdocs
 SBEA
 scattergl
