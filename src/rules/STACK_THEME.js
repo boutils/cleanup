@@ -16,6 +16,30 @@ export default {
     for (const stack of index.stacks.list) {
       const content = JSON.stringify(stack.json);
       stacksText += content;
+
+      const { lines } = index.byPath[stack.path];
+      for (const [lineIndex, line] of lines.entries()) {
+        if (line.match(/#[0-9a-fA-F]{3,6}/g)) {
+          errors.push({
+            filePath: stack.path,
+            line: lineIndex + 1,
+            message: `There is a hardcoded hex color, please use theme.colors instead.`,
+          });
+        }
+      }
+    }
+
+    // Check that there is no hex hardcoded colors
+    const sharedLayers = index.stacks.spec.json.layers;
+    for (const [layerId, layer] of Object.entries(sharedLayers || {})) {
+      const layerText = JSON.stringify(layer);
+      if (layerText.match(/#[0-9a-fA-F]{3,6}/g)) {
+        errors.push({
+          filePath: stacksFilePath,
+          line: undefined,
+          message: `There is a hardcoded hex color in shared layer "${layerId}", please use theme.colors instead.`,
+        });
+      }
     }
 
     for (const [colorName, colorValue] of Object.entries(stacksColor)) {
