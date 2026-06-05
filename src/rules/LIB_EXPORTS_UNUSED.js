@@ -1,4 +1,5 @@
 const IGNORE_FILES = [
+  'src/components/stoic-deck/components/stoic-deck-body/components/stoic-deck-perspective-signals/components/stoic-deck-visual/plugins/vertical-stacked-bars.ts',
   'src/components/shared/plugins/helpers/dimensions/positions.ts',
   'src/libs/period-primitives.ts',
   'src/libs/stack.ts',
