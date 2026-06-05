@@ -254,6 +254,18 @@ export function isClassIgnored(className) {
   return IGNORED_CLASSES.includes(className) || isMarginPaddingClass(className) || className.startsWith('v-');
 }
 
+export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true) {
+  let allLayersJsonString = '';
+
+  for (const { json } of index.stacks.list) {
+    const string = JSON.stringify(json);
+    const sharedString = includesSharedLayers ? JSON.stringify(index.stacks.spec.json.layers) : '';
+    allLayersJsonString += (string + sharedString).replace(/\s/g, '');
+  }
+
+  return allLayersJsonString.includes(`"referenceId":"${layerId}"`);
+}
+
 export function isValidHtmlAttribute(attribute) {
   return VALID_HTML_ATTRIBUTES.has(attribute) || attribute.startsWith('data-');
 }

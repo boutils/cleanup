@@ -1,4 +1,4 @@
-import { getSortingError } from '../utils.js';
+import { getSortingError, isLayerUsedByAnyCard } from '../utils.js';
 
 const COUNT_OF_DIFFERENT_PROPERTIES_TO_CONSIDER_AS_DOUBLON = 3;
 
@@ -17,22 +17,14 @@ export default {
         });
       }
 
-      let allJsonString = '';
-      for (const { json } of index.stacks.list) {
-        const string = JSON.stringify(json);
-        allJsonString += string.replace(/\s/g, '');
-      }
-
       for (const layerId of keys) {
-        if (allJsonString.includes(`"referenceId":"${layerId}"`)) {
-          continue;
+        if (!isLayerUsedByAnyCard(layerId, index, true)) {
+          errors.push({
+            filePath: index.stacks.spec.path,
+            line: index.stacks.spec.json.layers[layerId].line,
+            message: `Layer "${layerId}" is defined in shared layers but not used in any card.`,
+          });
         }
-
-        errors.push({
-          filePath: index.stacks.spec.path,
-          line: index.stacks.spec.json.layers[layerId].line,
-          message: `Layer "${layerId}" is defined in shared layers but not used in any card.`,
-        });
       }
     }
 

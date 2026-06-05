@@ -1,4 +1,4 @@
-import { deepMergeTwoObjects, getSortingError, pickExcept } from '../utils.js';
+import { deepMergeTwoObjects, getSortingError, isLayerUsedByAnyCard, pickExcept } from '../utils.js';
 import { computeMergedLayer } from '../utils.js';
 
 export default {
@@ -8,6 +8,10 @@ export default {
     if (index.stacks.spec.json.layers) {
       const keys = Object.keys(index.stacks.spec.json.layers);
       for (const layerId of keys) {
+        if (!isLayerUsedByAnyCard(layerId, index, false)) {
+          continue;
+        }
+
         let sharedLayer = index.stacks.spec.json.layers[layerId];
 
         while (sharedLayer.referenceId) {
