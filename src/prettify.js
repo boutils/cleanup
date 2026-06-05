@@ -12,7 +12,7 @@ export default async function prettify(index) {
   const filesPaths = Object.keys(index.byPath);
 
   for (const filePath of filesPaths) {
-    if (ig.ignores(filePath)) {
+    if (ig.ignores(filePath) || filePath.endsWith('.ipynb')) {
       continue;
     }
 

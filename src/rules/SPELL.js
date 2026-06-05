@@ -5,7 +5,7 @@ const config = new URL('../../cspell/cspell.json', import.meta.url).pathname;
 const dico = [];
 export default {
   validate: async (index) => {
-    const filePaths = index.allFiles;
+    const filePaths = index.allFiles.filter((filePath) => !filePath.endsWith('.ipynb'));
     const errors = [];
 
     const reporter = {

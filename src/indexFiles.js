@@ -10,7 +10,7 @@ import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 const parser = new TypescriptParser();
 const DIRECTORIES = ['.storybook', 'src', 'scripts'];
 const IGNORED_PATHS = ['src/python'];
-const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue']);
+const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue', '.ipynb']);
 const TYPE_FROM_EXTENSION = {
   '.css': 'style',
   '.html': 'template',
@@ -19,6 +19,7 @@ const TYPE_FROM_EXTENSION = {
   '.scss': 'style',
   '.ts': 'lib',
   '.vue': 'vue',
+  '.ipynb': 'notebook',
 };
 
 const JS_LOADER = Vuedoc.Loader.extend('js', JavascriptLoader);
@@ -34,7 +35,7 @@ export async function indexFiles() {
     byPath: {},
     byType: {},
     theme: {},
-    stacks: { spec: {}, list: [] },
+    stacks: { spec: {}, list: [], notebooks: [] },
   };
 
   for (const filePath of filesPaths) {
@@ -46,8 +47,10 @@ export async function indexFiles() {
         throw new Error(`Unknown type for extension '${extension}'`);
       }
 
-      index.byPath[filePath] = await indexFile(filePath, fileType);
-      if (!filePath.endsWith('metadata/terms.json')) {
+      const path = filePath.endsWith('.ipynb') ? filePath.split('/').pop() : filePath;
+      index.byPath[path] = await indexFile(filePath, fileType);
+
+      if (!filePath.endsWith('metadata/terms.json') && !filePath.endsWith('.ipynb')) {
         index.allContent += index.byPath[filePath].content + '\n';
       }
 
@@ -70,6 +73,19 @@ export async function indexFiles() {
 
       if (filePath.endsWith('/macro-strategy=demo/stacks.json')) {
         index.stacks.spec = { json: JSON.parse(index.byPath[filePath].content), path: filePath };
+        if (index.stacks.spec.json.layers) {
+          for (const layer of Object.values(index.stacks.spec.json.layers)) {
+            if (
+              layer.series?.notebook &&
+              !index.stacks.notebooks.find((notebook) => notebook.path === layer.series.notebook)
+            ) {
+              index.stacks.notebooks.push({
+                path: layer.series.notebook,
+                name: layer.series.notebook.split('/').pop(),
+              });
+            }
+          }
+        }
       }
 
       if (filePath.includes('/macro-strategy=demo/stack_') && filePath.endsWith('.json')) {
@@ -86,12 +102,11 @@ function getFilesPathsFromDirectories(directories, filter) {
   for (const dir of directories) {
     const subfiles = getFilesPathsFromDirectory(dir, filter);
     for (const subfile of subfiles) {
-      if (IGNORED_PATHS.every((ignoredPath) => !subfile.startsWith(ignoredPath))) {
+      if (IGNORED_PATHS.every((ignoredPath) => !subfile.startsWith(ignoredPath)) || subfile.endsWith('.ipynb')) {
         files.push(subfile);
       }
     }
   }
-
   return files;
 }
 
@@ -124,6 +139,10 @@ async function indexFile(filePath, fileType) {
   const content = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
   const lines = content.split('\n');
   const result = { content, lines };
+
+  if (fileType === 'notebook') {
+    result.json = JSON.parse(content);
+  }
 
   if (fileType === 'lib') {
     result.imports = getImportLines(lines);
