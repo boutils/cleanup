@@ -266,6 +266,19 @@ export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true
   return allLayersJsonString.includes(`"referenceId":"${layerId}"`);
 }
 
+export function isLayerUsedOnlyByOneCard(layerId, index, includesSharedLayers = true) {
+  let allLayersJsonString = '';
+
+  for (const { json } of index.stacks.list) {
+    const string = JSON.stringify(json);
+    const sharedString = includesSharedLayers ? JSON.stringify(index.stacks.spec.json.layers) : '';
+    allLayersJsonString += (string + sharedString).replace(/\s/g, '');
+  }
+
+  const occurrences = allLayersJsonString.split(`"referenceId":"${layerId}"`).length - 1;
+  return occurrences === 1;
+}
+
 export function isValidHtmlAttribute(attribute) {
   return VALID_HTML_ATTRIBUTES.has(attribute) || attribute.startsWith('data-');
 }

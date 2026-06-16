@@ -1,4 +1,10 @@
-import { deepMergeTwoObjects, getSortingError, isLayerUsedByAnyCard, pickExcept } from '../utils.js';
+import {
+  deepMergeTwoObjects,
+  getSortingError,
+  isLayerUsedByAnyCard,
+  isLayerUsedOnlyByOneCard,
+  pickExcept,
+} from '../utils.js';
 import { computeMergedLayer } from '../utils.js';
 
 export default {
@@ -24,6 +30,7 @@ export default {
             });
             break;
           }
+
           sharedLayer = deepMergeTwoObjects(referencedLayer, pickExcept(sharedLayer, 'referenceId'));
         }
 
@@ -50,10 +57,20 @@ export default {
             if (originalLayerSpec.referenceId && !index.stacks.spec.json.layers?.[originalLayerSpec.referenceId]) {
               errors.push({
                 filePath,
-                line: originalLayerSpec.title?.line,
+                line: undefined,
                 message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer id "${originalLayerSpec.referenceId}" not found in shared layers.`,
               });
               break;
+            }
+
+            if (isLayerUsedOnlyByOneCard(originalLayerSpec.referenceId, index, false)) {
+              if (Object.keys(pickExcept(originalLayerSpec, 'referenceId')).length > 0) {
+                errors.push({
+                  filePath: filePath,
+                  line: undefined,
+                  message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Shared layer id "${originalLayerSpec.referenceId}" is used only by one card and has overridden properties.`,
+                });
+              }
             }
 
             const layer = computeMergedLayer(originalLayerSpec, index);
