@@ -255,7 +255,9 @@ export function isClassIgnored(className) {
 }
 
 export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true) {
-  let allLayersJsonString = '';
+  let allLayersJsonString = index.stacks.spec.json.layers
+    ? JSON.stringify(index.stacks.spec.json.layers).replace(/\s/g, '')
+    : '';
 
   for (const { json } of index.stacks.list) {
     const string = JSON.stringify(json);
@@ -267,7 +269,9 @@ export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true
 }
 
 export function isLayerUsedOnlyByOneCard(layerId, index, includesSharedLayers = true) {
-  let allLayersJsonString = '';
+  let allLayersJsonString = index.stacks.spec.json.layers
+    ? JSON.stringify(index.stacks.spec.json.layers).replace(/\s/g, '')
+    : '';
 
   for (const { json } of index.stacks.list) {
     const string = JSON.stringify(json);
