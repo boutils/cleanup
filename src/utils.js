@@ -95,7 +95,11 @@ export function computeMergedLayer(spec, index) {
   let layer = spec;
 
   while (layer.referenceId) {
-    layer = deepMergeTwoObjects(index.stacks.spec.json.layers?.[layer.referenceId], pickExcept(layer, 'referenceId'));
+    layer = deepMergeTwoObjects(
+      index.stacks.spec.json.layers?.[layer.referenceId],
+      pickExcept(layer, 'referenceId'),
+      true
+    );
   }
 
   return layer;
