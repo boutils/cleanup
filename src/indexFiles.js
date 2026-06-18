@@ -71,7 +71,7 @@ export async function indexFiles() {
         index.terms = { items: JSON.parse(index.byPath[filePath].content), path: filePath };
       }
 
-      if (filePath.endsWith('/macro-strategy=demo/stacks.json')) {
+      if (filePath.endsWith('/metadata/stacks/stacks.json')) {
         index.stacks.spec = { json: JSON.parse(index.byPath[filePath].content), path: filePath };
         if (index.stacks.spec.json.layers) {
           for (const layer of Object.values(index.stacks.spec.json.layers)) {
@@ -88,7 +88,7 @@ export async function indexFiles() {
         }
       }
 
-      if (filePath.includes('/macro-strategy=demo/stack_') && filePath.endsWith('.json')) {
+      if (filePath.includes('/metadata/stacks/stack_') && filePath.endsWith('.json')) {
         index.stacks.list.push({ json: JSON.parse(index.byPath[filePath].content), path: filePath });
       }
     }
