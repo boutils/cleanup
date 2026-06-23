@@ -1,4 +1,4 @@
-const IGNORED = ['--v-theme-background', '--v-theme-primary'];
+const IGNORED = ['--v-theme-background', '--v-theme-primary', '--v-theme-error'];
 const IGNORED_VARS = ['falseBooleanColor'];
 
 export default {
