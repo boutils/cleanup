@@ -346,6 +346,7 @@ QDENS
 radiobox
 rankp
 RANKP
+Rasterizes
 relayout
 Relayout
 relayouting
@@ -481,6 +482,7 @@ vvix
 VVIX
 VYBQZ
 WBILL
+worktree
 xanchor
 xaxis
 XCBO
