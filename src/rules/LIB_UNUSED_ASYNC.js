@@ -1,4 +1,5 @@
 const IGNORED = [
+  'scripts/schedules/setup-schedules.ts__listExistingSchedules',
   'src/libs/signals-store.ts__getOrFetchSignals',
   'src/libs/worker/libs/instruments.worker.ts__searchInstruments',
   'src/libs/worker/libs/signals.worker.ts__getOrFetchSignals',
