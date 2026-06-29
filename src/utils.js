@@ -37,6 +37,7 @@ const VALID_HTML_TAGS = new Set(['a', 'body', 'br', 'div', 'head', 'img', 'li', 
 
 const VALID_HTML_ATTRIBUTES = new Set([
   'alt',
+  'aria-label',
   'autocomplete',
   'class',
   'contenteditable',
@@ -49,6 +50,7 @@ const VALID_HTML_ATTRIBUTES = new Set([
   'no-spellcheck',
   'ref',
   'rel',
+  'role',
   'slot',
   'src',
   'spellcheck',
