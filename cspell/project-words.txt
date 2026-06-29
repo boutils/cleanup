@@ -288,6 +288,8 @@ NBER
 NFIB
 NGEX
 notif
+noopener
+noreferrer
 Noto
 Novavax
 nsec
@@ -383,6 +385,7 @@ SMCI
 SMIX
 socio
 Socio
+Spacebar
 SPCP
 SPCR
 SPDR
