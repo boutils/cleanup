@@ -135,6 +135,7 @@ economicindicators
 EDGWT
 EIACOSC
 EIAGSC
+ellipsised
 Elon
 EODR
 EMCWD
@@ -337,6 +338,9 @@ Plotly
 PLOTM
 preqin
 Preqin
+presign
+presigns
+Presigns
 printset
 Printset
 PROCUST
