@@ -1,5 +1,6 @@
 Adoo
 ADPEC
+affordances
 AGPA
 AIMR
 AIPA
@@ -42,6 +43,7 @@ BEAPI
 BEAPS
 BEARGDP
 BEATB
+behaviour
 BERNL
 Bessent
 BFSFSD
@@ -442,6 +444,7 @@ Tukey's
 UCVB
 uirevision
 UMCS
+unclickable
 underlyings
 Unhover
 unhover
