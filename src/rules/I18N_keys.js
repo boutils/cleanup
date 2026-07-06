@@ -8,7 +8,7 @@ export default {
     for (const filePath of filesPaths) {
       const { content } = index.byPath[filePath];
 
-      if (!filePath.endsWith('.i18n.json') || filePath.endsWith('common.i18n.json')) {
+      if (!filePath.endsWith('.i18n.json') || filePath.startsWith('src/i18n/')) {
         continue;
       }
 
