@@ -8,6 +8,9 @@ const IGNORED = [
   'src/libs/worker/libs/quanta-pricer.worker.ts__computeMoneynessZoom',
   'src/libs/worker/libs/regimes-events-schema.worker.ts__fetchRegimesSchema',
   'src/libs/worker/libs/ticker-relations.worker.ts__computeTickerRelations',
+  'src/libs/worker/libs/backtest-metadata.worker.ts__fetchBacktestFactorsMetadata',
+  'src/libs/worker/libs/backtest-metadata.worker.ts__resolveBacktestFactorsMetadata',
+  'src/libs/worker/libs/backtest-metadata.worker.ts__downloadBacktestMetadata',
 ];
 
 export default {
