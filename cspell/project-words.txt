@@ -115,6 +115,8 @@ creat
 CUST
 cust
 Cust
+CUSTGEX
+CUSTGEXV
 databento
 Databento
 DELSL
@@ -138,8 +140,11 @@ EIAGSC
 ellipsised
 Elon
 EODR
+EMCWDV
 EMCWD
 EMGEXFLIP
+EMGEXFLIPV
+EMPWDV
 EMPWD
 EMRANGE
 EMRET
@@ -172,7 +177,11 @@ GAMSS
 gantt
 GEHC
 Geman
+geomean
 GEXFLIP
+GEXV
+GEXVX
+GEXX
 globalmarkets
 GRCF
 Greif
@@ -215,6 +224,7 @@ ISMSE
 ISMSPMI
 issuebot
 IVATM
+IVCHG
 IVMR
 Katex
 katex
@@ -257,6 +267,8 @@ Madan
 MADIF
 madn
 MADN
+MAGNETSIG
+MAGNETSIGV
 Manchin
 materialdesignicons
 maxime
@@ -265,6 +277,15 @@ meixner
 Meixner
 metalness
 MEVS
+MMGEXACC
+MMGEXCHG
+MMGEXOPEN
+MMGEXOPENV
+MMGEXW
+MMTEX
+MMTEXV
+MMVEX
+MMVEXV
 MIDH
 midhinge
 Midhinge
@@ -290,6 +311,7 @@ NBBOR
 nbclient
 NBER
 NFIB
+NGEXV
 NGEX
 notif
 noopener
