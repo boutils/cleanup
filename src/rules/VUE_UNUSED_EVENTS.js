@@ -17,7 +17,8 @@ export default {
           if (
             !vmc.emits.values.includes(lineInfo.eventName) &&
             !ignoredEvents.includes(lineInfo.eventName) &&
-            !ignoredFiles.includes(filePath)
+            !ignoredFiles.includes(filePath) &&
+            lineInfo.eventName !== 'update:model-value'
           ) {
             errors.push({
               filePath,

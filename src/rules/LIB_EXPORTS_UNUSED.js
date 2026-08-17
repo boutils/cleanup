@@ -14,6 +14,18 @@ const IGNORE_FILES = [
   'src/utilities/utils.js',
   'src/utilities/uuid.ts',
   'src/utilities/values.ts',
+  'src/components/stoic-deck/components/stoic-deck-body/components/stoic-deck-perspective-signals/components/stoic-deck-visual/plugins/delta-tooltip.ts',
+  'src/components/stoic-deck/components/stoic-deck-body/components/stoic-deck-perspective-signals/components/stoic-deck-visual/plugins/month-grid-lines.ts',
+  'src/components/stoic-skeleton/lib/stoic-skeleton.lib.ts',
+  'src/libs/baseline-backtests.ts',
+  'src/libs/duckdb.ts',
+  'src/libs/plugins/drawdown-areas.ts',
+  'src/libs/plugins/helpers/histogram.ts',
+  'src/libs/plugins/notable-periods.ts',
+  'src/libs/plugins/vertical-aggregated-bar.ts',
+  'src/libs/reports.ts',
+  'src/libs/table.ts',
+  'src/utilities/version-check.ts',
 ];
 
 export default {

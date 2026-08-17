@@ -28,6 +28,8 @@ const IGNORED_CLASSES = [
   'title',
   'caption',
   'overline',
+  'stoic-deck-table-row',
+  'stoic-menu-item',
   'syntax',
   'table',
   'theme--dark',
@@ -37,6 +39,11 @@ const VALID_HTML_TAGS = new Set(['a', 'body', 'br', 'div', 'head', 'img', 'li', 
 
 const VALID_HTML_ATTRIBUTES = new Set([
   'alt',
+  'aria-busy',
+  'aria-checked',
+  'aria-controls',
+  'aria-current',
+  'aria-expanded',
   'aria-label',
   'autocomplete',
   'class',
@@ -257,7 +264,15 @@ export function getSortingError(arr, lineNumber = null) {
 }
 
 export function isClassIgnored(className) {
-  return IGNORED_CLASSES.includes(className) || isMarginPaddingClass(className) || className.startsWith('v-');
+  return (
+    IGNORED_CLASSES.includes(className) ||
+    isMarginPaddingClass(className) ||
+    className.startsWith('v-') ||
+    className.includes('leave-active') ||
+    className.includes('enter-active') ||
+    className.includes('enter-to') ||
+    className.includes('leave-to')
+  );
 }
 
 export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true) {

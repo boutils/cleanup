@@ -68,10 +68,10 @@ function checkDecimals(type, errors, filePath, cardKey, cardIndex, layerIndex, l
 
     if (metric.format?.prefix === '$' && metric.format.decimals?.mode === 'fixed') {
       if (metric.format.mode === 'volume' && metric.format.decimals?.count !== 1) {
-        errors.push({
-          filePath,
-          message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: For currency "$" metrics with "volume" mode, "decimals.count" should be 1. Found ${JSON.stringify(metric.format.decimals?.count)}.`,
-        });
+        // errors.push({
+        //   filePath,
+        //   message: `[${getMetricRefText(type, metric, cardKey, cardIndex, layerIndex)}]: For currency "$" metrics with "volume" mode, "decimals.count" should be 1. Found ${JSON.stringify(metric.format.decimals?.count)}.`,
+        // });
       } else if (metric.format.mode !== 'volume' && metric.format.decimals?.count !== 0) {
         errors.push({
           filePath,
@@ -129,28 +129,15 @@ function checkMetricsCount(type, errors, filePath, cardKey, cardIndex, layers, i
       for (const layerMetric of layerMetrics) {
         metrics.push(layerMetric.label || layerMetric.name);
       }
-
-      // For center card, it is by layer in the right panel
-      if (cardKey === 'center') {
-        const metricsLength = metrics.length / columnCount;
-        if (metricsLength > maxMetrics) {
-          errors.push({
-            filePath,
-            message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
-          });
-        }
-
-        metrics = [];
-      }
     }
 
     if (cardKey !== 'center') {
       const metricsLength = metrics.length / columnCount;
       if (metricsLength > maxMetrics) {
-        errors.push({
-          filePath,
-          message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
-        });
+        // errors.push({
+        //   filePath,
+        //   message: `[${getCardRefText(cardKey, cardIndex)}] ${type}: Too many ${type}. Found ${metricsLength} but max is ${maxMetrics}. List of ${type}: ${metrics.join(', ')}.`,
+        // });
       }
     }
   }

@@ -24,12 +24,14 @@ export default {
           trimmedPreviousLineInfo !== '' &&
           trimmedPreviousLineInfo !== '*/' &&
           !trimmedPreviousLineInfo.startsWith('//') &&
-          !ignoredFiles.includes(filePath)
+          !ignoredFiles.includes(filePath) &&
+          !trimmedPreviousLineInfo.startsWith('//') &&
+          !trimmedPreviousLineInfo.startsWith('/*')
         ) {
           errors.push({
             filePath,
             line: lineIndex + 1,
-            message: 'Add an empty line before.',
+            message: 'Add an empty line before. 1',
           });
         }
 
@@ -38,12 +40,14 @@ export default {
           (trimmedLine.startsWith('case ') || trimmedLine === 'default:') &&
           trimmedPreviousLineInfo !== '' &&
           !trimmedPreviousLineInfo.endsWith('{') &&
-          !trimmedPreviousLineInfo.includes('case ')
+          !trimmedPreviousLineInfo.includes('case ') &&
+          !trimmedPreviousLineInfo.startsWith('//') &&
+          !trimmedPreviousLineInfo.startsWith('/*')
         ) {
           errors.push({
             filePath,
             line: lineIndex + 1,
-            message: 'Add an empty line before.',
+            message: 'Add an empty line before. 2',
           });
         }
 

@@ -6,6 +6,7 @@ const PUBLIC_METHODS = [
   'stoic-chart-header__getWidth',
   'stoic-edit-dialog__processMessage',
   'stoic-historical-chart__updateCrosshairActivation',
+  'stoic-deck-perspective-table__locateSelectedRow',
 ];
 
 export default {

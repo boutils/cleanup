@@ -1,4 +1,4 @@
-const IGNORED_COMPONENTS = ['stoic-middleware'];
+const IGNORED_COMPONENTS = ['stoic-middleware', 'stoic-comparator-field-node'];
 
 export default {
   validate: (index) => {

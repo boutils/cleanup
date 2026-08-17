@@ -9,7 +9,7 @@ export default {
       for (const lineInfo of linesInfo) {
         const { line } = lineInfo;
 
-        if (!lineInfo.hasBackTick) {
+        if (!lineInfo.hasBackTick || lineInfo.isCommentedLine) {
           continue;
         }
 

@@ -1,6 +1,6 @@
 import { computeRelatedVuePath, getCSSClasses, isClassIgnored } from '../utils.js';
 
-const IGNORED_CLASSES = ['empty', 'focused', 'value-copied', 'selected', 'stoic-menu-list'];
+const IGNORED_CLASSES = ['empty', 'focused', 'hidden', 'value-copied', 'selected', 'stoic-menu-list'];
 export default {
   validate: (index) => {
     const filesPaths = index.byType['style'];
@@ -32,6 +32,7 @@ export default {
           !className.startsWith(`expand-collapse-`) &&
           !className.startsWith(`slide-up-`) &&
           !className.startsWith(`stoic-menu-`) &&
+          !className.startsWith(`stoic-skeleton-fade-`) &&
           !vueContent.includes(`<${className}`)
         ) {
           errors.push({

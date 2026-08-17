@@ -24,7 +24,11 @@ export default {
           continue;
         }
 
-        if (!lineInfo.isVueBinding && !vmcContent.includes(`this.$refs.${lineInfo.attributeValue}`)) {
+        if (
+          !lineInfo.isVueBinding &&
+          !vmcContent.includes(`this.$refs.${lineInfo.attributeValue}`) &&
+          !vmcContent.includes('= this.$refs;')
+        ) {
           errors.push({
             filePath: filePath,
             line: lineInfo.lineNumber,
