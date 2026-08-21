@@ -6,7 +6,8 @@ export default {
     for (const filePath of filesPaths) {
       const { imports, lines } = index.byPath[filePath];
 
-      let lineNumber = 2;
+      let lineNumber = lines.findIndex((line) => line.trim() === '') + 1;
+
       for (const _import of imports.values) {
         if (
           _import.lineNumber !== lineNumber + 1 &&

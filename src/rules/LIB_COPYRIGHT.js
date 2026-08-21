@@ -19,7 +19,7 @@ export default {
         });
       }
 
-      if (secondLine !== '') {
+      if (secondLine !== '' && !secondLine.startsWith('//')) {
         errors.push({
           filePath,
           line: 2,
