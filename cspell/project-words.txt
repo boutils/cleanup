@@ -146,8 +146,8 @@ EIAGSC
 ellipsised
 Elon
 EODR
-EMCWDV
 EMCWD
+EMCWDV
 EMGEXFLIP
 EMGEXFLIPV
 EMPWDV
@@ -325,8 +325,8 @@ NBBOR
 nbclient
 NBER
 NFIB
-NGEXV
 NGEX
+NGEXV
 notif
 noopener
 noreferrer
