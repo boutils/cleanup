@@ -102,6 +102,7 @@ CGMY
 Chipset
 clarabel
 clocktime
+codegen
 Coef
 coef
 Coeff
@@ -512,6 +513,7 @@ Unhover
 unhover
 unparseable
 unrecognized
+unsayable
 unscanned
 Unvalidated
 Unzoom
