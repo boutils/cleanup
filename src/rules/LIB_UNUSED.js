@@ -5,6 +5,7 @@ const IGNORED_LIBS_PATHS = [
   'src/main.ts',
   'src/utilities/functional.ts',
   'src/libs/worker/worker.ts',
+  'src/types/marked-katex-extension.d.ts',
 ];
 
 export default {
