@@ -135,7 +135,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, originalLay
   }
 
   // Check mapping metrics overview
-  if (layer.mapping?.metrics && !layer.mapping.metrics.some((m) => m.overview === true)) {
+  if (layer.mapping?.metrics?.length && !layer.mapping.metrics.some((m) => m.overview === true)) {
     errors.push({
       filePath,
       line: undefined,
@@ -145,7 +145,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, originalLay
 
   // Check mapping metrics/summaries length
   for (const prop of ['metrics', 'summaries']) {
-    if (layer.mapping?.[prop] && layer.mapping[prop].length === 0) {
+    if (layer.mapping?.[prop] && layer.mapping[prop].length === 0 && !originalLayerSpec.referenceId) {
       errors.push({
         filePath,
         line: layer.mapping[prop].line,
@@ -155,7 +155,7 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer, originalLay
   }
 
   // // Check mapping summaries overview
-  if (layer.mapping?.summaries && !layer.mapping.summaries.some((m) => m.overview === true)) {
+  if (layer.mapping?.summaries?.length && !layer.mapping.summaries.some((m) => m.overview === true)) {
     errors.push({
       filePath,
       line: undefined,
