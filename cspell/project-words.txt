@@ -9,6 +9,7 @@ AKIAIOSFODNN
 AKIAUP
 ampm
 annualize
+annualizes
 ANPA
 ANVA
 AOUSCB
@@ -515,6 +516,7 @@ unhide
 Unhide
 Unhover
 unhover
+unhovered
 unparseable
 unrecognized
 unsayable
@@ -589,6 +591,8 @@ zaxis
 zeroline
 zhang
 Zhang
+zscore
+ZSCORE
 zsmooth
 ZVIV
 ZVRP
