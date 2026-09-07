@@ -116,6 +116,7 @@ corporateearningsandannouncements
 CPTOW
 creat
 crosshairs
+curations
 CUST
 cust
 Cust
@@ -402,6 +403,8 @@ refetches
 relayout
 Relayout
 relayouting
+renderable
+Repointed
 Rerversion
 Resizer
 retarget
@@ -421,6 +424,7 @@ scattergl
 Scholes
 scorebook
 Sección
+sharpes
 Shiller
 SHLOG
 showarrow
