@@ -31,7 +31,7 @@ const IGNORE_FILES = [
 export default {
   validate: (index) => {
     // Check VMC & VUE files
-    const filesPaths = index.byType['lib'].concat(index.byType['vue']);
+    const filesPaths = index.byType['lib'].concat(index.byType['vue']).concat(index.byType['tests'] ?? []);
 
     const errors = [];
     const _exports = {};

@@ -38,6 +38,12 @@ export async function indexFiles() {
     stacks: { spec: {}, list: [], notebooks: [] },
   };
 
+  const testFilesPaths = getFilesPathsFromDirectories(['tests']);
+  index.byType.tests = testFilesPaths;
+  for (const testFilePath of testFilesPaths) {
+    index.byPath[testFilePath] = await indexFile(testFilePath, 'tests');
+  }
+
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
 

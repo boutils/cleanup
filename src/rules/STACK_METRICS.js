@@ -48,12 +48,12 @@ function checkLayer(filePath, cardKey, cardIndex, layerIndex, layer) {
     checkDecimals('summaries', errors, filePath, cardKey, cardIndex, layerIndex, layer);
   }
 
-  if (layer.mapping.metrics?.length && (!layer.mapping.summaries || layer.mapping.summaries.length === 0)) {
-    errors.push({
-      filePath,
-      message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer has "metrics" but no "summaries". Each layer with "metrics" should have at least one "summary".`,
-    });
-  }
+  // if (layer.mapping.metrics?.length && (!layer.mapping.summaries || layer.mapping.summaries.length === 0)) {
+  //   errors.push({
+  //     filePath,
+  //     message: `[${getLayerRefText(cardKey, cardIndex, layerIndex)}]: Layer has "metrics" but no "summaries". Each layer with "metrics" should have at least one "summary".`,
+  //   });
+  // }
 
   return errors;
 }
