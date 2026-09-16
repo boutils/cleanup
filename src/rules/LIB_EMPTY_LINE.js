@@ -31,7 +31,7 @@ export default {
           errors.push({
             filePath,
             line: lineIndex + 1,
-            message: 'Add an empty line before. 1',
+            message: 'Add an empty line before. case 1',
           });
         }
 
@@ -47,7 +47,7 @@ export default {
           errors.push({
             filePath,
             line: lineIndex + 1,
-            message: 'Add an empty line before. 2',
+            message: 'Add an empty line before. case 2',
           });
         }
 
@@ -61,6 +61,7 @@ export default {
           !nextLineInfo.trim().startsWith(']') &&
           !nextLineInfo.trim().startsWith(':') &&
           !nextLineInfo.trim().startsWith('>') &&
+          !nextLineInfo.trim().startsWith('|') &&
           nextLineInfo.trim() !== '`;'
         ) {
           errors.push({

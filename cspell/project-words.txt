@@ -177,6 +177,7 @@ FRBNYEFFR
 FRBNYMI
 FRBPMI
 FRBSFPFR
+fromisoformat
 FRSBPLR
 FRSFFER
 FRSIP
@@ -402,6 +403,7 @@ radiobox
 rankp
 RANKP
 Rasterizes
+reapprove
 refetches
 relayout
 Relayout
