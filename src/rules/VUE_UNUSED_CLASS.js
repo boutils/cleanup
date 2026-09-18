@@ -22,10 +22,12 @@ export default {
       const scssFilePath = computeCSSPathFromVuePath(filePath, true);
 
       let localClasses = [];
+      let localAst = null;
 
       if (scssFilePath) {
         const { scss } = index.byPath[scssFilePath];
         const { ast } = scss;
+        localAst = ast;
         localClasses = getCSSClasses(ast);
       }
 
@@ -36,7 +38,11 @@ export default {
           const classList = getClassListFromAttribute(lineInfo.line);
 
           for (const className of classList) {
-            if (!validClasses.includes(className) && !isClassIgnored(className, filePath, lineInfo.lineNumber)) {
+            if (
+              !validClasses.includes(className) &&
+              !isClassIgnored(className, filePath, lineInfo.lineNumber) &&
+              !hasMixinLocalClass(localAst)
+            ) {
               errors.push({
                 filePath: filePath,
                 line: lineInfo.lineNumber,
@@ -51,6 +57,20 @@ export default {
     return { errors };
   },
 };
+
+function hasMixinLocalClass(localAst) {
+  if (!localAst) {
+    return false;
+  }
+
+  for (const val of localAst.value) {
+    if (val.type === 'atrule' && val.value[0].value === 'include' && val.value[3].type === 'arguments') {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 function extractDynamicClassNames(input) {
   let str = input.trim().replace(':class', '');
