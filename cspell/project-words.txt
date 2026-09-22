@@ -340,6 +340,7 @@ Novavax
 nsec
 NSSF
 nticks
+nums
 Nutanix
 OBAQ
 OBAT
@@ -544,6 +545,7 @@ USCBRBP
 USCBRI
 USCBRS
 USDTTICF
+valuenow
 vanna
 Vanna
 VANNA

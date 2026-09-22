@@ -11,6 +11,8 @@ const IGNORED = [
   'src/libs/worker/libs/backtest-metadata.worker.ts__fetchBacktestFactorsMetadata',
   'src/libs/worker/libs/backtest-metadata.worker.ts__resolveBacktestFactorsMetadata',
   'src/libs/worker/libs/backtest-metadata.worker.ts__downloadBacktestMetadata',
+  'src/libs/duckdb.ts__getDuckDBInstance',
+  'src/libs/duckdb.ts__createDuckDBClient',
 ];
 
 export default {
