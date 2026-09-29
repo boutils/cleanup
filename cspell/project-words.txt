@@ -255,6 +255,7 @@ LBOS
 lcrb
 LETH
 libc
+lifecycles
 linecolor
 linkedom
 linspace
@@ -398,6 +399,7 @@ PROCUSTOMER
 PROCUSTOMERS
 procustomer
 pthread
+pydantic
 pytest
 QDENS
 radiobox
