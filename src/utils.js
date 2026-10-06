@@ -50,6 +50,7 @@ const VALID_HTML_ATTRIBUTES = new Set([
   'contenteditable',
   'crossorigin',
   'disabled',
+  'draggable',
   'href',
   'id',
   'key',
