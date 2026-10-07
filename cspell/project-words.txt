@@ -92,6 +92,7 @@ Bullard
 Calmar
 CALND
 capex
+casefold
 CBCCI
 CDSS
 CFNAI
