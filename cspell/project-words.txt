@@ -34,6 +34,7 @@ backtesting
 Backtesting
 Backtests
 backtests
+Backteststrategy
 bargap
 bargroupgap
 BEACPCEPI
@@ -425,6 +426,7 @@ riskappetiteandvolatility
 RLITE
 RMADIF
 Robinhood
+Rolebaseline
 RVOL
 SAMP
 sbdocs
