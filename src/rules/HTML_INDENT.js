@@ -27,7 +27,11 @@ export default {
           continue;
         }
 
-        if (expectedIndentation !== lineInfo.indentationCount && !lineInfo.allowMultipleTags) {
+        if (
+          !lineInfo.isInsideStyleTag &&
+          expectedIndentation !== lineInfo.indentationCount &&
+          !lineInfo.allowMultipleTags
+        ) {
           errors.push({
             filePath,
             line: lineInfo.lineNumber,

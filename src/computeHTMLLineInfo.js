@@ -1,7 +1,8 @@
 export function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previousLineInfo) {
   const previousTagName = !previousLineInfo.hasEndingTag ? previousLineInfo.tagName : undefined;
   const isEmptyLine = !line;
-  const isCommentedLine = isHTMLCommentedLine(line, previousLineInfo) || isJSCommentedLine(line, previousLineInfo);
+  const isCommentedLine = isHTMLCommentedLine(line, previousLineInfo);
+  const isInsideStyleTag = isHTMLInsideStyleTag(line, previousLineInfo);
   const indentationCount = computeHTMLLineIndentation(line);
   const hasStartingTag = hasHTMLLineStartingTag(line, indentationCount);
   const hasEndingTag = hasHTMLLineEndingTag(line);
@@ -52,6 +53,7 @@ export function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previou
     isClosingTag,
     isCommentedLine,
     isEmptyLine,
+    isInsideStyleTag,
     isInsideVFor,
     isShortClosingTag,
     isVueBinding,
@@ -64,6 +66,16 @@ export function computeHTMLLineInfo(line, lineNumber, currentBlockDepth, previou
 
 function computeEqualPosition(line) {
   return line.indexOf('=');
+}
+
+function isHTMLInsideStyleTag(line, previousLineInfo) {
+  if (line.includes('<style')) {
+    return true;
+  } else if (line.includes('</style>')) {
+    return false;
+  } else {
+    return !!previousLineInfo.isInsideStyleTag;
+  }
 }
 
 function computeHTMLLineAttributeNames(line, hasStartingTag, hasEndingTag, equalPosition) {
@@ -208,16 +220,6 @@ function isHTMLLineVueBinding(line, attributeNames) {
 
 function isHTLMShortClosingTag(line) {
   return line.includes('/>');
-}
-
-function isJSCommentedLine(line, previousLineInfo) {
-  if (line.trim().startsWith('//') || line.trim().startsWith('/*') || line.includes('*/')) {
-    return true;
-  } else if (previousLineInfo.line?.includes('*/') || previousLineInfo.line?.trim()?.startsWith('//')) {
-    return false;
-  } else {
-    return !!previousLineInfo.isCommentedLine;
-  }
 }
 
 function isMultipleTagsAllowed(line, hasStartingTag, tagName) {
