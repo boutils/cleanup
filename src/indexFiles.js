@@ -5,14 +5,14 @@ import { createHash } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'scss-parser';
-import { FunctionDeclaration, TypescriptParser } from 'typescript-parser';
 import { cacheDirectory } from './cache.js';
 import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
-const parser = new TypescriptParser();
-const FUNCTIONS_CACHE_PATH = path.join(cacheDirectory('typescript-parser'), 'functions.json');
-// Parsed function declarations keyed by content hash: parsing every lib costs half a second, reading JSON does not.
-const functionsCache = { known: {}, seen: {} };
+const PARSE_CACHE_PATH = path.join(cacheDirectory('parsers'), 'parsed.json');
+// typescript-parser, Vuedoc and scss-parser outputs keyed by content hash: parsing everything costs half a second,
+// reading JSON does not.
+const parseCache = { known: {}, seen: {} };
+let typescriptParser = null;
 const DIRECTORIES = ['.storybook', 'src', 'scripts'];
 const IGNORED_PATHS = ['src/python'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue', '.ipynb']);
@@ -32,9 +32,18 @@ const TS_LOADER = Vuedoc.Loader.extend('js', TypescriptLoader);
 
 const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
-export async function indexFiles() {
-  functionsCache.known = readFunctionsCache();
-  const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
+export function listFiles() {
+  return getFilesPathsFromDirectories(DIRECTORIES).filter(
+    (filePath) => !isIgnoredFile(filePath, path.extname(filePath))
+  );
+}
+
+export function listTestFiles() {
+  return getFilesPathsFromDirectories(['tests']);
+}
+
+export async function indexFiles(filesPaths = listFiles(), { saveParseCache = true } = {}) {
+  parseCache.known = readParseCache();
   const index = {
     allContent: '',
     allFiles: [],
@@ -44,7 +53,7 @@ export async function indexFiles() {
     stacks: { spec: {}, list: [], notebooks: [] },
   };
 
-  const testFilesPaths = getFilesPathsFromDirectories(['tests']);
+  const testFilesPaths = listTestFiles();
   index.byType.tests = testFilesPaths;
   for (const testFilePath of testFilesPaths) {
     index.byPath[testFilePath] = await indexFile(testFilePath, 'tests');
@@ -53,60 +62,60 @@ export async function indexFiles() {
   for (const filePath of filesPaths) {
     const extension = path.extname(filePath);
 
-    if (!isIgnoredFile(filePath, extension)) {
-      const fileType = TYPE_FROM_EXTENSION[extension];
-      if (!fileType) {
-        throw new Error(`Unknown type for extension '${extension}'`);
-      }
+    const fileType = TYPE_FROM_EXTENSION[extension];
+    if (!fileType) {
+      throw new Error(`Unknown type for extension '${extension}'`);
+    }
 
-      const path = filePath.endsWith('.ipynb') ? filePath.split('/').pop() : filePath;
-      index.byPath[path] = await indexFile(filePath, fileType);
+    const indexKey = filePath.endsWith('.ipynb') ? filePath.split('/').pop() : filePath;
+    index.byPath[indexKey] = await indexFile(filePath, fileType);
 
-      if (!filePath.endsWith('metadata/terms.json') && !filePath.endsWith('.ipynb')) {
-        index.allContent += index.byPath[filePath].content + '\n';
-      }
+    if (!filePath.endsWith('metadata/terms.json') && !filePath.endsWith('.ipynb')) {
+      index.allContent += index.byPath[filePath].content + '\n';
+    }
 
-      index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
-      index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
+    index.byType[TYPE_FROM_EXTENSION[extension]] ??= [];
+    index.byType[TYPE_FROM_EXTENSION[extension]].push(filePath);
 
-      index.allFiles.push(filePath);
-      if (filePath.includes('.vmc.')) {
-        index.byType.vmc ??= [];
-        index.byType.vmc.push(filePath);
-      }
+    index.allFiles.push(filePath);
+    if (filePath.includes('.vmc.')) {
+      index.byType.vmc ??= [];
+      index.byType.vmc.push(filePath);
+    }
 
-      if (filePath.endsWith('theme.json')) {
-        index.theme = indexThemeFile(index.byPath[filePath].content, filePath);
-      }
+    if (filePath.endsWith('theme.json')) {
+      index.theme = indexThemeFile(index.byPath[filePath].content, filePath);
+    }
 
-      if (filePath.endsWith('metadata/terms.json')) {
-        index.terms = { items: JSON.parse(index.byPath[filePath].content), path: filePath };
-      }
+    if (filePath.endsWith('metadata/terms.json')) {
+      index.terms = { items: JSON.parse(index.byPath[filePath].content), path: filePath };
+    }
 
-      if (filePath.endsWith('/metadata/stacks/stacks.json')) {
-        index.stacks.spec = { json: JSON.parse(index.byPath[filePath].content), path: filePath };
-        if (index.stacks.spec.json.layers) {
-          for (const layer of Object.values(index.stacks.spec.json.layers)) {
-            if (
-              layer.series?.notebook &&
-              !index.stacks.notebooks.find((notebook) => notebook.path === layer.series.notebook)
-            ) {
-              index.stacks.notebooks.push({
-                path: layer.series.notebook,
-                name: layer.series.notebook.split('/').pop(),
-              });
-            }
+    if (filePath.endsWith('/metadata/stacks/stacks.json')) {
+      index.stacks.spec = { json: JSON.parse(index.byPath[filePath].content), path: filePath };
+      if (index.stacks.spec.json.layers) {
+        for (const layer of Object.values(index.stacks.spec.json.layers)) {
+          if (
+            layer.series?.notebook &&
+            !index.stacks.notebooks.find((notebook) => notebook.path === layer.series.notebook)
+          ) {
+            index.stacks.notebooks.push({
+              path: layer.series.notebook,
+              name: layer.series.notebook.split('/').pop(),
+            });
           }
         }
       }
+    }
 
-      if (filePath.includes('/metadata/stacks/stack_') && filePath.endsWith('.json')) {
-        index.stacks.list.push({ json: JSON.parse(index.byPath[filePath].content), path: filePath });
-      }
+    if (filePath.includes('/metadata/stacks/stack_') && filePath.endsWith('.json')) {
+      index.stacks.list.push({ json: JSON.parse(index.byPath[filePath].content), path: filePath });
     }
   }
 
-  fs.writeFileSync(FUNCTIONS_CACHE_PATH, JSON.stringify(functionsCache.seen), 'utf8');
+  if (saveParseCache) {
+    fs.writeFileSync(PARSE_CACHE_PATH, JSON.stringify(parseCache.seen), 'utf8');
+  }
 
   return index;
 }
@@ -131,16 +140,15 @@ function getFilesPathsFromDirectory(directory, filter) {
     return [];
   }
 
-  const items = fs.readdirSync(directory);
+  const items = fs.readdirSync(directory, { withFileTypes: true });
   for (const item of items) {
-    const itemPath = directory + '/' + item;
-    const stat = fs.statSync(itemPath);
+    const itemPath = directory + '/' + item.name;
 
-    if (stat.isFile()) {
+    if (item.isFile()) {
       if (isMatchingFilter(itemPath, filter)) {
         files.push(itemPath);
       }
-    } else if (stat.isDirectory() && !directory.endsWith('node_modules')) {
+    } else if (item.isDirectory() && !directory.endsWith('node_modules')) {
       const subfiles = getFilesPathsFromDirectory(itemPath).filter((it) => isMatchingFilter(it, filter));
       files.push(...subfiles);
     }
@@ -177,7 +185,7 @@ async function indexFile(filePath, fileType) {
 
   if (filePath.endsWith('.scss') || filePath.endsWith('.css')) {
     try {
-      result.scss = indexCssFile(content);
+      result.scss = await cached('scss', content, () => indexCssFile(content));
     } catch (e) {
       console.error('Error in SCSS file:', filePath); // eslint-disable-line no-console
       console.error(e); // eslint-disable-line no-console
@@ -192,10 +200,12 @@ async function indexVmcFile(filePath, content, lines) {
   const lang = isTsFile ? 'ts' : 'js';
   const loader = isTsFile ? TS_LOADER : JS_LOADER;
 
-  const result = await Vuedoc.parse({
-    filecontent: `<script lang="${lang}">${content}</script>`,
-    loaders: [loader],
-  });
+  const result = await cached('vmc', content, () =>
+    Vuedoc.parse({
+      filecontent: `<script lang="${lang}">${content}</script>`,
+      loaders: [loader],
+    })
+  );
 
   result.emits = findEmits(lines);
   result.watch = findWatch(lines);
@@ -309,22 +319,30 @@ function findWatch(lines) {
   return watchs;
 }
 
-async function getFunctions(content) {
-  const hash = createHash('sha1').update(content).digest('hex');
-
-  if (!functionsCache.known[hash]) {
-    const parsed = await parser.parseSource(content);
-    const functions = parsed.declarations.filter((it) => it instanceof FunctionDeclaration);
-    functionsCache.known[hash] = JSON.parse(JSON.stringify(functions));
-  }
-
-  functionsCache.seen[hash] = functionsCache.known[hash];
-  return functionsCache.known[hash];
+function getFunctions(content) {
+  return cached('fn', content, async () => {
+    // Imported on the first miss only: a warm run never pays for loading the parser.
+    const { FunctionDeclaration, TypescriptParser } = await import('typescript-parser');
+    typescriptParser ??= new TypescriptParser();
+    const parsed = await typescriptParser.parseSource(content);
+    return parsed.declarations.filter((it) => it instanceof FunctionDeclaration);
+  });
 }
 
-function readFunctionsCache() {
+async function cached(kind, content, parse) {
+  const key = `${kind}:${createHash('sha1').update(content).digest('hex')}`;
+
+  if (!parseCache.known[key]) {
+    parseCache.known[key] = JSON.parse(JSON.stringify(await parse()));
+  }
+
+  parseCache.seen[key] = parseCache.known[key];
+  return parseCache.known[key];
+}
+
+function readParseCache() {
   try {
-    return JSON.parse(fs.readFileSync(FUNCTIONS_CACHE_PATH, 'utf8'));
+    return JSON.parse(fs.readFileSync(PARSE_CACHE_PATH, 'utf8'));
   } catch {
     return {};
   }

@@ -1,28 +1,29 @@
-import { indexFiles } from './src/indexFiles.js';
-import { getRules } from './src/listRules.js';
-import prettify from './src/prettify.js';
+import { listFiles } from './src/indexFiles.js';
+import { listRuleIds } from './src/listRules.js';
+import { applyFormatting, startPrettify } from './src/prettify.js';
 import { log, printReport } from './src/printReport.js';
+import { startRules } from './src/runRules.js';
+import { startSpellCheck } from './src/rules/SPELL.js';
 
 const startTime = Date.now();
 
-const rules = await getRules();
-const index = await indexFiles();
+// Everything heavy runs in worker threads from the start; this thread only merges their results in a stable order.
+const filesPaths = listFiles();
+const ruleIds = listRuleIds();
+const spellCheck = startSpellCheck(filesPaths);
+const formatting = startPrettify(filesPaths);
+const ruleResults = startRules(filesPaths, ruleIds);
 
-await prettify(index);
+const errorsByRule = await ruleResults;
+errorsByRule.set('SPELL', await spellCheck);
+applyFormatting(await formatting);
 
 const errorsByPath = {};
 
-for (const rule of rules) {
-  if (!rule.validate) {
-    log(`Rule '${rule.id}' is invalid and ignored`, 'error');
-    continue;
-  }
-
-  const result = await rule.validate(index);
-
-  for (const error of result.errors) {
+for (const ruleId of ruleIds) {
+  for (const error of errorsByRule.get(ruleId) ?? []) {
     errorsByPath[error.filePath] ??= [];
-    errorsByPath[error.filePath].push({ ...error, type: rule.id });
+    errorsByPath[error.filePath].push({ ...error, type: ruleId });
   }
 }
 

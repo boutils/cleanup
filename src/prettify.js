@@ -1,48 +1,42 @@
-import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import path from 'node:path';
-import * as prettier from 'prettier';
+import { Worker } from 'node:worker_threads';
 import { cacheDirectory } from './cache.js';
+import { listTestFiles } from './indexFiles.js';
 import { log } from './printReport.js';
 import ignore from 'ignore';
 
+const WORKERS = 4;
 const prettierOpts = JSON.parse(fs.readFileSync('.prettierrc', 'utf8'));
 const ignorePatterns = fs.readFileSync('.prettierignore', 'utf8').split('\n').filter(Boolean);
 const ig = ignore().add(ignorePatterns);
 
 const CACHE_PATH = path.join(cacheDirectory('prettier'), 'formatted-hashes.json');
 
-const logs = [];
-export default async function prettify(index) {
-  const filesPaths = Object.keys(index.byPath);
-  const knownFormatted = readCache();
-  const stillFormatted = new Set();
+// Workers read, hash and format their share of the files; a file whose hash is in the cache is already formatted.
+// Formatted text comes back here and is written by applyFormatting, once the rule workers are done reading.
+export async function startPrettify(filesPaths) {
+  const paths = [...listTestFiles(), ...filesPaths].filter((it) => !ig.ignores(it) && !it.endsWith('.ipynb'));
+  const knownHashes = readCache();
+  const shards = Array.from({ length: WORKERS }, (_, i) => paths.filter((_, j) => j % WORKERS === i));
 
-  for (const filePath of filesPaths) {
-    if (ig.ignores(filePath) || filePath.endsWith('.ipynb')) {
-      continue;
-    }
+  const results = await Promise.all(shards.map((shardPaths) => formatInWorker(shardPaths, knownHashes)));
+  const byPath = new Map(results.flat().map((it) => [it.filePath, it]));
 
-    const content = index.byPath[filePath].content;
-    const prettierOptions = { ...prettierOpts, filepath: filePath };
-    const contentHash = hashOf(filePath, prettierOptions, content);
+  return paths.map((filePath) => byPath.get(filePath));
+}
 
-    if (knownFormatted.has(contentHash)) {
-      stillFormatted.add(contentHash);
-      continue;
-    }
+export function applyFormatting(results) {
+  const logs = [];
 
-    const result = await prettier.format(content, prettierOptions);
-
-    if (result !== content) {
+  for (const { filePath, formatted } of results) {
+    if (formatted !== null) {
       logs.push(`     - File has been formatted: '${filePath}'`);
-      fs.writeFileSync(filePath, result, 'utf8');
+      fs.writeFileSync(filePath, formatted, 'utf8');
     }
-
-    stillFormatted.add(hashOf(filePath, prettierOptions, result));
   }
 
-  writeCache(stillFormatted);
+  writeCache(results.map((it) => it.hash));
 
   if (logs.length > 0) {
     log('  ❌ Formatting errors:', 'error');
@@ -54,27 +48,24 @@ export default async function prettify(index) {
   }
 }
 
-// The hash covers everything that can change prettier's output, so a hit means "already formatted".
-function hashOf(filePath, options, content) {
-  return createHash('sha1')
-    .update(prettier.version)
-    .update('\0')
-    .update(JSON.stringify(options))
-    .update('\0')
-    .update(filePath)
-    .update('\0')
-    .update(content)
-    .digest('hex');
+function formatInWorker(filePaths, knownHashes) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('./prettierWorker.js', import.meta.url), {
+      workerData: { filePaths, knownHashes, prettierOpts },
+    });
+    worker.once('message', resolve);
+    worker.once('error', reject);
+  });
 }
 
 function readCache() {
   try {
-    return new Set(JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8')));
+    return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
   } catch {
-    return new Set();
+    return [];
   }
 }
 
 function writeCache(hashes) {
-  fs.writeFileSync(CACHE_PATH, JSON.stringify([...hashes]), 'utf8');
+  fs.writeFileSync(CACHE_PATH, JSON.stringify(hashes), 'utf8');
 }
