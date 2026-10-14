@@ -6,6 +6,7 @@ export default {
     const { vars, path } = index.theme;
 
     const dynamicVars = computeDynamicVars(index.allContent);
+    const isMentioned = buildSubstringLookup(index.allContent);
 
     const errors = [];
     const indexExistingVars = index.theme.vars
@@ -17,11 +18,7 @@ export default {
 
     for (const themeVar of vars) {
       const varName = themeVar.key.replaceAll('$', '');
-      if (
-        !index.allContent.includes(varName) &&
-        !dynamicVars.find((it) => varName.includes(it)) &&
-        !IGNORED_VARS.includes(varName)
-      ) {
+      if (!isMentioned(varName) && !dynamicVars.find((it) => varName.includes(it)) && !IGNORED_VARS.includes(varName)) {
         const varPath = varName
           .split(/(?=[A-Z])/)
           .map((it) => it[0].toLowerCase() + it.slice(1))
@@ -48,6 +45,21 @@ export default {
     return { errors };
   },
 };
+
+// Equivalent to `allContent.includes(name)` for names made of [A-Za-z0-9_-]: such a substring always sits inside one
+// maximal run of those characters, so checking the unique runs replaces a full scan of the 13 MB content per name.
+function buildSubstringLookup(allContent) {
+  const tokens = new Set(allContent.match(/[A-Za-z0-9_-]+/g));
+  const joinedTokens = [...tokens].join('\n');
+
+  return (name) => {
+    if (!/^[A-Za-z0-9_-]+$/.test(name)) {
+      return allContent.includes(name);
+    }
+
+    return tokens.has(name) || joinedTokens.includes(name);
+  };
+}
 
 const searchText = 'getThemeColor(`';
 function computeDynamicVars(allContent) {
@@ -78,18 +90,6 @@ function computeDynamicVars(allContent) {
 }
 
 function getThemeVarsInCss(allContent) {
-  const themeVarsInCss = [];
-  const regex = /--v-theme-[\w-]+/g;
-
-  let match;
-  while ((match = regex.exec(allContent)) !== null) {
-    const themeVar = match[0];
-
-    allContent = allContent.replaceAll(match[0], '');
-    if (!themeVarsInCss.includes(themeVar)) {
-      themeVarsInCss.push(themeVar.replace('--v-theme-', ''));
-    }
-  }
-
-  return themeVarsInCss;
+  const matches = new Set(allContent.match(/--v-theme-[\w-]+/g));
+  return [...matches].map((it) => it.replace('--v-theme-', ''));
 }

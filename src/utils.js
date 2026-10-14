@@ -277,32 +277,11 @@ export function isClassIgnored(className) {
 }
 
 export function isLayerUsedByAnyCard(layerId, index, includesSharedLayers = true) {
-  let allLayersJsonString = index.stacks.spec.json.layers
-    ? JSON.stringify(index.stacks.spec.json.layers).replace(/\s/g, '')
-    : '';
-
-  for (const { json } of index.stacks.list) {
-    const string = JSON.stringify(json);
-    const sharedString = includesSharedLayers ? JSON.stringify(index.stacks.spec.json.layers) : '';
-    allLayersJsonString += (string + sharedString).replace(/\s/g, '');
-  }
-
-  return allLayersJsonString.includes(`"referenceId":"${layerId}"`);
+  return countLayerReferences(layerId, index, includesSharedLayers) > 0;
 }
 
 export function isLayerUsedOnlyByOneCard(layerId, index, includesSharedLayers = true) {
-  let allLayersJsonString = index.stacks.spec.json.layers
-    ? JSON.stringify(index.stacks.spec.json.layers).replace(/\s/g, '')
-    : '';
-
-  for (const { json } of index.stacks.list) {
-    const string = JSON.stringify(json);
-    const sharedString = includesSharedLayers ? JSON.stringify(index.stacks.spec.json.layers) : '';
-    allLayersJsonString += (string + sharedString).replace(/\s/g, '');
-  }
-
-  const occurrences = allLayersJsonString.split(`"referenceId":"${layerId}"`).length - 1;
-  return occurrences === 1;
+  return countLayerReferences(layerId, index, includesSharedLayers) === 1;
 }
 
 export function isValidHtmlAttribute(attribute) {
@@ -333,6 +312,39 @@ export function pickExcept(obj, ...keys) {
   }
 
   return newObj;
+}
+
+// Occurrences of `"referenceId":"<id>"` in the whitespace-stripped JSON of the shared layers and every stack,
+// counted once per index instead of re-stringifying everything for each layer.
+const referenceCountsByIndex = new WeakMap();
+
+function countLayerReferences(layerId, index, includesSharedLayers) {
+  let counts = referenceCountsByIndex.get(index);
+  if (!counts) {
+    counts = { shared: countReferences(stripped(index.stacks.spec.json.layers)), stacks: new Map() };
+    for (const { json } of index.stacks.list) {
+      for (const [id, count] of countReferences(stripped(json))) {
+        counts.stacks.set(id, (counts.stacks.get(id) ?? 0) + count);
+      }
+    }
+    referenceCountsByIndex.set(index, counts);
+  }
+
+  const sharedCopies = 1 + (includesSharedLayers ? index.stacks.list.length : 0);
+  const key = String(layerId).replace(/\s/g, '');
+  return (counts.shared.get(key) ?? 0) * sharedCopies + (counts.stacks.get(key) ?? 0);
+}
+
+function countReferences(json) {
+  const counts = new Map();
+  for (const [, id] of json.matchAll(/"referenceId":"([^"]*)"/g)) {
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function stripped(json) {
+  return json ? JSON.stringify(json).replace(/\s/g, '') : '';
 }
 
 function getType(value, lookInPrototypeChain) {

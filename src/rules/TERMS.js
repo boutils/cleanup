@@ -18,6 +18,8 @@ export default {
     const termsIds = Object.keys(terms);
     const termsList = {};
 
+    const usages = collectUsages(index.allContent);
+
     for (const [term, value] of Object.entries(index.terms.items)) {
       const split = value.split(' ');
       const icon = split[split.length - 1];
@@ -26,13 +28,13 @@ export default {
 
       const firstPart = term.split('-')[0];
       if (
-        !index.allContent.includes(`$icon('${term}')`) &&
-        !index.allContent.includes(`getIcon('${term}')`) &&
-        !index.allContent.includes(`: "${term}"`) &&
-        !index.allContent.includes(`: '${term}'`) &&
-        !index.allContent.includes(`? '${term}'`) &&
-        !index.allContent.includes(`return '${term}'`) &&
-        !index.allContent.includes(`icon: \`${firstPart}-$`)
+        !usages.icon.has(term) &&
+        !usages.getIcon.has(term) &&
+        !usages.colonDoubleQuoted.has(term) &&
+        !usages.colonSingleQuoted.has(term) &&
+        !usages.ternary.has(term) &&
+        !usages.returned.has(term) &&
+        !usages.iconTemplate.has(firstPart)
       ) {
         errors.push({
           filePath: index.terms.path,
@@ -75,3 +77,33 @@ export default {
     return { errors };
   },
 };
+
+// Each set holds every string found between a fixed prefix and the next occurrence of its suffix, so `set.has(term)` is
+// equivalent to `allContent.includes(prefix + term + suffix)` without rescanning 13 MB for every term.
+function collectUsages(allContent) {
+  return {
+    icon: collectBetween(allContent, "$icon('", "')"),
+    getIcon: collectBetween(allContent, "getIcon('", "')"),
+    colonDoubleQuoted: collectBetween(allContent, ': "', '"'),
+    colonSingleQuoted: collectBetween(allContent, ": '", "'"),
+    ternary: collectBetween(allContent, "? '", "'"),
+    returned: collectBetween(allContent, "return '", "'"),
+    iconTemplate: collectBetween(allContent, 'icon: `', '-$'),
+  };
+}
+
+function collectBetween(content, prefix, suffix) {
+  const values = new Set();
+
+  for (let from = content.indexOf(prefix); from !== -1; from = content.indexOf(prefix, from + 1)) {
+    const start = from + prefix.length;
+    const end = content.indexOf(suffix, start);
+    if (end === -1) {
+      break;
+    }
+
+    values.add(content.slice(start, end));
+  }
+
+  return values;
+}

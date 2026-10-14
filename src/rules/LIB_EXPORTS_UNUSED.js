@@ -39,23 +39,18 @@ export default {
       accumulateExports(_exports, filePath, index.byPath[filePath].content);
     }
 
-    for (const [keyword, _export] of Object.entries(_exports)) {
-      for (const filePath of filesPaths) {
-        const { content } = index.byPath[filePath];
-        if (content.includes(keyword) && filePath !== _export.filePath) {
-          _export.used = true;
-          break;
-        }
-      }
-    }
+    const isUsedElsewhere = buildUsageLookup(filesPaths, index);
 
     for (const [keyword, _export] of Object.entries(_exports)) {
       if (
-        !_export.used &&
-        !_export.filePath.includes('.stories.') &&
-        !IGNORE_FILES.includes(_export.filePath) &&
-        !_export.filePath.includes('types.ts')
+        _export.filePath.includes('.stories.') ||
+        IGNORE_FILES.includes(_export.filePath) ||
+        _export.filePath.includes('types.ts')
       ) {
+        continue;
+      }
+
+      if (!isUsedElsewhere(keyword, _export.filePath)) {
         errors.push({
           filePath: _export.filePath,
           line: _export.lineNumber,
@@ -67,6 +62,46 @@ export default {
     return { errors };
   },
 };
+
+// Equivalent to "some other file's content includes the keyword". An identifier always sits inside one maximal run of
+// identifier characters, so indexing those runs per file replaces a scan of every file for every export.
+function buildUsageLookup(filesPaths, index) {
+  const filesByToken = new Map();
+
+  for (const filePath of filesPaths) {
+    for (const token of new Set(index.byPath[filePath].content.match(/[A-Za-z0-9_$]+/g))) {
+      let files = filesByToken.get(token);
+      if (!files) {
+        files = new Set();
+        filesByToken.set(token, files);
+      }
+      files.add(filePath);
+    }
+  }
+
+  const isElsewhere = (files, ownFilePath) => files.size > 1 || !files.has(ownFilePath);
+
+  return (keyword, ownFilePath) => {
+    if (!/^[A-Za-z0-9_$]+$/.test(keyword)) {
+      return filesPaths.some(
+        (filePath) => filePath !== ownFilePath && index.byPath[filePath].content.includes(keyword)
+      );
+    }
+
+    const exactFiles = filesByToken.get(keyword);
+    if (exactFiles && isElsewhere(exactFiles, ownFilePath)) {
+      return true;
+    }
+
+    for (const [token, files] of filesByToken) {
+      if (token.includes(keyword) && isElsewhere(files, ownFilePath)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+}
 
 function accumulateExports(_exports, filePath, content) {
   const lines = content.split('\n');

@@ -6,6 +6,9 @@ export default {
   validate: (index) => {
     const filesPaths = index.byType['vue'];
 
+    const allPaths = Object.keys(index.byPath);
+    const vmcPathByTag = new Map();
+
     const errors = [];
     for (const filePath of filesPaths) {
       const { linesInfo } = index.byPath[filePath];
@@ -17,8 +20,13 @@ export default {
               continue;
             }
 
-            const relatedVmcFilePath = Object.keys(index.byPath).find((it) => it.includes(`${lineInfo.tagName}.vmc.`));
-            const { vmc } = index.byPath[relatedVmcFilePath];
+            if (!vmcPathByTag.has(lineInfo.tagName)) {
+              vmcPathByTag.set(
+                lineInfo.tagName,
+                allPaths.find((it) => it.includes(`${lineInfo.tagName}.vmc.`))
+              );
+            }
+            const { vmc } = index.byPath[vmcPathByTag.get(lineInfo.tagName)];
 
             if (!vmc.props.find((it) => it.name === attributeName) && !ignoredFiles.includes(filePath)) {
               errors.push({

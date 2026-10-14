@@ -4,6 +4,9 @@ export default {
   validate: (index) => {
     const filesPaths = index.byType['template'].concat(index.byType['vue']);
 
+    const refs = collectRunsAfter(index.allContent, '$refs.');
+    const optionalRefs = collectRunsAfter(index.allContent, '$refs?.');
+
     const errors = [];
     for (const filePath of filesPaths) {
       const { linesInfo } = index.byPath[filePath];
@@ -18,8 +21,8 @@ export default {
 
         if (
           !lineInfo.attributeNames.includes('ref') ||
-          index.allContent.includes(`$refs.${lineInfo.attributeValue}`) ||
-          index.allContent.includes(`$refs?.${lineInfo.attributeValue}`)
+          isReferenced(refs, index.allContent, '$refs.', lineInfo.attributeValue) ||
+          isReferenced(optionalRefs, index.allContent, '$refs?.', lineInfo.attributeValue)
         ) {
           continue;
         }
@@ -48,3 +51,35 @@ export default {
     return { errors };
   },
 };
+
+// `allContent.includes(prefix + value)` holds iff the identifier run right after some `prefix` starts with `value`;
+// values with other characters fall back to the plain scan.
+function isReferenced(runs, allContent, prefix, value) {
+  if (!/^[A-Za-z0-9_$]*$/.test(value)) {
+    return allContent.includes(prefix + value);
+  }
+
+  if (runs.has(value)) {
+    return true;
+  }
+
+  for (const run of runs) {
+    if (run.startsWith(value)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function collectRunsAfter(allContent, prefix) {
+  const runs = new Set();
+  const run = /[A-Za-z0-9_$]*/y;
+
+  for (let from = allContent.indexOf(prefix); from !== -1; from = allContent.indexOf(prefix, from + 1)) {
+    run.lastIndex = from + prefix.length;
+    runs.add(run.exec(allContent)[0]);
+  }
+
+  return runs;
+}

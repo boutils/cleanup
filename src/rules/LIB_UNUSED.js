@@ -12,6 +12,12 @@ export default {
   validate: (index) => {
     const filesPaths = index.byType['lib'];
 
+    // Both needles end with `';` and contain no newline, so only the lines holding `';` can match.
+    const importLines = index.allContent
+      .split('\n')
+      .filter((line) => line.includes("';"))
+      .join('\n');
+
     const errors = [];
 
     for (const filePath of filesPaths) {
@@ -29,8 +35,8 @@ export default {
       }
 
       if (
-        !index.allContent.includes(`${stringToFind}';`) &&
-        !index.allContent.includes(`./${libName}';`) &&
+        !importLines.includes(`${stringToFind}';`) &&
+        !importLines.includes(`./${libName}';`) &&
         !IGNORED_PATHS.some((ignoredPath) => filePath.includes(ignoredPath)) &&
         !IGNORED_LIBS_PATHS.includes(filePath) &&
         !libName.includes('.stories') &&

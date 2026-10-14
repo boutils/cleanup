@@ -1,13 +1,18 @@
 import Vuedoc from '@vuedoc/parser';
 import JavascriptLoader from '@vuedoc/parser/loader/javascript.js';
 import TypescriptLoader from '@vuedoc/parser/loader/typescript.js';
+import { createHash } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'scss-parser';
 import { FunctionDeclaration, TypescriptParser } from 'typescript-parser';
+import { cacheDirectory } from './cache.js';
 import { computeHTMLLineInfo } from './computeHTMLLineInfo.js';
 
 const parser = new TypescriptParser();
+const FUNCTIONS_CACHE_PATH = path.join(cacheDirectory('typescript-parser'), 'functions.json');
+// Parsed function declarations keyed by content hash: parsing every lib costs half a second, reading JSON does not.
+const functionsCache = { known: {}, seen: {} };
 const DIRECTORIES = ['.storybook', 'src', 'scripts'];
 const IGNORED_PATHS = ['src/python'];
 const KEEP_ONLY_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.scss', '.ts', '.vue', '.ipynb']);
@@ -28,6 +33,7 @@ const TS_LOADER = Vuedoc.Loader.extend('js', TypescriptLoader);
 const TAG_WITHOUT_CLOSE = new Set(['img', 'input', 'br', 'hr', 'meta', 'link']);
 
 export async function indexFiles() {
+  functionsCache.known = readFunctionsCache();
   const filesPaths = getFilesPathsFromDirectories(DIRECTORIES);
   const index = {
     allContent: '',
@@ -99,6 +105,8 @@ export async function indexFiles() {
       }
     }
   }
+
+  fs.writeFileSync(FUNCTIONS_CACHE_PATH, JSON.stringify(functionsCache.seen), 'utf8');
 
   return index;
 }
@@ -302,8 +310,24 @@ function findWatch(lines) {
 }
 
 async function getFunctions(content) {
-  const parsed = await parser.parseSource(content);
-  return parsed.declarations.filter((it) => it instanceof FunctionDeclaration);
+  const hash = createHash('sha1').update(content).digest('hex');
+
+  if (!functionsCache.known[hash]) {
+    const parsed = await parser.parseSource(content);
+    const functions = parsed.declarations.filter((it) => it instanceof FunctionDeclaration);
+    functionsCache.known[hash] = JSON.parse(JSON.stringify(functions));
+  }
+
+  functionsCache.seen[hash] = functionsCache.known[hash];
+  return functionsCache.known[hash];
+}
+
+function readFunctionsCache() {
+  try {
+    return JSON.parse(fs.readFileSync(FUNCTIONS_CACHE_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 function getImportLines(lines) {

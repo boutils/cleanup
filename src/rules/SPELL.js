@@ -1,6 +1,9 @@
 import { lint } from 'cspell';
+import path from 'node:path';
+import { cacheDirectory } from '../cache.js';
 
 const config = new URL('../../cspell/cspell.json', import.meta.url).pathname;
+const cacheLocation = path.join(cacheDirectory('cspell'), '.cspellcache');
 
 const dico = [];
 export default {
@@ -19,7 +22,7 @@ export default {
       },
     };
 
-    await lint(filePaths, { config }, reporter);
+    await lint(filePaths, { config, cache: true, cacheStrategy: 'content', cacheLocation }, reporter);
     return { errors };
   },
 };
