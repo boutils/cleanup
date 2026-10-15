@@ -13,7 +13,7 @@ export default {
       for (const [lineIndex, line] of lines.entries()) {
         const trimmedLine = line.trim();
 
-        if (EMPTY_SECTION_TO_REMOVE.includes(trimmedLine)) {
+        if (EMPTY_SECTION_TO_REMOVE.includes(trimmedLine) && trimmedLine !== "name: '',") {
           errors.push({
             filePath,
             line: lineIndex + 1,
