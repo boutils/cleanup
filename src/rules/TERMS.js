@@ -1,5 +1,7 @@
 import { getSortingError } from '../utils.js';
 
+const IGNORED = ['promote'];
+
 export default {
   validate: (index) => {
     const errors = [];
@@ -34,7 +36,8 @@ export default {
         !usages.colonSingleQuoted.has(term) &&
         !usages.ternary.has(term) &&
         !usages.returned.has(term) &&
-        !usages.iconTemplate.has(firstPart)
+        !usages.iconTemplate.has(firstPart) &&
+        !IGNORED.includes(term)
       ) {
         errors.push({
           filePath: index.terms.path,
