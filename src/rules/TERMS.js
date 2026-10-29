@@ -3,6 +3,8 @@ import { getSortingError } from '../utils.js';
 const IGNORED = ['promote'];
 
 export default {
+  appliesTo: (index) => Boolean(index.terms),
+
   validate: (index) => {
     const errors = [];
 

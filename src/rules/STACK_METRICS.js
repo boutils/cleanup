@@ -11,6 +11,8 @@ const MAX_METRICS_ALLOWED = {
 };
 
 export default {
+  appliesTo: (index) => Boolean(index.stacks.spec.json),
+
   validate: async (index) => {
     const errors = [];
 

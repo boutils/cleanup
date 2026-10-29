@@ -3,6 +3,8 @@ import { getSortingError, isLayerUsedByAnyCard } from '../utils.js';
 const COUNT_OF_DIFFERENT_PROPERTIES_TO_CONSIDER_AS_DOUBLON = 3;
 
 export default {
+  appliesTo: (index) => Boolean(index.stacks.spec.json),
+
   validate: async (index) => {
     const errors = [];
 

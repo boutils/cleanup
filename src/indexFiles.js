@@ -48,7 +48,8 @@ export async function indexFiles(filesPaths = listFiles(), { saveParseCache = tr
     allContent: '',
     allFiles: [],
     byPath: {},
-    byType: {},
+    // Every type present, even with no file of it: a project without `.html` or `.json` under src is still valid.
+    byType: Object.fromEntries([...Object.values(TYPE_FROM_EXTENSION), 'vmc'].map((type) => [type, []])),
     theme: {},
     stacks: { spec: {}, list: [], notebooks: [] },
   };

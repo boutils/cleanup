@@ -20,6 +20,12 @@ for (const rule of rules) {
     continue;
   }
 
+  // A rule about research's stacks, terms or theme has nothing to check in a project without them.
+  if (rule.appliesTo && !rule.appliesTo(index)) {
+    results.push([rule.id, []]);
+    continue;
+  }
+
   const { errors } = await rule.validate(index);
   results.push([rule.id, errors]);
 }

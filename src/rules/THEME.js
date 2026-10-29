@@ -2,6 +2,8 @@ const IGNORED = ['--v-theme-background', '--v-theme-primary', '--v-theme-error']
 const IGNORED_VARS = ['falseBooleanColor'];
 
 export default {
+  appliesTo: (index) => Boolean(index.theme.path),
+
   validate: (index) => {
     const { vars, path } = index.theme;
 

@@ -8,6 +8,8 @@ import {
 import { computeMergedLayer } from '../utils.js';
 
 export default {
+  appliesTo: (index) => Boolean(index.stacks.spec.json),
+
   validate: async (index) => {
     const errors = [];
 

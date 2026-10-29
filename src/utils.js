@@ -33,6 +33,17 @@ const IGNORED_CLASSES = [
   'syntax',
   'table',
   'theme--dark',
+  // The trading dashboards' shared look, stoic.ui's dashboards/libs/blueprint.css.
+  'bl',
+  'br',
+  'chevron',
+  'chrome',
+  'cropframe',
+  'eyebrow',
+  'panel',
+  'tick',
+  'tl',
+  'tr',
 ];
 
 const VALID_HTML_TAGS = new Set(['a', 'body', 'br', 'div', 'head', 'img', 'li', 'hr', 'p', 'span', 'style', 'u', 'ul']);

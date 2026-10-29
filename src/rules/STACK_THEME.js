@@ -1,4 +1,6 @@
 export default {
+  appliesTo: (index) => Boolean(index.stacks.spec.json),
+
   validate: async (index) => {
     const stacksFilePath = index.stacks.spec.path;
     const stacksColor = index.stacks.spec.json.theme.colors || {};

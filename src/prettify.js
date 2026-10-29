@@ -7,6 +7,10 @@ import { log } from './printReport.js';
 import ignore from 'ignore';
 
 const WORKERS = 4;
+if (!fs.existsSync('.prettierrc')) {
+  log(`No .prettierrc in ${process.cwd()}: run cleanup from the root of a UI project (its .prettierrc and src/).`, 'error');
+  process.exit(1);
+}
 const prettierOpts = JSON.parse(fs.readFileSync('.prettierrc', 'utf8'));
 const ignorePatterns = fs.readFileSync('.prettierignore', 'utf8').split('\n').filter(Boolean);
 const ig = ignore().add(ignorePatterns);
