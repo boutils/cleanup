@@ -86,6 +86,8 @@ Bowser
 bowser
 BPCP
 BPCR
+breakeven
+breakevens
 BRKB
 Brushable
 brushable
@@ -105,6 +107,7 @@ cgmy
 CGMY
 Chipset
 clarabel
+clearstreet
 clocktime
 codegen
 Coef
