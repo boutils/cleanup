@@ -82,7 +82,8 @@ function checkDecimals(type, errors, filePath, cardKey, cardIndex, layerIndex, l
       }
     }
 
-    const isFixed = metric.format?.decimals?.mode === 'fixed' || !metric.format || metric.format.mode === 'volume';
+    const isFixed =
+      metric.format?.decimals?.mode === 'fixed' || !metric.format || ['volume', 'time'].includes(metric.format.mode);
     if (!isFixed) {
       errors.push({
         filePath,
